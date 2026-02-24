@@ -21,7 +21,7 @@ export function DataTableRowActions<TData>({}: DataTableRowActionsProps<TData>) 
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="group aspect-square p-1.5 hover:border hover:border-border data-[state=open]:border-border data-[state=open]:bg-muted"
+          className="group aspect-square p-1.5 border border-transparent hover:border-border data-[state=open]:border-border data-[state=open]:bg-muted"
         >
           <MoreHorizontal
             className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground group-data-[state=open]:text-foreground"
