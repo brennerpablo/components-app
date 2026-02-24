@@ -32,6 +32,7 @@ interface DataTableProps<TData> {
   regions?: { value: string; label: string }[]
   conditions?: { value: string; label: string }[]
   currencyFormatter?: (value: number) => string
+  persistColumnOrder?: boolean
 }
 
 export function DataTable<TData>({
@@ -41,6 +42,7 @@ export function DataTable<TData>({
   regions = [],
   conditions = [],
   currencyFormatter,
+  persistColumnOrder = false,
 }: DataTableProps<TData>) {
   const pageSize = 20
   const [rowSelection, setRowSelection] = React.useState({})
@@ -73,6 +75,7 @@ export function DataTable<TData>({
           regions={regions}
           conditions={conditions}
           currencyFormatter={currencyFormatter}
+          persistColumnOrder={persistColumnOrder}
         />
         <div className="relative overflow-hidden overflow-x-auto">
           <Table>

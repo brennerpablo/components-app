@@ -36,6 +36,27 @@ import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/el
 import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder"
 import { GripVertical, SlidersHorizontal } from "lucide-react"
 
+const COOKIE_KEY = "data-table-column-order"
+
+function getCookieColumnOrder(): string[] | null {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${COOKIE_KEY}=([^;]*)`),
+  )
+  if (!match) return null
+  try {
+    return JSON.parse(decodeURIComponent(match[1]))
+  } catch {
+    return null
+  }
+}
+
+function setCookieColumnOrder(order: string[]) {
+  const expires = new Date()
+  expires.setFullYear(expires.getFullYear() + 1)
+  document.cookie = `${COOKIE_KEY}=${encodeURIComponent(JSON.stringify(order))}; expires=${expires.toUTCString()}; path=/`
+}
+
 type CleanupFn = () => void
 
 type ItemEntry = { itemId: string; element: HTMLElement }
@@ -275,23 +296,44 @@ type ListState = {
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
+  persistColumnOrder?: boolean
 }
 
-function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+function ViewOptions<TData>({
+  table,
+  persistColumnOrder = false,
+}: DataTableViewOptionsProps<TData>) {
   const tableColumns: Item[] = table.getAllColumns().map((column) => ({
     id: column.id,
     label: column.columnDef.meta?.displayName as string,
   }))
-  const [{ items, lastCardMoved }, setListState] = React.useState<ListState>({
-    items: tableColumns,
-    lastCardMoved: null,
-  })
+  const [{ items, lastCardMoved }, setListState] = React.useState<ListState>(
+    () => {
+      let initialItems = tableColumns
+      if (persistColumnOrder) {
+        const saved = getCookieColumnOrder()
+        if (saved) {
+          const savedItems = saved
+            .filter((id) => tableColumns.some((col) => col.id === id))
+            .map((id) => tableColumns.find((col) => col.id === id)!)
+          const newColumns = tableColumns.filter(
+            (col) => !saved.includes(col.id),
+          )
+          initialItems = [...savedItems, ...newColumns]
+        }
+      }
+      return { items: initialItems, lastCardMoved: null }
+    },
+  )
   const [registry] = React.useState(getItemRegistry)
 
   const [instanceId] = React.useState(() => Symbol("instance-id"))
 
   React.useEffect(() => {
     table.setColumnOrder(items.map((item) => item.id))
+    if (persistColumnOrder) {
+      setCookieColumnOrder(items.map((item) => item.id))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items])
 

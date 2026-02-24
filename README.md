@@ -165,6 +165,7 @@ export default function Page() {
 | `regions` | `{ value: string; label: string }[]` | No | Options for the region filter |
 | `conditions` | `{ value: string; label: string }[]` | No | Numeric condition options (`is-equal-to`, `is-between`, etc.) |
 | `currencyFormatter` | `(value: number) => string` | No | Custom formatter for currency columns |
+| `persistColumnOrder` | `boolean` | No | Saves column order to a cookie (`data-table-column-order`) and restores it on mount. Defaults to `false`. |
 
 **Features:**
 - Sorting on any column via `DataTableColumnHeader`
@@ -173,6 +174,7 @@ export default function Page() {
 - Row selection with indigo left-border indicator
 - Bulk action command bar (keyboard shortcuts: `e` edit · `d` delete · `Escape` clear)
 - Column visibility toggle + drag-and-drop reordering with accessibility live region announcements
+- Persistent column order via cookie (`persistColumnOrder` prop) — restored on page reload, no external library required
 - Pagination (20 rows/page) with responsive first/last buttons
 - CSV export (visible columns only, PapaParse)
 

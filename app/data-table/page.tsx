@@ -16,6 +16,7 @@ export default function DataTablePage() {
           regions={regions}
           conditions={conditions}
           currencyFormatter={formatCurrency}
+          persistColumnOrder
         />
       </div>
     </main>

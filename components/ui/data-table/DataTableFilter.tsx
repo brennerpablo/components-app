@@ -141,7 +141,7 @@ export function DataTableFilter<TData, TValue>({
               setSelectedValues(value)
             }}
           >
-            <SelectTrigger className="mt-2 h-8 text-xs">
+            <SelectTrigger className="mt-2 h-8 w-full text-xs">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
@@ -208,7 +208,7 @@ export function DataTableFilter<TData, TValue>({
                 })
               }}
             >
-              <SelectTrigger className="mt-2 h-8 text-xs">
+              <SelectTrigger className="mt-2 h-8 w-full text-xs">
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
               <SelectContent>

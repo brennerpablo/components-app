@@ -16,6 +16,7 @@ interface DataTableToolbarProps<TData> {
   regions: { value: string; label: string }[]
   conditions: { value: string; label: string }[]
   currencyFormatter?: (value: number) => string
+  persistColumnOrder?: boolean
 }
 
 export function Filterbar<TData>({
@@ -24,6 +25,7 @@ export function Filterbar<TData>({
   regions,
   conditions,
   currencyFormatter,
+  persistColumnOrder = false,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
   const [searchTerm, setSearchTerm] = useState<string>("")
@@ -103,7 +105,7 @@ export function Filterbar<TData>({
           <Download className="size-4 shrink-0" aria-hidden="true" />
           Export
         </Button>
-        <ViewOptions table={table} />
+        <ViewOptions table={table} persistColumnOrder={persistColumnOrder} />
       </div>
     </div>
   )
