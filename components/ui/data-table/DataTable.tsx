@@ -41,6 +41,7 @@ interface DataTableProps<TData> {
   pageSize?: number;
   paginationDisplayTop?: boolean;
   language?: DataTableLanguage;
+  enableTextSelection?: boolean;
 }
 
 export function DataTable<TData>({
@@ -55,6 +56,7 @@ export function DataTable<TData>({
   pageSize = 20,
   paginationDisplayTop = false,
   language = "en",
+  enableTextSelection = true,
 }: DataTableProps<TData>) {
   const locale = getLocale(language);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -135,7 +137,8 @@ export function DataTable<TData>({
                         : undefined
                     }
                     className={cn(
-                      "group select-none",
+                      "group",
+                      !enableTextSelection && "select-none",
                       enableRowSelection && "cursor-pointer hover:bg-muted/50",
                     )}
                   >

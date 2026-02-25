@@ -77,6 +77,7 @@ export default function DataTablePage() {
           // pageSize={5}
           paginationDisplayTop={false}
           language="pt"
+          enableTextSelection
         />
       </div>
     </main>
