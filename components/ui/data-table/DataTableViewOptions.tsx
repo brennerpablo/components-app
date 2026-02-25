@@ -35,6 +35,7 @@ import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/eleme
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview"
 import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder"
 import { GripVertical, SlidersHorizontal } from "lucide-react"
+import { useDataTableLocale } from "./DataTableLocaleContext"
 
 const COOKIE_KEY = "data-table-column-order"
 
@@ -133,6 +134,7 @@ function ListItem({
   column: Column<any, unknown> | undefined
 }) {
   const { registerItem, instanceId } = useListContext()
+  const locale = useDataTableLocale()
 
   const ref = React.useRef<HTMLDivElement>(null)
   const [closestEdge, setClosestEdge] = React.useState<Edge | null>(null)
@@ -248,7 +250,7 @@ function ListItem({
             variant="ghost"
             className="-mr-1 cursor-grab px-0 py-1 active:cursor-grabbing"
             ref={dragHandleRef}
-            aria-label={`Reorder ${item.label}`}
+            aria-label={locale.reorderColumn(item.label)}
           >
             <GripVertical className="size-5 text-muted-foreground" />
           </Button>
@@ -303,6 +305,7 @@ function ViewOptions<TData>({
   table,
   persistColumnOrder = false,
 }: DataTableViewOptionsProps<TData>) {
+  const locale = useDataTableLocale()
   const tableColumns: Item[] = table.getAllColumns().map((column) => ({
     id: column.id,
     label: column.columnDef.meta?.displayName as string,
@@ -426,9 +429,7 @@ function ViewOptions<TData>({
     }
 
     liveRegion.announce(
-      `You've moved ${item.label} from position ${
-        previousIndex + 1
-      } to position ${currentIndex + 1} of ${numberOfItems}.`,
+      locale.movedColumn({ label: item.label, previousIndex, currentIndex, numberOfItems }),
     )
   }, [lastCardMoved, registry])
 
@@ -462,7 +463,7 @@ function ViewOptions<TData>({
               )}
             >
               <SlidersHorizontal className="size-4" aria-hidden="true" />
-              View
+              {locale.view}
             </Button>
           </PopoverTrigger>
           <PopoverContent
@@ -470,7 +471,7 @@ function ViewOptions<TData>({
             sideOffset={7}
             className="z-50 w-fit space-y-2"
           >
-            <Label className="font-medium">Display properties</Label>
+            <Label className="font-medium">{locale.displayProperties}</Label>
             <ListContext.Provider value={contextValue}>
               <div className="flex flex-col">
                 {items.map((item, index) => {

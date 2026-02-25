@@ -1,6 +1,62 @@
-import { DataTable } from "@/components/ui/data-table"
-import { columns, formatCurrency } from "./columns"
-import { usage, statuses, regions, conditions } from "./data"
+"use client";
+
+import {
+  DataTable,
+  ColumnMetadata,
+  InferRowType,
+} from "@/components/ui/data-table";
+import { createColumns } from "./columns";
+import { data, dataRegions } from "./data";
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    value,
+  );
+
+const columnsMetadata = [
+  {
+    columnId: "owner",
+    title: "Owner",
+    type: "text",
+    sortable: true,
+    hideable: false,
+    aligned: "left",
+    filters: { text: true },
+  },
+  {
+    columnId: "region",
+    title: "Region",
+    subtitle: "Computing region",
+    type: "text",
+    sortable: true,
+    options: dataRegions,
+    filters: { checkbox: true },
+  },
+  {
+    columnId: "costs",
+    title: "Costs",
+    subtitle: "Monthly costs in USD",
+    type: "number",
+    sortable: true,
+    aligned: "left",
+    filters: { number: true },
+    formatter: (value: unknown) => (
+      <span className="font-medium tabular-nums">
+        {formatCurrency(value as number)}
+      </span>
+    ),
+    filterValueFormatter: formatCurrency,
+  },
+  {
+    columnId: "lastEdited",
+    title: "Last edited",
+    type: "text",
+    sortable: true,
+    aligned: "left",
+  },
+] as const satisfies ColumnMetadata[];
+
+type Row = InferRowType<typeof columnsMetadata>;
 
 export default function DataTablePage() {
   return (
@@ -9,16 +65,20 @@ export default function DataTablePage() {
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
           Usage Overview
         </h1>
-        <DataTable
-          columns={columns}
-          data={usage}
-          statuses={statuses}
-          regions={regions}
-          conditions={conditions}
-          currencyFormatter={formatCurrency}
+        <DataTable<Row>
+          columns={createColumns<Row>()}
+          columnsMetadata={columnsMetadata}
+          data={data}
           persistColumnOrder
+          tableName="usage_overview"
+          enableRowSelection={false}
+          enableRowActions={false}
+          enablePagination={true}
+          // pageSize={5}
+          paginationDisplayTop={false}
+          language="pt"
         />
       </div>
     </main>
-  )
+  );
 }

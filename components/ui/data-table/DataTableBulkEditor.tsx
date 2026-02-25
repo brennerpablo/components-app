@@ -4,6 +4,7 @@ import { Popover } from "radix-ui"
 import React from "react"
 import { RowSelectionState, Table } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
+import { useDataTableLocale } from "./DataTableLocaleContext"
 
 interface CommandBarProps extends React.PropsWithChildren {
   open?: boolean
@@ -175,16 +176,17 @@ function DataTableBulkEditor<TData>({
   table,
   rowSelection,
 }: DataTableBulkEditorProps<TData>) {
+  const locale = useDataTableLocale()
   const hasSelectedRows = Object.keys(rowSelection).length > 0
   return (
     <CommandBar open={hasSelectedRows}>
       <CommandBarBar>
         <CommandBarValue>
-          {Object.keys(rowSelection).length} selected
+          {Object.keys(rowSelection).length} {locale.selected}
         </CommandBarValue>
         <CommandBarSeparator />
         <CommandBarCommand
-          label="Edit"
+          label={locale.edit}
           action={() => {
             console.log("Edit")
           }}
@@ -192,7 +194,7 @@ function DataTableBulkEditor<TData>({
         />
         <CommandBarSeparator />
         <CommandBarCommand
-          label="Delete"
+          label={locale.delete}
           action={() => {
             console.log("Delete")
           }}
@@ -200,7 +202,7 @@ function DataTableBulkEditor<TData>({
         />
         <CommandBarSeparator />
         <CommandBarCommand
-          label="Reset"
+          label={locale.reset}
           action={() => {
             table.resetRowSelection()
           }}

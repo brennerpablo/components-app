@@ -7,6 +7,7 @@ import {
   ChevronsRight,
 } from "lucide-react"
 import { Table } from "@tanstack/react-table"
+import { useDataTableLocale } from "./DataTableLocaleContext"
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
@@ -17,33 +18,34 @@ export function DataTablePagination<TData>({
   table,
   pageSize,
 }: DataTablePaginationProps<TData>) {
+  const locale = useDataTableLocale()
   const paginationButtons = [
     {
       Icon: ChevronsLeft,
       onClick: () => table.setPageIndex(0),
       disabled: !table.getCanPreviousPage(),
-      srText: "First page",
+      srText: locale.firstPage,
       mobileView: "hidden sm:block",
     },
     {
       Icon: ChevronLeft,
       onClick: () => table.previousPage(),
       disabled: !table.getCanPreviousPage(),
-      srText: "Previous page",
+      srText: locale.previousPage,
       mobileView: "",
     },
     {
       Icon: ChevronRight,
       onClick: () => table.nextPage(),
       disabled: !table.getCanNextPage(),
-      srText: "Next page",
+      srText: locale.nextPage,
       mobileView: "",
     },
     {
       Icon: ChevronsRight,
       onClick: () => table.setPageIndex(table.getPageCount() - 1),
       disabled: !table.getCanNextPage(),
-      srText: "Last page",
+      srText: locale.lastPage,
       mobileView: "hidden sm:block",
     },
   ]
@@ -56,16 +58,16 @@ export function DataTablePagination<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm tabular-nums text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s)
-        selected.
+        {table.getFilteredSelectedRowModel().rows.length} of {totalRows}{" "}
+        {locale.rowsSelected}
       </div>
       <div className="flex items-center gap-x-6 lg:gap-x-8">
         <p className="hidden text-sm tabular-nums text-muted-foreground sm:block">
-          Showing{" "}
+          {locale.showing}{" "}
           <span className="font-medium text-foreground">
             {firstRowIndex}-{lastRowIndex}
           </span>{" "}
-          of{" "}
+          {locale.of}{" "}
           <span className="font-medium text-foreground">{totalRows}</span>
         </p>
         <div className="flex items-center gap-x-1.5">
@@ -73,15 +75,15 @@ export function DataTablePagination<TData>({
             <Button
               key={index}
               variant="outline"
-              size="icon"
-              className={cn(button.mobileView, "size-8")}
+              size="icon-sm"
+              className={cn(button.mobileView)}
+              aria-label={button.srText}
               onClick={() => {
                 button.onClick()
                 table.resetRowSelection()
               }}
               disabled={button.disabled}
             >
-              <span className="sr-only">{button.srText}</span>
               <button.Icon className="size-4 shrink-0" aria-hidden="true" />
             </Button>
           ))}

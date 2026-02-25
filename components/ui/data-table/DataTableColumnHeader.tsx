@@ -7,15 +7,28 @@ interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>
   title: string
+  subtitle?: string
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
+  subtitle,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cn(className)}>{title}</div>
+    return (
+      <div className={cn(className)}>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-medium leading-none">{title}</span>
+          {subtitle && (
+            <span className="text-[11px] font-normal text-muted-foreground leading-none">
+              {subtitle}
+            </span>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -27,7 +40,14 @@ export function DataTableColumnHeader<TData, TValue>({
           : "",
       )}
     >
-      <span>{title}</span>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[13px] font-medium leading-none">{title}</span>
+        {subtitle && (
+          <span className="text-[11px] font-normal text-muted-foreground leading-none">
+            {subtitle}
+          </span>
+        )}
+      </div>
       {column.getCanSort() ? (
         <div className="-space-y-2">
           <ChevronUp

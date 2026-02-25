@@ -1,53 +1,65 @@
-"use client"
+"use client";
 
-import { ChevronDown, CornerDownRight, Plus } from "lucide-react"
-import { Column } from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { ChevronDown, CornerDownRight, Plus } from "lucide-react";
+import { Column } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverClose,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import React from "react"
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import React from "react";
+import { useDataTableLocale } from "./DataTableLocaleContext";
+import { DataTableLocale } from "./i18n";
 
 export type ConditionFilter = {
-  condition: string
-  value: [number | string, number | string]
+  condition: string;
+  value: [number | string, number | string];
+};
+
+type FilterType = "select" | "checkbox" | "number";
+
+function getNumberConditions(locale: DataTableLocale) {
+  return [
+    { value: "is-equal-to", label: locale.conditionIsEqualTo },
+    { value: "is-between", label: locale.conditionIsBetween },
+    { value: "is-greater-than", label: locale.conditionIsGreaterThan },
+    { value: "is-less-than", label: locale.conditionIsLessThan },
+  ];
 }
 
-type FilterType = "select" | "checkbox" | "number"
-
 interface DataTableFilterProps<TData, TValue> {
-  column: Column<TData, TValue> | undefined
-  title?: string
+  column: Column<TData, TValue> | undefined;
+  title?: string;
   options?: {
-    label: string
-    value: string
-  }[]
-  type?: FilterType
-  formatter?: (value: any) => string
+    label: string;
+    value: string;
+  }[];
+  type?: FilterType;
+  formatter?: (value: any) => string;
 }
 
 const ColumnFiltersLabel = ({
   columnFilterLabels,
   className,
 }: {
-  columnFilterLabels: string[] | undefined
-  className?: string
+  columnFilterLabels: string[] | undefined;
+  className?: string;
 }) => {
-  if (!columnFilterLabels) return null
+  const locale = useDataTableLocale();
+  if (!columnFilterLabels) return null;
 
   if (columnFilterLabels.length < 3) {
     return (
@@ -55,73 +67,78 @@ const ColumnFiltersLabel = ({
         {columnFilterLabels.map((value, index) => (
           <span
             key={value}
-            className={cn("font-semibold text-indigo-600 dark:text-indigo-400")}
+            className={cn(
+              "font-semibold text-emerald-600 dark:text-emerald-400",
+            )}
           >
             {value}
             {index < columnFilterLabels.length - 1 && ", "}
           </span>
         ))}
       </span>
-    )
+    );
   }
 
   return (
     <>
       <span
         className={cn(
-          "font-semibold text-indigo-600 dark:text-indigo-400",
+          "font-semibold text-emerald-600 dark:text-emerald-400",
           className,
         )}
       >
-        {columnFilterLabels[0]} and {columnFilterLabels.length - 1} more
+        {columnFilterLabels[0]} {locale.filterLabelAnd} {columnFilterLabels.length - 1} more
       </span>
     </>
-  )
-}
+  );
+};
 
-type FilterValues = string | string[] | ConditionFilter | undefined
+type FilterValues = string | string[] | ConditionFilter | undefined;
 
 export function DataTableFilter<TData, TValue>({
   column,
   title,
-  options,
+  options: optionsProp,
   type = "select",
   formatter = (value) => value.toString(),
 }: DataTableFilterProps<TData, TValue>) {
-  const columnFilters = column?.getFilterValue() as FilterValues
+  const locale = useDataTableLocale();
+  const options =
+    type === "number" && !optionsProp ? getNumberConditions(locale) : optionsProp;
+  const columnFilters = column?.getFilterValue() as FilterValues;
 
   const [selectedValues, setSelectedValues] =
-    React.useState<FilterValues>(columnFilters)
+    React.useState<FilterValues>(columnFilters);
 
   const columnFilterLabels = React.useMemo(() => {
-    if (!selectedValues) return undefined
+    if (!selectedValues) return undefined;
 
     if (Array.isArray(selectedValues)) {
-      return selectedValues.map((value) => formatter(value))
+      return selectedValues.map((value) => formatter(value));
     }
 
     if (typeof selectedValues === "string") {
-      return [formatter(selectedValues)]
+      return [formatter(selectedValues)];
     }
 
     if (typeof selectedValues === "object" && "condition" in selectedValues) {
       const condition = options?.find(
         (option) => option.value === selectedValues.condition,
-      )?.label
-      if (!condition) return undefined
+      )?.label;
+      if (!condition) return undefined;
       if (!selectedValues.value?.[0] && !selectedValues.value?.[1])
-        return [`${condition}`]
+        return [`${condition}`];
       if (!selectedValues.value?.[1])
-        return [`${condition} ${formatter(selectedValues.value?.[0])}`]
+        return [`${condition} ${formatter(selectedValues.value?.[0])}`];
       return [
-        `${condition} ${formatter(selectedValues.value?.[0])} and ${formatter(
+        `${condition} ${formatter(selectedValues.value?.[0])} ${locale.rangeAnd} ${formatter(
           selectedValues.value?.[1],
         )}`,
-      ]
+      ];
     }
 
-    return undefined
-  }, [selectedValues, options, formatter])
+    return undefined;
+  }, [selectedValues, options, formatter]);
 
   const hasActiveFilter =
     selectedValues &&
@@ -129,7 +146,7 @@ export function DataTableFilter<TData, TValue>({
       "condition" in selectedValues &&
       selectedValues.condition !== "") ||
       (typeof selectedValues === "string" && selectedValues !== "") ||
-      (Array.isArray(selectedValues) && selectedValues.length > 0))
+      (Array.isArray(selectedValues) && selectedValues.length > 0));
 
   const getDisplayedFilter = () => {
     switch (type) {
@@ -138,11 +155,11 @@ export function DataTableFilter<TData, TValue>({
           <Select
             value={selectedValues as string}
             onValueChange={(value) => {
-              setSelectedValues(value)
+              setSelectedValues(value);
             }}
           >
             <SelectTrigger className="mt-2 h-8 w-full text-xs">
-              <SelectValue placeholder="Select" />
+              <SelectValue placeholder={locale.selectPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {options?.map((item) => (
@@ -152,7 +169,7 @@ export function DataTableFilter<TData, TValue>({
               ))}
             </SelectContent>
           </Select>
-        )
+        );
       case "checkbox":
         return (
           <div className="mt-2 space-y-2 overflow-y-auto sm:max-h-36">
@@ -169,13 +186,13 @@ export function DataTableFilter<TData, TValue>({
                         if (checked) {
                           return prev
                             ? [...(prev as string[]), option.value]
-                            : [option.value]
+                            : [option.value];
                         } else {
                           return (prev as string[]).filter(
                             (value) => value !== option.value,
-                          )
+                          );
                         }
-                      })
+                      });
                     }}
                   />
                   <Label
@@ -185,13 +202,13 @@ export function DataTableFilter<TData, TValue>({
                     {option.label}
                   </Label>
                 </div>
-              )
+              );
             })}
           </div>
-        )
+        );
       case "number": {
         const isBetween =
-          (selectedValues as ConditionFilter)?.condition === "is-between"
+          (selectedValues as ConditionFilter)?.condition === "is-between";
         return (
           <div className="space-y-2">
             <Select
@@ -204,12 +221,12 @@ export function DataTableFilter<TData, TValue>({
                       value !== "" ? (prev as ConditionFilter)?.value?.[0] : "",
                       "",
                     ],
-                  }
-                })
+                  };
+                });
               }}
             >
               <SelectTrigger className="mt-2 h-8 w-full text-xs">
-                <SelectValue placeholder="Select condition" />
+                <SelectValue placeholder={locale.selectConditionPlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {options?.map((item) => (
@@ -228,7 +245,7 @@ export function DataTableFilter<TData, TValue>({
               <Input
                 disabled={!(selectedValues as ConditionFilter)?.condition}
                 type="number"
-                placeholder="$0"
+                placeholder={locale.numberInputPlaceholder}
                 className="h-8 text-xs"
                 value={(selectedValues as ConditionFilter)?.value?.[0]}
                 onChange={(e) => {
@@ -239,20 +256,20 @@ export function DataTableFilter<TData, TValue>({
                         e.target.value,
                         isBetween ? (prev as ConditionFilter)?.value?.[1] : "",
                       ],
-                    }
-                  })
+                    };
+                  });
                 }}
               />
               {(selectedValues as ConditionFilter)?.condition ===
                 "is-between" && (
                 <>
                   <span className="text-xs font-medium text-muted-foreground">
-                    and
+                    {locale.rangeAnd}
                   </span>
                   <Input
                     disabled={!(selectedValues as ConditionFilter)?.condition}
                     type="number"
-                    placeholder="$0"
+                    placeholder={locale.numberInputPlaceholder}
                     className="h-8 text-xs"
                     value={(selectedValues as ConditionFilter)?.value?.[1]}
                     onChange={(e) => {
@@ -263,22 +280,22 @@ export function DataTableFilter<TData, TValue>({
                             (prev as ConditionFilter)?.value?.[0],
                             e.target.value,
                           ],
-                        }
-                      })
+                        };
+                      });
                     }}
                   />
                 </>
               )}
             </div>
           </div>
-        )
+        );
       }
     }
-  }
+  };
 
   React.useEffect(() => {
-    setSelectedValues(columnFilters)
-  }, [columnFilters])
+    setSelectedValues(columnFilters);
+  }, [columnFilters]);
 
   return (
     <Popover>
@@ -294,9 +311,9 @@ export function DataTableFilter<TData, TValue>({
             aria-hidden="true"
             onClick={(e) => {
               if (hasActiveFilter) {
-                e.stopPropagation()
-                column?.setFilterValue("")
-                setSelectedValues("")
+                e.stopPropagation();
+                column?.setFilterValue("");
+                setSelectedValues("");
               }
             }}
           >
@@ -314,10 +331,7 @@ export function DataTableFilter<TData, TValue>({
             <span className="w-full text-left sm:w-fit">{title}</span>
           )}
           {columnFilterLabels && columnFilterLabels.length > 0 && (
-            <span
-              className="h-4 w-px bg-border"
-              aria-hidden="true"
-            />
+            <span className="h-4 w-px bg-border" aria-hidden="true" />
           )}
           <ColumnFiltersLabel
             columnFilterLabels={columnFilterLabels}
@@ -342,27 +356,27 @@ export function DataTableFilter<TData, TValue>({
               "condition" in columnFilters &&
               columnFilters.condition === "")
           ) {
-            column?.setFilterValue("")
-            setSelectedValues("")
+            column?.setFilterValue("");
+            setSelectedValues("");
           }
         }}
       >
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            column?.setFilterValue(selectedValues)
+            e.preventDefault();
+            column?.setFilterValue(selectedValues);
           }}
         >
           <div className="space-y-2">
             <div>
               <Label className="text-base font-medium sm:text-sm">
-                Filter by {title}
+                {locale.filterBy(title ?? "")}
               </Label>
               {getDisplayedFilter()}
             </div>
             <PopoverClose className="w-full" asChild>
               <Button type="submit" className="w-full" size="sm">
-                Apply
+                {locale.apply}
               </Button>
             </PopoverClose>
             {columnFilterLabels && columnFilterLabels.length > 0 && (
@@ -372,22 +386,22 @@ export function DataTableFilter<TData, TValue>({
                 size="sm"
                 type="button"
                 onClick={() => {
-                  column?.setFilterValue("")
+                  column?.setFilterValue("");
                   setSelectedValues(
                     type === "checkbox"
                       ? []
                       : type === "number"
                         ? { condition: "", value: ["", ""] }
                         : "",
-                  )
+                  );
                 }}
               >
-                Reset
+                {locale.reset}
               </Button>
             )}
           </div>
         </form>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

@@ -1,19 +1,4 @@
-export type Usage = {
-  owner: string
-  status: string
-  costs: number
-  region: string
-  stability: number
-  lastEdited: string
-}
-
-export const statuses: { value: string; label: string }[] = [
-  { value: "live", label: "Live" },
-  { value: "inactive", label: "Inactive" },
-  { value: "archived", label: "Archived" },
-]
-
-export const regions: { value: string; label: string }[] = [
+export const dataRegions: { value: string; label: string }[] = [
   { value: "US-West 1", label: "US-West 1" },
   { value: "US-West 2", label: "US-West 2" },
   { value: "US-East 1", label: "US-East 1" },
@@ -21,16 +6,9 @@ export const regions: { value: string; label: string }[] = [
   { value: "EU-West 1", label: "EU-West 1" },
   { value: "EU-North 1", label: "EU-North 1" },
   { value: "EU-Central 1", label: "EU-Central 1" },
-]
+];
 
-export const conditions: { value: string; label: string }[] = [
-  { value: "is-equal-to", label: "is equal to" },
-  { value: "is-between", label: "is between" },
-  { value: "is-greater-than", label: "is greater than" },
-  { value: "is-less-than", label: "is less than" },
-]
-
-export const usage: Usage[] = [
+export const data = [
   {
     owner: "John Doe",
     status: "live",
@@ -447,4 +425,4 @@ export const usage: Usage[] = [
     stability: 21,
     lastEdited: "01/01/2022 16:18",
   },
-]
+];

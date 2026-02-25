@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Table,
@@ -7,13 +7,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { cn } from "@/lib/utils"
-import * as React from "react"
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import * as React from "react";
 
-import { DataTableBulkEditor } from "./DataTableBulkEditor"
-import { Filterbar } from "./DataTableFilterbar"
-import { DataTablePagination } from "./DataTablePagination"
+import { DataTableBulkEditor } from "./DataTableBulkEditor";
+import { Filterbar } from "./DataTableFilterbar";
+import { DataTablePagination } from "./DataTablePagination";
+import { buildColumnsFromMetadata } from "./columnBuilder";
+import { ColumnMetadata } from "./types";
+import { DataTableLocaleContext } from "./DataTableLocaleContext";
+import { DataTableLanguage, getLocale } from "./i18n";
 
 import {
   ColumnDef,
@@ -23,60 +27,78 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 interface DataTableProps<TData> {
-  columns: ColumnDef<TData>[]
-  data: TData[]
-  statuses?: { value: string; label: string }[]
-  regions?: { value: string; label: string }[]
-  conditions?: { value: string; label: string }[]
-  currencyFormatter?: (value: number) => string
-  persistColumnOrder?: boolean
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  columnsMetadata?: readonly ColumnMetadata<TData>[];
+  persistColumnOrder?: boolean;
+  tableName?: string;
+  enableRowSelection?: boolean;
+  enableRowActions?: boolean;
+  enablePagination?: boolean;
+  pageSize?: number;
+  paginationDisplayTop?: boolean;
+  language?: DataTableLanguage;
 }
 
 export function DataTable<TData>({
   columns,
   data,
-  statuses = [],
-  regions = [],
-  conditions = [],
-  currencyFormatter,
+  columnsMetadata,
   persistColumnOrder = false,
+  tableName,
+  enableRowSelection = false,
+  enableRowActions = false,
+  enablePagination = true,
+  pageSize = 20,
+  paginationDisplayTop = false,
+  language = "en",
 }: DataTableProps<TData>) {
-  const pageSize = 20
-  const [rowSelection, setRowSelection] = React.useState({})
+  const locale = getLocale(language);
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const allColumns = React.useMemo(() => {
+    if (!columnsMetadata?.length) return columns;
+    const builtCols = buildColumnsFromMetadata(columnsMetadata);
+    // columns[0] = select, columns[last] = edit/actions
+    const actionsCol = enableRowActions ? [columns[columns.length - 1]] : [];
+    if (enableRowSelection) {
+      return [columns[0], ...builtCols, ...actionsCol];
+    }
+    return [...builtCols, ...actionsCol];
+  }, [columns, columnsMetadata, enableRowSelection, enableRowActions]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
     state: {
       rowSelection,
     },
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: pageSize,
-      },
-    },
-    enableRowSelection: true,
+    ...(enablePagination && {
+      initialState: { pagination: { pageIndex: 0, pageSize } },
+      getPaginationRowModel: getPaginationRowModel(),
+    }),
+    enableRowSelection: enableRowSelection,
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-  })
+  });
 
   return (
-    <>
+    <DataTableLocaleContext.Provider value={locale}>
       <div className="space-y-3">
         <Filterbar
           table={table}
-          statuses={statuses}
-          regions={regions}
-          conditions={conditions}
-          currencyFormatter={currencyFormatter}
+          columnsMetadata={columnsMetadata}
           persistColumnOrder={persistColumnOrder}
+          tableName={tableName}
         />
+        {enablePagination && paginationDisplayTop && (
+          <DataTablePagination table={table} pageSize={pageSize} />
+        )}
         <div className="relative overflow-hidden overflow-x-auto">
           <Table>
             <TableHeader>
@@ -107,8 +129,15 @@ export function DataTable<TData>({
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    onClick={() => row.toggleSelected(!row.getIsSelected())}
-                    className="group cursor-pointer select-none hover:bg-muted/50"
+                    onClick={
+                      enableRowSelection
+                        ? () => row.toggleSelected(!row.getIsSelected())
+                        : undefined
+                    }
+                    className={cn(
+                      "group select-none",
+                      enableRowSelection && "cursor-pointer hover:bg-muted/50",
+                    )}
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <TableCell
@@ -119,9 +148,11 @@ export function DataTable<TData>({
                           cell.column.columnDef.meta?.className,
                         )}
                       >
-                        {index === 0 && row.getIsSelected() && (
-                          <div className="absolute inset-y-0 left-0 w-0.5 bg-indigo-600 dark:bg-indigo-500" />
-                        )}
+                        {index === 0 &&
+                          row.getIsSelected() &&
+                          enableRowSelection && (
+                            <div className="absolute inset-y-0 left-0 w-0.5 bg-emerald-600 dark:bg-emerald-500" />
+                          )}
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -133,19 +164,23 @@ export function DataTable<TData>({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
+                    colSpan={allColumns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    {locale.noResults}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-          <DataTableBulkEditor table={table} rowSelection={rowSelection} />
+          {enableRowSelection && (
+            <DataTableBulkEditor table={table} rowSelection={rowSelection} />
+          )}
         </div>
-        <DataTablePagination table={table} pageSize={pageSize} />
+        {enablePagination && !paginationDisplayTop && (
+          <DataTablePagination table={table} pageSize={pageSize} />
+        )}
       </div>
-    </>
-  )
+    </DataTableLocaleContext.Provider>
+  );
 }

@@ -10,12 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useDataTableLocale } from "./DataTableLocaleContext"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
 
 export function DataTableRowActions<TData>({}: DataTableRowActionsProps<TData>) {
+  const locale = useDataTableLocale()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,9 +32,9 @@ export function DataTableRowActions<TData>({}: DataTableRowActionsProps<TData>) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuItem>Add</DropdownMenuItem>
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+        <DropdownMenuItem>{locale.add}</DropdownMenuItem>
+        <DropdownMenuItem>{locale.edit}</DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive">{locale.delete}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
