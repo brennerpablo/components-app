@@ -55,16 +55,18 @@ export function buildColumnsFromMetadata<TData>(
           col.aligned === "left" && "text-left",
         ),
       },
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} />
-      ),
-      cell: ({ getValue }) => {
-        const value = getValue()
-        if (col.formatter) {
-          return col.formatter(value)
-        }
-        return String(value ?? "")
-      },
+      header: col.header
+        ? col.header
+        : ({ column }) => (
+            <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} />
+          ),
+      cell: col.cell
+        ? col.cell
+        : ({ getValue }) => {
+            const value = getValue()
+            if (col.formatter) return col.formatter(value)
+            return String(value ?? "")
+          },
     }
 
     if (col.filters?.number) {

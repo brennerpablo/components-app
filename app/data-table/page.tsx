@@ -2,16 +2,32 @@
 
 import {
   DataTable,
+  DataTableColumnHeader,
   ColumnMetadata,
-  InferRowType,
 } from "@/components/ui/data-table";
 import { createColumns } from "./columns";
 import { data } from "./data";
+import { User } from "lucide-react";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     value,
   );
+
+type Row = {
+  owner: string
+  status: string
+  region: string
+  costs: number
+  uptime: number
+  lastEdited: string
+}
+
+const statusStyles: Record<string, string> = {
+  live: "bg-emerald-100 text-emerald-700",
+  inactive: "bg-muted text-muted-foreground",
+  archived: "bg-amber-100 text-amber-700",
+};
 
 const columnsMetadata = [
   {
@@ -22,6 +38,30 @@ const columnsMetadata = [
     hideable: false,
     aligned: "left",
     filters: { text: true },
+    header: ({ column }) => (
+      <div className="flex items-center gap-1.5">
+        <User className="h-3.5 w-3.5 text-muted-foreground" />
+        <DataTableColumnHeader column={column} title="Owner" />
+      </div>
+    ),
+  },
+  {
+    columnId: "status",
+    title: "Status",
+    type: "text",
+    sortable: true,
+    inferOptions: true,
+    filters: { checkbox: true },
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      return (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[status] ?? "bg-muted text-muted-foreground"}`}
+        >
+          {status}
+        </span>
+      );
+    },
   },
   {
     columnId: "region",
@@ -66,9 +106,7 @@ const columnsMetadata = [
     sortable: true,
     aligned: "left",
   },
-] as const satisfies ColumnMetadata[];
-
-type Row = InferRowType<typeof columnsMetadata>;
+] as const satisfies ColumnMetadata<Row>[];
 
 export default function DataTablePage() {
   return (

@@ -1,3 +1,4 @@
+import { CellContext, HeaderContext } from "@tanstack/react-table"
 import { ReactNode } from "react"
 
 export type OptionItem = {
@@ -36,4 +37,6 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   aligned?: "left" | "center" | "right"
   formatter?: (value: unknown) => ReactNode
   filterValueFormatter?: (value: number) => string
+  cell?: (props: CellContext<TData, unknown>) => ReactNode
+  header?: (props: HeaderContext<TData, unknown>) => ReactNode
 }

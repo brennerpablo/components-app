@@ -154,12 +154,12 @@ export function createColumns<TData>(): ColumnDef<TData>[] {
   ];
 }
 
-// page.tsx
+// page.tsx — simple pattern (no custom cell/header)
+// Use InferRowType to derive the row type automatically from the metadata
 import { DataTable, ColumnMetadata, InferRowType } from "@/components/ui/data-table";
 import { createColumns } from "./columns";
 import { data } from "./data";
 
-// Declare metadata as const to enable type inference
 const columnsMetadata = [
   {
     columnId: "name",
@@ -167,16 +167,6 @@ const columnsMetadata = [
     type: "text",
     sortable: true,
     filters: { text: true },
-  },
-  {
-    columnId: "status",
-    title: "Status",
-    subtitle: "Current status",   // optional secondary header label
-    type: "text",
-    sortable: true,
-    options: [{ value: "active", label: "Active" }],
-    filters: { checkbox: true },
-    formatter: (value) => <Badge>{String(value)}</Badge>,
   },
   {
     columnId: "amount",
@@ -190,7 +180,6 @@ const columnsMetadata = [
   },
 ] as const satisfies ColumnMetadata[];
 
-// Derive the row type automatically from the metadata
 type Row = InferRowType<typeof columnsMetadata>;
 
 export default function Page() {
@@ -201,6 +190,92 @@ export default function Page() {
       data={data}
       tableName="fund_assets"
       language="en"
+    />
+  );
+}
+```
+
+**Custom `cell` and `header` renderers**
+
+When a column needs JSX beyond what `formatter` covers (icons, badges, data from multiple fields), use the `cell` field. Similarly, `header` fully replaces the default `DataTableColumnHeader` when you need a non-standard header.
+
+> **Note on typing:** `InferRowType` creates a circular reference when the metadata array references `Row` inside a `cell`/`header` callback. In this case, define `Row` manually and annotate with `ColumnMetadata<Row>[]` instead.
+
+```tsx
+import {
+  DataTable,
+  DataTableColumnHeader,
+  ColumnMetadata,
+} from "@/components/ui/data-table";
+import { CheckCircle2, AlertTriangle, User } from "lucide-react";
+
+// Define Row manually when using cell/header overrides
+type Row = {
+  owner: string
+  status: "live" | "inactive" | "archived"
+  pl: number
+  plMin: number
+  enquadrado: string
+}
+
+const columnsMetadata = [
+  {
+    columnId: "owner",
+    title: "Owner",
+    type: "text",
+    sortable: true,
+    filters: { text: true },
+    // custom header — wraps DataTableColumnHeader to keep sort button
+    header: ({ column }) => (
+      <div className="flex items-center gap-1.5">
+        <User className="h-3.5 w-3.5 text-muted-foreground" />
+        <DataTableColumnHeader column={column} title="Owner" />
+      </div>
+    ),
+  },
+  {
+    columnId: "status",
+    title: "Status",
+    type: "text",
+    sortable: true,
+    inferOptions: true,
+    filters: { checkbox: true },
+    // custom cell — badge with conditional colour
+    cell: ({ row }) => {
+      const s = row.original.status;
+      const styles = { live: "bg-emerald-100 text-emerald-700", inactive: "bg-muted text-muted-foreground", archived: "bg-amber-100 text-amber-700" };
+      return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${styles[s]}`}>{s}</span>;
+    },
+  },
+  {
+    columnId: "pl",
+    title: "PL",
+    subtitle: "(Min)",           // rendered below the title by DataTableColumnHeader
+    type: "number",
+    sortable: true,
+    aligned: "right",
+    filters: { number: true },
+    // custom cell — icon + value from multiple fields via row.original
+    cell: ({ row }) => (
+      <div className="flex items-center gap-1.5">
+        {row.original.enquadrado === "True"
+          ? <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+          : <AlertTriangle className="h-3 w-3 text-orange-400" />}
+        <span className="text-xs">{row.original.pl}</span>
+        <span className="text-[9px]">({row.original.plMin})</span>
+      </div>
+    ),
+  },
+] as const satisfies ColumnMetadata<Row>[];
+
+export default function Page() {
+  return (
+    <DataTable<Row>
+      columns={createColumns<Row>()}
+      columnsMetadata={columnsMetadata}
+      data={data}
+      tableName="fund_assets"
+      language="pt"
     />
   );
 }
@@ -239,13 +314,16 @@ export default function Page() {
 | `filters.checkbox`     | `boolean`                             | Multi-value checkbox filter (`arrIncludesSome`)           |
 | `filters.number`       | `boolean`                             | Condition + value filter (only for `type: "number"`)      |
 | `aligned`              | `"left" \| "center" \| "right"`       | Cell text alignment                                       |
-| `formatter`            | `(value: unknown) => ReactNode`       | Custom cell renderer                                      |
-| `filterValueFormatter` | `(value: number \| string) => string` | Formats values displayed inside the number filter popover |
+| `formatter`            | `(value: unknown) => ReactNode`                  | Simple cell renderer — receives the column's value only   |
+| `filterValueFormatter` | `(value: number \| string) => string`            | Formats values displayed inside the number filter popover |
+| `cell`                 | `(props: CellContext<TData, unknown>) => ReactNode` | Full cell renderer override — receives the complete TanStack `CellContext` (use `row.original` to access other fields). Takes precedence over `formatter`. |
+| `header`               | `(props: HeaderContext<TData, unknown>) => ReactNode` | Full header renderer override — replaces the default `DataTableColumnHeader`. Wrap `DataTableColumnHeader` inside it to keep the sort button. |
 
 **Features:**
 
 - Metadata-driven column and filter construction — add a column by adding one object to `columnsMetadata`
-- `InferRowType<typeof columnsMetadata>` utility — derive a fully-typed row type automatically from a `const` metadata array, no separate interface needed
+- `cell` and `header` overrides on any `ColumnMetadata` entry — full TanStack `CellContext`/`HeaderContext` access, including `row.original` for multi-field cells
+- `InferRowType<typeof columnsMetadata>` utility — derive a fully-typed row type automatically from a `const` metadata array; when `cell`/`header` overrides are used, define `Row` manually and annotate with `ColumnMetadata<Row>[]` instead
 - Filter types: single select, multi-checkbox, numeric condition (built-in conditions: is equal to, is between, is greater than, is less than), debounced text search
 - Row selection with emerald left-border indicator
 - Bulk action command bar (keyboard shortcuts: `e` edit · `d` delete · `Escape` clear)
