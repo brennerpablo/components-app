@@ -76,6 +76,7 @@ const columnsMetadata = [
     columnId: "costs",
     title: "Costs",
     subtitle: "Monthly costs in USD",
+    description: "Total infrastructure spend for the current billing month, calculated daily and finalized at month end.",
     type: "number",
     sortable: true,
     aligned: "left",

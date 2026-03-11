@@ -29,6 +29,7 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   columnId: keyof TData & string
   title: string
   subtitle?: string
+  description?: string
   type: ColumnType
   sortable?: boolean
   hideable?: boolean

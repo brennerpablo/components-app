@@ -1,6 +1,7 @@
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, Info } from "lucide-react"
 import { Column } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
+import { Tooltip } from "radix-ui"
 import React from "react"
 
 interface DataTableColumnHeaderProps<TData, TValue>
@@ -8,30 +9,34 @@ interface DataTableColumnHeaderProps<TData, TValue>
   column: Column<TData, TValue>
   title: string
   subtitle?: string
+  description?: string
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
   subtitle,
+  description,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  if (!column.getCanSort()) {
-    return (
-      <div className={cn(className)}>
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-medium leading-none">{title}</span>
-          {subtitle && (
-            <span className="text-[11px] font-normal text-muted-foreground leading-none">
-              {subtitle}
-            </span>
-          )}
-        </div>
-      </div>
-    )
-  }
+  const textBlock = (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[13px] font-medium leading-none">{title}</span>
+      {subtitle && (
+        <span className="text-[11px] font-normal text-muted-foreground leading-none">
+          {subtitle}
+        </span>
+      )}
+    </div>
+  )
 
-  return (
+  const infoIcon = description ? (
+    <Info className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+  ) : null
+
+  const canSort = column.getCanSort()
+
+  const content = canSort ? (
     <div
       onClick={column.getToggleSortingHandler()}
       className={cn(
@@ -40,32 +45,48 @@ export function DataTableColumnHeader<TData, TValue>({
           : "",
       )}
     >
-      <div className="flex flex-col gap-0.5">
-        <span className="text-[13px] font-medium leading-none">{title}</span>
-        {subtitle && (
-          <span className="text-[11px] font-normal text-muted-foreground leading-none">
-            {subtitle}
-          </span>
-        )}
+      {textBlock}
+      {infoIcon}
+      <div className="-space-y-2">
+        <ChevronUp
+          className={cn(
+            "size-3.5 text-foreground",
+            column.getIsSorted() === "desc" ? "opacity-30" : "",
+          )}
+          aria-hidden="true"
+        />
+        <ChevronDown
+          className={cn(
+            "size-3.5 text-foreground",
+            column.getIsSorted() === "asc" ? "opacity-30" : "",
+          )}
+          aria-hidden="true"
+        />
       </div>
-      {column.getCanSort() ? (
-        <div className="-space-y-2">
-          <ChevronUp
-            className={cn(
-              "size-3.5 text-foreground",
-              column.getIsSorted() === "desc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-          <ChevronDown
-            className={cn(
-              "size-3.5 text-foreground",
-              column.getIsSorted() === "asc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-        </div>
-      ) : null}
     </div>
+  ) : (
+    <div className={cn("flex items-center gap-1.5", className)}>
+      {textBlock}
+      {infoIcon}
+    </div>
+  )
+
+  if (!description) return content
+
+  return (
+    <Tooltip.Provider delayDuration={200}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{content}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="z-50 max-w-xs rounded-md bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+            sideOffset={6}
+          >
+            {description}
+            <Tooltip.Arrow className="fill-popover" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   )
 }

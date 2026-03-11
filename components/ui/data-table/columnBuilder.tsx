@@ -85,7 +85,7 @@ export function buildColumnsFromMetadata<TData>(
       header: col.header
         ? col.header
         : ({ column }) => (
-            <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} />
+            <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} description={col.description} />
           ),
       cell: col.cell
         ? col.cell

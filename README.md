@@ -305,6 +305,7 @@ export default function Page() {
 | `columnId`             | `keyof TData & string`                | Accessor key matching the data property                   |
 | `title`                | `string`                              | Column header label                                       |
 | `subtitle`             | `string`                              | Optional secondary label shown below the title in the header |
+| `description`          | `string`                              | Tooltip text shown on hover of an info icon in the header |
 | `type`                 | `"text" \| "number"`                  | Data type — controls available filter types               |
 | `sortable`             | `boolean`                             | Enable column sorting. Default `false`                    |
 | `hideable`             | `boolean`                             | Show in view options toggle. Default `true`               |
