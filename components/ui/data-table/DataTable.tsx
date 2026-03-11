@@ -43,6 +43,7 @@ interface DataTableProps<TData> {
   paginationDisplayTop?: boolean;
   language?: DataTableLanguage;
   enableTextSelection?: boolean;
+  bordered?: boolean;
 }
 
 export function DataTable<TData>({
@@ -59,6 +60,7 @@ export function DataTable<TData>({
   paginationDisplayTop = false,
   language = "en",
   enableTextSelection = true,
+  bordered = false,
 }: DataTableProps<TData>) {
   const locale = getLocale(language);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -122,19 +124,20 @@ export function DataTable<TData>({
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
         )}
-        <div className="relative overflow-hidden overflow-x-auto">
+        <div className={cn("relative overflow-hidden overflow-x-auto", bordered && "rounded-md border border-border")}>
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="border-y border-border bg-muted/50 hover:bg-muted/50"
+                  className={cn("border-border bg-muted/50 hover:bg-muted/50", bordered ? "border-b" : "border-y")}
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
                       className={cn(
                         "whitespace-nowrap py-2 text-sm sm:text-xs",
+                        bordered && "first:pl-4 last:pr-4",
                         header.column.columnDef.meta?.className,
                       )}
                     >
@@ -169,6 +172,7 @@ export function DataTable<TData>({
                         className={cn(
                           row.getIsSelected() ? "bg-muted/70" : "",
                           "relative whitespace-nowrap py-2 text-muted-foreground first:w-10",
+                          bordered && "first:pl-4 last:pr-4",
                           cell.column.columnDef.meta?.className,
                         )}
                       >

@@ -129,6 +129,7 @@ export default function DataTablePage() {
           paginationDisplayTop={true}
           language="pt"
           enableTextSelection
+          bordered
         />
       </div>
     </main>
