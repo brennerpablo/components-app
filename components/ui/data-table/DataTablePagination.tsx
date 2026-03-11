@@ -1,4 +1,11 @@
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import {
   ChevronsLeft,
@@ -9,23 +16,27 @@ import {
 import { Table } from "@tanstack/react-table"
 import { useDataTableLocale } from "./DataTableLocaleContext"
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200]
+
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
-  pageSize: number
+  enablePageSizeSelect?: boolean
 }
 
 export function DataTablePagination<TData>({
   table,
-  pageSize,
+  enablePageSizeSelect = true,
 }: DataTablePaginationProps<TData>) {
   const locale = useDataTableLocale()
+  const pageSize = table.getState().pagination.pageSize
+
   const paginationButtons = [
     {
       Icon: ChevronsLeft,
       onClick: () => table.setPageIndex(0),
       disabled: !table.getCanPreviousPage(),
       srText: locale.firstPage,
-      mobileView: "hidden sm:block",
+      mobileView: "hidden sm:inline-flex",
     },
     {
       Icon: ChevronLeft,
@@ -46,7 +57,7 @@ export function DataTablePagination<TData>({
       onClick: () => table.setPageIndex(table.getPageCount() - 1),
       disabled: !table.getCanNextPage(),
       srText: locale.lastPage,
-      mobileView: "hidden sm:block",
+      mobileView: "hidden sm:inline-flex",
     },
   ]
 
@@ -62,6 +73,29 @@ export function DataTablePagination<TData>({
         {locale.rowsSelected}
       </div>
       <div className="flex items-center gap-x-6 lg:gap-x-8">
+        {enablePageSizeSelect && (
+          <div className="hidden items-center gap-x-2 sm:flex">
+            <p className="text-sm text-muted-foreground">{locale.rowsPerPage}</p>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+                table.setPageIndex(0)
+              }}
+            >
+              <SelectTrigger size="sm" className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <p className="hidden text-sm tabular-nums text-muted-foreground sm:block">
           {locale.showing}{" "}
           <span className="font-medium text-foreground">

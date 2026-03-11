@@ -39,6 +39,7 @@ interface DataTableProps<TData> {
   enableRowActions?: boolean;
   enablePagination?: boolean;
   pageSize?: number;
+  enablePageSizeSelect?: boolean;
   paginationDisplayTop?: boolean;
   language?: DataTableLanguage;
   enableTextSelection?: boolean;
@@ -53,7 +54,8 @@ export function DataTable<TData>({
   enableRowSelection = false,
   enableRowActions = false,
   enablePagination = true,
-  pageSize = 20,
+  pageSize = 25,
+  enablePageSizeSelect = true,
   paginationDisplayTop = false,
   language = "en",
   enableTextSelection = true,
@@ -99,7 +101,7 @@ export function DataTable<TData>({
           tableName={tableName}
         />
         {enablePagination && paginationDisplayTop && (
-          <DataTablePagination table={table} pageSize={pageSize} />
+          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} />
         )}
         <div className="relative overflow-hidden overflow-x-auto">
           <Table>
@@ -181,7 +183,7 @@ export function DataTable<TData>({
           )}
         </div>
         {enablePagination && !paginationDisplayTop && (
-          <DataTablePagination table={table} pageSize={pageSize} />
+          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} />
         )}
       </div>
     </DataTableLocaleContext.Provider>

@@ -75,7 +75,8 @@ export default function DataTablePage() {
           enableRowActions={false}
           enablePagination={true}
           // pageSize={5}
-          paginationDisplayTop={false}
+          // enablePageSizeSelect={true}
+          paginationDisplayTop={true}
           language="pt"
           enableTextSelection
         />

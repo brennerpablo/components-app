@@ -33,6 +33,7 @@ export type DataTableLocale = {
   rowsSelected: string
   showing: string
   of: string
+  rowsPerPage: string
 
   // Row / bulk actions
   add: string
@@ -80,6 +81,7 @@ const en: DataTableLocale = {
   rowsSelected: "row(s) selected.",
   showing: "Showing",
   of: "of",
+  rowsPerPage: "Rows per page",
 
   add: "Add",
   edit: "Edit",
@@ -121,6 +123,7 @@ const pt: DataTableLocale = {
   rowsSelected: "linha(s) selecionada(s).",
   showing: "Exibindo",
   of: "de",
+  rowsPerPage: "Linhas por página",
 
   add: "Adicionar",
   edit: "Editar",
