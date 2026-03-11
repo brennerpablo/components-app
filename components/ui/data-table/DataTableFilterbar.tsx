@@ -107,6 +107,13 @@ export function Filterbar<TData>({
                   type="percentage"
                 />
               )}
+              {col.filters.date && (
+                <DataTableFilter
+                  column={column}
+                  title={col.title}
+                  type="date"
+                />
+              )}
               {col.filters.text && (
                 <TextFilterInput
                   key={`${col.columnId}-${clearKey}`}

@@ -2,7 +2,7 @@
 
 import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
-import { ConditionFilter, PercentageRangeFilter } from "./DataTableFilter"
+import { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
 import { ColumnMetadata } from "./types"
 import { cn } from "@/lib/utils"
 
@@ -36,6 +36,33 @@ export const numberConditionFilterFn: FilterFn<unknown> = (
     default:
       return true
   }
+}
+
+function parseDateValue(raw: unknown): Date | null {
+  if (raw instanceof Date) return raw
+  if (typeof raw !== "string") return null
+  // DD/MM/YYYY or DD/MM/YYYY HH:mm
+  const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/)
+  if (ddmmyyyy) return new Date(+ddmmyyyy[3], +ddmmyyyy[2] - 1, +ddmmyyyy[1])
+  const d = new Date(raw)
+  return isNaN(d.getTime()) ? null : d
+}
+
+export const dateRangeFilterFn: FilterFn<unknown> = (
+  row: Row<unknown>,
+  columnId: string,
+  filterValue: DateRangeFilter,
+) => {
+  const date = parseDateValue(row.getValue(columnId))
+  if (!date) return true
+  const { from, to } = filterValue
+  if (from && date < from) return false
+  if (to) {
+    const endOfDay = new Date(to)
+    endOfDay.setHours(23, 59, 59, 999)
+    if (date > endOfDay) return false
+  }
+  return true
 }
 
 export function buildColumnsFromMetadata<TData>(
@@ -75,6 +102,8 @@ export function buildColumnsFromMetadata<TData>(
       colDef.filterFn = "arrIncludesSome"
     } else if (col.filters?.percentage) {
       colDef.filterFn = percentageRangeFilterFn as FilterFn<TData>
+    } else if (col.filters?.date) {
+      colDef.filterFn = dateRangeFilterFn as FilterFn<TData>
     }
 
     return colDef

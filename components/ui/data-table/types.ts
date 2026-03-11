@@ -12,11 +12,12 @@ export type FilterConfig = {
   checkbox?: boolean    // multi-value checkbox filter (arrIncludesSome)
   number?: boolean      // condition + value filter (only for type "number")
   percentage?: boolean  // min/max range slider filter (0–100)
+  date?: boolean        // date range calendar filter (start/end dates)
 }
 
-export type ColumnType = "text" | "number"
+export type ColumnType = "text" | "number" | "date"
 
-type ColumnTypeMap = { text: string; number: number }
+type ColumnTypeMap = { text: string; number: number; date: Date }
 
 export type InferRowType<T extends readonly ColumnMetadata[]> = {
   [K in T[number] as K["columnId"]]: K["type"] extends keyof ColumnTypeMap

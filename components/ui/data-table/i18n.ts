@@ -20,6 +20,10 @@ export type DataTableLocale = {
   apply: string
   reset: string
 
+  // Date filter
+  dateFrom: string
+  dateTo: string
+
   // Filterbar toolbar
   searchBy: (title: string) => string
   clearFilters: string
@@ -70,6 +74,9 @@ const en: DataTableLocale = {
   apply: "Apply",
   reset: "Reset",
 
+  dateFrom: "From",
+  dateTo: "To",
+
   searchBy: (title) => `Search by ${title.toLowerCase()}...`,
   clearFilters: "Clear filters",
   export: "Export",
@@ -111,6 +118,9 @@ const pt: DataTableLocale = {
   filterBy: (title) => `Filtrar por ${title}`,
   apply: "Aplicar",
   reset: "Redefinir",
+
+  dateFrom: "De",
+  dateTo: "Até",
 
   searchBy: (title) => `Buscar por ${title.toLowerCase()}...`,
   clearFilters: "Limpar filtros",

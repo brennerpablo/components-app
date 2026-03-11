@@ -102,9 +102,10 @@ const columnsMetadata = [
   {
     columnId: "lastEdited",
     title: "Last edited",
-    type: "text",
+    type: "date",
     sortable: true,
     aligned: "left",
+    filters: { date: true },
   },
 ] as const satisfies ColumnMetadata<Row>[];
 
