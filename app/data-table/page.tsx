@@ -6,7 +6,7 @@ import {
   InferRowType,
 } from "@/components/ui/data-table";
 import { createColumns } from "./columns";
-import { data, dataRegions } from "./data";
+import { data } from "./data";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -29,7 +29,7 @@ const columnsMetadata = [
     subtitle: "Computing region",
     type: "text",
     sortable: true,
-    options: dataRegions,
+    inferOptions: true, // no need to pass options manually
     filters: { checkbox: true },
   },
   {
@@ -46,6 +46,18 @@ const columnsMetadata = [
       </span>
     ),
     filterValueFormatter: formatCurrency,
+  },
+  {
+    columnId: "uptime",
+    title: "Uptime",
+    subtitle: "Service uptime %",
+    type: "number",
+    sortable: true,
+    aligned: "left",
+    filters: { percentage: true },
+    formatter: (value: unknown) => (
+      <span className="font-medium tabular-nums">{value as number}%</span>
+    ),
   },
   {
     columnId: "lastEdited",

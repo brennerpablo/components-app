@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useDataTableLocale } from "./DataTableLocaleContext";
@@ -29,7 +30,11 @@ export type ConditionFilter = {
   value: [number | string, number | string];
 };
 
-type FilterType = "select" | "checkbox" | "number";
+export type PercentageRangeFilter = [number, number];
+
+const DEFAULT_PERCENTAGE_RANGE: PercentageRangeFilter = [0, 100];
+
+type FilterType = "select" | "checkbox" | "number" | "percentage";
 
 function getNumberConditions(locale: DataTableLocale) {
   return [
@@ -93,7 +98,7 @@ const ColumnFiltersLabel = ({
   );
 };
 
-type FilterValues = string | string[] | ConditionFilter | undefined;
+type FilterValues = string | string[] | ConditionFilter | PercentageRangeFilter | undefined;
 
 export function DataTableFilter<TData, TValue>({
   column,
@@ -112,6 +117,18 @@ export function DataTableFilter<TData, TValue>({
 
   const columnFilterLabels = React.useMemo(() => {
     if (!selectedValues) return undefined;
+
+    if (
+      type === "percentage" &&
+      Array.isArray(selectedValues) &&
+      selectedValues.length === 2 &&
+      typeof selectedValues[0] === "number"
+    ) {
+      const [min, max] = selectedValues as PercentageRangeFilter;
+      if (min === DEFAULT_PERCENTAGE_RANGE[0] && max === DEFAULT_PERCENTAGE_RANGE[1])
+        return undefined;
+      return [`${min}% – ${max}%`];
+    }
 
     if (Array.isArray(selectedValues)) {
       return selectedValues.map((value) => formatter(value));
@@ -138,7 +155,7 @@ export function DataTableFilter<TData, TValue>({
     }
 
     return undefined;
-  }, [selectedValues, options, formatter]);
+  }, [selectedValues, options, formatter, type]);
 
   const hasActiveFilter =
     selectedValues &&
@@ -146,7 +163,14 @@ export function DataTableFilter<TData, TValue>({
       "condition" in selectedValues &&
       selectedValues.condition !== "") ||
       (typeof selectedValues === "string" && selectedValues !== "") ||
-      (Array.isArray(selectedValues) && selectedValues.length > 0));
+      (type === "percentage" &&
+        Array.isArray(selectedValues) &&
+        typeof selectedValues[0] === "number" &&
+        (selectedValues[0] !== DEFAULT_PERCENTAGE_RANGE[0] ||
+          selectedValues[1] !== DEFAULT_PERCENTAGE_RANGE[1])) ||
+      (type !== "percentage" &&
+        Array.isArray(selectedValues) &&
+        selectedValues.length > 0));
 
   const getDisplayedFilter = () => {
     switch (type) {
@@ -206,6 +230,27 @@ export function DataTableFilter<TData, TValue>({
             })}
           </div>
         );
+      case "percentage": {
+        const range = (selectedValues as PercentageRangeFilter) ?? DEFAULT_PERCENTAGE_RANGE;
+        const [min, max] = range;
+        return (
+          <div className="mt-3 space-y-4">
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              value={[min, max]}
+              onValueChange={(value) => {
+                setSelectedValues(value as PercentageRangeFilter);
+              }}
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="font-medium tabular-nums">{min}%</span>
+              <span className="font-medium tabular-nums">{max}%</span>
+            </div>
+          </div>
+        );
+      }
       case "number": {
         const isBetween =
           (selectedValues as ConditionFilter)?.condition === "is-between";
@@ -312,8 +357,12 @@ export function DataTableFilter<TData, TValue>({
             onClick={(e) => {
               if (hasActiveFilter) {
                 e.stopPropagation();
-                column?.setFilterValue("");
-                setSelectedValues("");
+                column?.setFilterValue(
+                  type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : "",
+                );
+                setSelectedValues(
+                  type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : "",
+                );
               }
             }}
           >
@@ -351,7 +400,9 @@ export function DataTableFilter<TData, TValue>({
           if (
             !columnFilters ||
             (typeof columnFilters === "string" && columnFilters === "") ||
-            (Array.isArray(columnFilters) && columnFilters.length === 0) ||
+            (type !== "percentage" &&
+              Array.isArray(columnFilters) &&
+              columnFilters.length === 0) ||
             (typeof columnFilters === "object" &&
               "condition" in columnFilters &&
               columnFilters.condition === "")
@@ -386,13 +437,17 @@ export function DataTableFilter<TData, TValue>({
                 size="sm"
                 type="button"
                 onClick={() => {
-                  column?.setFilterValue("");
+                  column?.setFilterValue(
+                    type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : "",
+                  );
                   setSelectedValues(
                     type === "checkbox"
                       ? []
                       : type === "number"
                         ? { condition: "", value: ["", ""] }
-                        : "",
+                        : type === "percentage"
+                          ? DEFAULT_PERCENTAGE_RANGE
+                          : "",
                   );
                 }}
               >

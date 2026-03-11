@@ -2,9 +2,19 @@
 
 import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
-import { ConditionFilter } from "./DataTableFilter"
+import { ConditionFilter, PercentageRangeFilter } from "./DataTableFilter"
 import { ColumnMetadata } from "./types"
 import { cn } from "@/lib/utils"
+
+export const percentageRangeFilterFn: FilterFn<unknown> = (
+  row: Row<unknown>,
+  columnId: string,
+  filterValue: PercentageRangeFilter,
+) => {
+  const value = row.getValue(columnId) as number
+  const [min, max] = filterValue
+  return value >= min && value <= max
+}
 
 export const numberConditionFilterFn: FilterFn<unknown> = (
   row: Row<unknown>,
@@ -61,6 +71,8 @@ export function buildColumnsFromMetadata<TData>(
       colDef.filterFn = numberConditionFilterFn as FilterFn<TData>
     } else if (col.filters?.checkbox) {
       colDef.filterFn = "arrIncludesSome"
+    } else if (col.filters?.percentage) {
+      colDef.filterFn = percentageRangeFilterFn as FilterFn<TData>
     }
 
     return colDef

@@ -1,34 +1,36 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   ChevronsLeft,
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
-} from "lucide-react"
-import { Table } from "@tanstack/react-table"
-import { useDataTableLocale } from "./DataTableLocaleContext"
+} from "lucide-react";
+import { Table } from "@tanstack/react-table";
+import { useDataTableLocale } from "./DataTableLocaleContext";
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200]
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200];
 
 interface DataTablePaginationProps<TData> {
-  table: Table<TData>
-  enablePageSizeSelect?: boolean
+  table: Table<TData>;
+  enablePageSizeSelect?: boolean;
+  enableRowActions?: boolean;
 }
 
 export function DataTablePagination<TData>({
   table,
   enablePageSizeSelect = true,
+  enableRowActions = true,
 }: DataTablePaginationProps<TData>) {
-  const locale = useDataTableLocale()
-  const pageSize = table.getState().pagination.pageSize
+  const locale = useDataTableLocale();
+  const pageSize = table.getState().pagination.pageSize;
 
   const paginationButtons = [
     {
@@ -59,31 +61,35 @@ export function DataTablePagination<TData>({
       srText: locale.lastPage,
       mobileView: "hidden sm:inline-flex",
     },
-  ]
+  ];
 
-  const totalRows = table.getFilteredRowModel().rows.length
-  const currentPage = table.getState().pagination.pageIndex
-  const firstRowIndex = currentPage * pageSize + 1
-  const lastRowIndex = Math.min(totalRows, firstRowIndex + pageSize - 1)
+  const totalRows = table.getFilteredRowModel().rows.length;
+  const currentPage = table.getState().pagination.pageIndex;
+  const firstRowIndex = currentPage * pageSize + 1;
+  const lastRowIndex = Math.min(totalRows, firstRowIndex + pageSize - 1);
 
   return (
     <div className="flex items-center justify-between">
-      <div className="text-sm tabular-nums text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length} of {totalRows}{" "}
-        {locale.rowsSelected}
-      </div>
-      <div className="flex items-center gap-x-6 lg:gap-x-8">
+      {enableRowActions && (
+        <div className="text-sm tabular-nums text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of {totalRows}{" "}
+          {locale.rowsSelected}
+        </div>
+      )}
+      <div className={cn("flex items-center gap-x-6 lg:gap-x-8", !enableRowActions && "ml-auto")}>
         {enablePageSizeSelect && (
           <div className="hidden items-center gap-x-2 sm:flex">
-            <p className="text-sm text-muted-foreground">{locale.rowsPerPage}</p>
+            <p className="text-sm text-muted-foreground">
+              {locale.rowsPerPage}
+            </p>
             <Select
               value={String(pageSize)}
               onValueChange={(value) => {
-                table.setPageSize(Number(value))
-                table.setPageIndex(0)
+                table.setPageSize(Number(value));
+                table.setPageIndex(0);
               }}
             >
-              <SelectTrigger size="sm" className="w-20">
+              <SelectTrigger className="h-8 w-20 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -109,12 +115,12 @@ export function DataTablePagination<TData>({
             <Button
               key={index}
               variant="outline"
-              size="icon-sm"
+              size="sm"
               className={cn(button.mobileView)}
               aria-label={button.srText}
               onClick={() => {
-                button.onClick()
-                table.resetRowSelection()
+                button.onClick();
+                table.resetRowSelection();
               }}
               disabled={button.disabled}
             >
@@ -124,5 +130,5 @@ export function DataTablePagination<TData>({
         </div>
       </div>
     </div>
-  )
+  );
 }

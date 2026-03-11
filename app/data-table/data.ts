@@ -1,13 +1,3 @@
-export const dataRegions: { value: string; label: string }[] = [
-  { value: "US-West 1", label: "US-West 1" },
-  { value: "US-West 2", label: "US-West 2" },
-  { value: "US-East 1", label: "US-East 1" },
-  { value: "US-East 2", label: "US-East 2" },
-  { value: "EU-West 1", label: "EU-West 1" },
-  { value: "EU-North 1", label: "EU-North 1" },
-  { value: "EU-Central 1", label: "EU-Central 1" },
-];
-
 export const data = [
   {
     owner: "John Doe",
@@ -15,6 +5,7 @@ export const data = [
     costs: 5422.35,
     region: "US-West 1",
     stability: 99,
+    uptime: 99.82,
     lastEdited: "23/09/2023 13:00",
   },
   {
@@ -23,6 +14,7 @@ export const data = [
     costs: 6087.11,
     region: "US-East 2",
     stability: 91,
+    uptime: 87.43,
     lastEdited: "22/09/2023 10:45",
   },
   {
@@ -31,6 +23,7 @@ export const data = [
     costs: 7234.56,
     region: "EU-West 1",
     stability: 12,
+    uptime: 54.17,
     lastEdited: "17/05/2021 08:32",
   },
   {
@@ -39,6 +32,7 @@ export const data = [
     costs: 0,
     region: "US-West 2",
     stability: 0,
+    uptime: 0,
     lastEdited: "10/11/2022 15:24",
   },
   {
@@ -47,6 +41,7 @@ export const data = [
     costs: 8190.77,
     region: "US-East 1",
     stability: 8,
+    uptime: 72.65,
     lastEdited: "05/06/2023 12:16",
   },
   {
@@ -55,6 +50,7 @@ export const data = [
     costs: 7609.32,
     region: "EU-North 1",
     stability: 20,
+    uptime: 41.28,
     lastEdited: "23/01/2022 11:11",
   },
   {
@@ -63,6 +59,7 @@ export const data = [
     costs: 5204.98,
     region: "US-West 1",
     stability: 18,
+    uptime: 95.01,
     lastEdited: "14/03/2023 14:45",
   },
   {
@@ -71,6 +68,7 @@ export const data = [
     costs: 0,
     region: "EU-Central 1",
     stability: 0,
+    uptime: 0,
     lastEdited: "12/02/2023 09:12",
   },
   {
@@ -79,6 +77,7 @@ export const data = [
     costs: 9874.56,
     region: "US-East 1",
     stability: 6,
+    uptime: 63.89,
     lastEdited: "19/08/2022 16:03",
   },
   {
@@ -87,6 +86,7 @@ export const data = [
     costs: 5486.99,
     region: "EU-West 1",
     stability: 12,
+    uptime: 78.54,
     lastEdited: "29/11/2021 17:25",
   },
   {
@@ -95,6 +95,7 @@ export const data = [
     costs: 6120.45,
     region: "US-West 2",
     stability: 9,
+    uptime: 88.72,
     lastEdited: "07/12/2023 07:14",
   },
   {
@@ -103,6 +104,7 @@ export const data = [
     costs: 4834.11,
     region: "EU-Central 1",
     stability: 15,
+    uptime: 91.33,
     lastEdited: "28/04/2023 10:45",
   },
   {
@@ -111,6 +113,7 @@ export const data = [
     costs: 5302.22,
     region: "US-East 2",
     stability: 97,
+    uptime: 97.14,
     lastEdited: "03/10/2022 08:33",
   },
   {
@@ -119,6 +122,7 @@ export const data = [
     costs: 6221.54,
     region: "US-West 1",
     stability: 11,
+    uptime: 45.67,
     lastEdited: "22/07/2022 14:16",
   },
   {
@@ -127,6 +131,7 @@ export const data = [
     costs: 6129.99,
     region: "EU-North 1",
     stability: 22,
+    uptime: 33.91,
     lastEdited: "18/01/2022 12:45",
   },
   {
@@ -135,6 +140,7 @@ export const data = [
     costs: 4850.33,
     region: "US-East 1",
     stability: 13,
+    uptime: 82.46,
     lastEdited: "05/06/2021 18:33",
   },
   {
@@ -143,6 +149,7 @@ export const data = [
     costs: 7902.11,
     region: "EU-West 1",
     stability: 91,
+    uptime: 94.58,
     lastEdited: "11/05/2023 11:00",
   },
   {
@@ -151,6 +158,7 @@ export const data = [
     costs: 6789.77,
     region: "US-West 2",
     stability: 10,
+    uptime: 67.23,
     lastEdited: "19/09/2023 17:17",
   },
   {
@@ -159,6 +167,7 @@ export const data = [
     costs: 7434.22,
     region: "US-East 2",
     stability: 9,
+    uptime: 59.84,
     lastEdited: "27/03/2023 14:28",
   },
   {
@@ -167,6 +176,7 @@ export const data = [
     costs: 7290.01,
     region: "EU-Central 1",
     stability: 12,
+    uptime: 22.37,
     lastEdited: "23/11/2022 15:13",
   },
   {
@@ -175,6 +185,7 @@ export const data = [
     costs: 8921.34,
     region: "EU-North 1",
     stability: 16,
+    uptime: 76.09,
     lastEdited: "08/05/2023 08:56",
   },
   {
@@ -183,6 +194,7 @@ export const data = [
     costs: 6834.23,
     region: "US-West 1",
     stability: 8,
+    uptime: 48.52,
     lastEdited: "29/04/2022 19:27",
   },
   {
@@ -191,6 +203,7 @@ export const data = [
     costs: 0,
     region: "US-West 2",
     stability: 14,
+    uptime: 0,
     lastEdited: "30/12/2023 13:01",
   },
   {
@@ -199,6 +212,7 @@ export const data = [
     costs: 4321.56,
     region: "EU-West 1",
     stability: 5,
+    uptime: 38.76,
     lastEdited: "18/06/2021 10:49",
   },
   {
@@ -207,6 +221,7 @@ export const data = [
     costs: 5120.33,
     region: "US-East 1",
     stability: 19,
+    uptime: 15.44,
     lastEdited: "24/02/2022 14:02",
   },
   {
@@ -215,6 +230,7 @@ export const data = [
     costs: 9211.42,
     region: "EU-North 1",
     stability: 11,
+    uptime: 83.91,
     lastEdited: "22/07/2021 12:33",
   },
   {
@@ -223,6 +239,7 @@ export const data = [
     costs: 0,
     region: "US-East 2",
     stability: 6,
+    uptime: 0,
     lastEdited: "13/09/2022 16:22",
   },
   {
@@ -231,6 +248,7 @@ export const data = [
     costs: 4534.88,
     region: "US-West 1",
     stability: 17,
+    uptime: 70.18,
     lastEdited: "09/10/2023 17:44",
   },
   {
@@ -239,6 +257,7 @@ export const data = [
     costs: 8245.99,
     region: "EU-Central 1",
     stability: 9,
+    uptime: 56.35,
     lastEdited: "29/07/2022 11:56",
   },
   {
@@ -247,6 +266,7 @@ export const data = [
     costs: 7890.77,
     region: "EU-West 1",
     stability: 14,
+    uptime: 29.63,
     lastEdited: "10/11/2021 15:08",
   },
   {
@@ -255,6 +275,7 @@ export const data = [
     costs: 8911.44,
     region: "US-East 1",
     stability: 10,
+    uptime: 90.47,
     lastEdited: "06/08/2021 09:17",
   },
   {
@@ -263,6 +284,7 @@ export const data = [
     costs: 0,
     region: "EU-West 1",
     stability: 12,
+    uptime: 0,
     lastEdited: "25/05/2022 10:05",
   },
   {
@@ -271,6 +293,7 @@ export const data = [
     costs: 5500.12,
     region: "US-West 2",
     stability: 15,
+    uptime: 64.82,
     lastEdited: "07/01/2023 08:33",
   },
   {
@@ -279,6 +302,7 @@ export const data = [
     costs: 7200.98,
     region: "EU-Central 1",
     stability: 8,
+    uptime: 77.29,
     lastEdited: "21/09/2023 13:00",
   },
   {
@@ -287,6 +311,7 @@ export const data = [
     costs: 8321.56,
     region: "US-East 2",
     stability: 18,
+    uptime: 85.61,
     lastEdited: "12/06/2021 11:45",
   },
   {
@@ -295,6 +320,7 @@ export const data = [
     costs: 4534.99,
     region: "US-West 1",
     stability: 11,
+    uptime: 52.04,
     lastEdited: "30/03/2022 14:14",
   },
   {
@@ -303,6 +329,7 @@ export const data = [
     costs: 6890.11,
     region: "EU-North 1",
     stability: 7,
+    uptime: 43.77,
     lastEdited: "14/05/2023 12:36",
   },
   {
@@ -311,6 +338,7 @@ export const data = [
     costs: 7990.01,
     region: "US-East 1",
     stability: 13,
+    uptime: 93.16,
     lastEdited: "18/10/2022 09:25",
   },
   {
@@ -319,6 +347,7 @@ export const data = [
     costs: 5412.23,
     region: "EU-Central 1",
     stability: 20,
+    uptime: 18.95,
     lastEdited: "22/02/2022 15:55",
   },
   {
@@ -327,6 +356,7 @@ export const data = [
     costs: 7123.98,
     region: "US-West 2",
     stability: 9,
+    uptime: 61.43,
     lastEdited: "27/08/2023 18:33",
   },
   {
@@ -335,6 +365,7 @@ export const data = [
     costs: 6445.33,
     region: "EU-West 1",
     stability: 8,
+    uptime: 74.88,
     lastEdited: "02/07/2021 17:14",
   },
   {
@@ -343,6 +374,7 @@ export const data = [
     costs: 0,
     region: "US-East 1",
     stability: 10,
+    uptime: 0,
     lastEdited: "15/04/2023 10:45",
   },
   {
@@ -351,6 +383,7 @@ export const data = [
     costs: 7634.67,
     region: "EU-North 1",
     stability: 11,
+    uptime: 89.37,
     lastEdited: "06/09/2023 11:23",
   },
   {
@@ -359,6 +392,7 @@ export const data = [
     costs: 4900.88,
     region: "US-West 1",
     stability: 14,
+    uptime: 26.14,
     lastEdited: "20/10/2021 16:05",
   },
   {
@@ -367,6 +401,7 @@ export const data = [
     costs: 5234.44,
     region: "US-East 2",
     stability: 17,
+    uptime: 96.72,
     lastEdited: "11/11/2023 08:55",
   },
   {
@@ -375,6 +410,7 @@ export const data = [
     costs: 0,
     region: "EU-West 1",
     stability: 12,
+    uptime: 0,
     lastEdited: "18/08/2022 14:34",
   },
   {
@@ -383,6 +419,7 @@ export const data = [
     costs: 7688.55,
     region: "EU-Central 1",
     stability: 9,
+    uptime: 81.55,
     lastEdited: "22/04/2023 12:11",
   },
   {
@@ -391,6 +428,7 @@ export const data = [
     costs: 6344.89,
     region: "US-West 2",
     stability: 19,
+    uptime: 37.68,
     lastEdited: "10/02/2021 11:45",
   },
   {
@@ -399,6 +437,7 @@ export const data = [
     costs: 5003.78,
     region: "EU-West 1",
     stability: 8,
+    uptime: 69.21,
     lastEdited: "23/07/2022 14:33",
   },
   {
@@ -407,6 +446,7 @@ export const data = [
     costs: 0,
     region: "US-East 1",
     stability: 7,
+    uptime: 0,
     lastEdited: "07/05/2023 09:27",
   },
   {
@@ -415,6 +455,7 @@ export const data = [
     costs: 8432.45,
     region: "EU-Central 1",
     stability: 11,
+    uptime: 58.93,
     lastEdited: "16/03/2022 15:44",
   },
   {
@@ -423,6 +464,7 @@ export const data = [
     costs: 7120.39,
     region: "EU-North 1",
     stability: 21,
+    uptime: 11.47,
     lastEdited: "01/01/2022 16:18",
   },
 ];

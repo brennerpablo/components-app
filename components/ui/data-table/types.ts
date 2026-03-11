@@ -6,10 +6,11 @@ export type OptionItem = {
 }
 
 export type FilterConfig = {
-  text?: boolean      // debounced text search input
-  select?: boolean    // single-value dropdown filter
-  checkbox?: boolean  // multi-value checkbox filter (arrIncludesSome)
-  number?: boolean    // condition + value filter (only for type "number")
+  text?: boolean        // debounced text search input
+  select?: boolean      // single-value dropdown filter
+  checkbox?: boolean    // multi-value checkbox filter (arrIncludesSome)
+  number?: boolean      // condition + value filter (only for type "number")
+  percentage?: boolean  // min/max range slider filter (0–100)
 }
 
 export type ColumnType = "text" | "number"
@@ -30,6 +31,7 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   sortable?: boolean
   hideable?: boolean
   options?: OptionItem[]
+  inferOptions?: boolean
   filters?: FilterConfig
   aligned?: "left" | "center" | "right"
   formatter?: (value: unknown) => ReactNode

@@ -63,16 +63,35 @@ export function DataTable<TData>({
   const locale = getLocale(language);
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const enrichedMetadata = React.useMemo(() => {
+    if (!columnsMetadata?.length) return columnsMetadata;
+    return columnsMetadata.map((col) => {
+      if (!col.inferOptions) return col;
+      const seen = new Set<string>();
+      const options: { value: string; label: string }[] = [];
+      for (const row of data) {
+        const raw = (row as Record<string, unknown>)[col.columnId];
+        const val = raw == null ? "" : String(raw);
+        if (!seen.has(val)) {
+          seen.add(val);
+          options.push({ value: val, label: val });
+        }
+      }
+      options.sort((a, b) => a.label.localeCompare(b.label));
+      return { ...col, options };
+    });
+  }, [columnsMetadata, data]);
+
   const allColumns = React.useMemo(() => {
-    if (!columnsMetadata?.length) return columns;
-    const builtCols = buildColumnsFromMetadata(columnsMetadata);
+    if (!enrichedMetadata?.length) return columns;
+    const builtCols = buildColumnsFromMetadata(enrichedMetadata);
     // columns[0] = select, columns[last] = edit/actions
     const actionsCol = enableRowActions ? [columns[columns.length - 1]] : [];
     if (enableRowSelection) {
       return [columns[0], ...builtCols, ...actionsCol];
     }
     return [...builtCols, ...actionsCol];
-  }, [columns, columnsMetadata, enableRowSelection, enableRowActions]);
+  }, [columns, enrichedMetadata, enableRowSelection, enableRowActions]);
 
   const table = useReactTable({
     data,
@@ -96,12 +115,12 @@ export function DataTable<TData>({
       <div className="space-y-3">
         <Filterbar
           table={table}
-          columnsMetadata={columnsMetadata}
+          columnsMetadata={enrichedMetadata}
           persistColumnOrder={persistColumnOrder}
           tableName={tableName}
         />
         {enablePagination && paginationDisplayTop && (
-          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} />
+          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
         )}
         <div className="relative overflow-hidden overflow-x-auto">
           <Table>
@@ -183,7 +202,7 @@ export function DataTable<TData>({
           )}
         </div>
         {enablePagination && !paginationDisplayTop && (
-          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} />
+          <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
         )}
       </div>
     </DataTableLocaleContext.Provider>
