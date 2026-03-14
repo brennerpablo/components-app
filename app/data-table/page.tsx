@@ -15,13 +15,13 @@ const formatCurrency = (value: number) =>
   );
 
 type Row = {
-  owner: string
-  status: string
-  region: string
-  costs: number
-  uptime: number
-  lastEdited: string
-}
+  owner: string;
+  status: string;
+  region: string;
+  costs: number;
+  uptime: number;
+  lastEdited: string;
+};
 
 const statusStyles: Record<string, string> = {
   live: "bg-emerald-100 text-emerald-700",
@@ -76,7 +76,8 @@ const columnsMetadata = [
     columnId: "costs",
     title: "Costs",
     subtitle: "Monthly costs in USD",
-    description: "Total infrastructure spend for the current billing month, calculated daily and finalized at month end.",
+    description:
+      "Total infrastructure spend for the current billing month, calculated daily and finalized at month end.",
     type: "number",
     sortable: true,
     aligned: "left",
@@ -115,7 +116,7 @@ export default function DataTablePage() {
     <main className="p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
-          Usage Overview
+          Cloud Usage Overview
         </h1>
         <DataTable<Row>
           columns={createColumns<Row>()}

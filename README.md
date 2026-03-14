@@ -336,8 +336,95 @@ export default function Page() {
 #### Notes
 
 - Atlaskit DnD packages require `--legacy-peer-deps` due to a React 19 peer dependency conflict
-- The `radix-ui` package used here is the unified package (`import { Popover } from "radix-ui"`), not the scoped `@radix-ui/*` packages
-- Column `meta.displayName` is required for column visibility labels — the builder sets it automatically from `title`
-- To add a new filter type: add a flag to `FilterConfig` in `types.ts`, handle it in `DataTableFilter.tsx`, and render it in `DataTableFilterbar.tsx`
-- `DataTableLanguage` (`"en" | "pt"`) and `DataTableLocale` (full locale shape) are exported from the barrel — use them to extend locales or pass the `language` prop with type safety
-- To add a new language: add an entry to `dataTableLocales` in `components/ui/data-table/i18n.ts` and extend the `DataTableLanguage` union
+
+---
+
+### Heatmap
+
+A GitHub-style activity heatmap showing 52 weeks of contribution data. Cells are color-coded by intensity across 5 levels, with hover tooltips, month/weekday labels, a legend, and four built-in color schemes. Dark mode aware.
+
+**Demo:** `localhost:3000/heatmap`
+
+#### Files to copy
+
+```
+components/ui/heatmap/Heatmap.tsx
+components/ui/heatmap/types.ts
+components/ui/heatmap/index.ts
+```
+
+#### shadcn dependencies
+
+None required.
+
+#### npm dependencies
+
+```bash
+npm install date-fns
+```
+
+(`date-fns` is likely already present in any project using shadcn's Calendar component.)
+
+#### Internal dependencies
+
+| File           | Purpose                                     |
+| -------------- | ------------------------------------------- |
+| `lib/utils.ts` | `cn()` utility — already in any shadcn project |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { Heatmap } from "@/components/ui/heatmap"
+import type { HeatmapDay } from "@/components/ui/heatmap"
+
+const data: HeatmapDay[] = [
+  { date: "2025-03-01", count: 4 },
+  { date: "2025-03-02", count: 12 },
+  // ...
+]
+
+export default function Page() {
+  return (
+    <Heatmap
+      data={data}
+      colorScheme="green"
+      showWeekdayLabels
+      showMonthLabels
+      showLegend
+      weekStart={0}
+      onDayClick={(date, count) => console.log(date, count)}
+    />
+  )
+}
+```
+
+**Props:**
+
+| Prop                 | Type                                          | Default    | Description                                              |
+| -------------------- | --------------------------------------------- | ---------- | -------------------------------------------------------- |
+| `data`               | `HeatmapDay[]`                                | —          | Array of `{ date: string; count: number }` objects       |
+| `colorScheme`        | `"green" \| "blue" \| "purple" \| "orange"`  | `"green"`  | Color theme for the 5 intensity levels                   |
+| `showWeekdayLabels`  | `boolean`                                     | `true`     | Show Mon/Wed/Fri labels on the left                      |
+| `showMonthLabels`    | `boolean`                                     | `true`     | Show month abbreviations above the grid                  |
+| `showLegend`         | `boolean`                                     | `true`     | Show "Less → More" color scale below the grid            |
+| `weekStart`          | `0 \| 1`                                      | `0`        | `0` = week starts Sunday, `1` = Monday                  |
+| `className`          | `string`                                      | —          | Additional class names for the root element              |
+| `onDayClick`         | `(date: string, count: number) => void`       | —          | Called when a day cell is clicked                        |
+
+**Features:**
+
+- 52-week × 7-day CSS Grid layout, horizontally scrollable on small screens
+- 5 intensity levels (0–3, 4–7, 8–11, 12+ contributions) with distinct color steps
+- Single shared hover tooltip (fixed-position, no Radix overhead) showing date + count
+- Today indicator (outline ring on the current day's cell)
+- `useDarkMode` hook via `MutationObserver` on `document.documentElement` — reacts to `.dark` class changes instantly
+
+#### Notes
+
+- Dates outside the 52-week window are silently ignored
+- Duplicate dates in `data` are summed automatically
+- The `date` field must be in `"YYYY-MM-DD"` format; the component appends `T00:00:00` internally to avoid timezone-related off-by-one errors when formatting
