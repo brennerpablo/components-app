@@ -442,6 +442,102 @@ export default function Page() {
 
 ---
 
+### Tabs
+
+Accessible tabbed navigation built on Radix UI Tabs primitives. Supports `line` (underline indicator) and `solid` (pill with background) variants, icon support inside triggers, disabled states, and full keyboard navigation.
+
+**Demo:** `localhost:3000/tabs`
+
+#### Files to copy
+
+```
+components/ui/tabs.tsx
+```
+
+#### shadcn dependencies
+
+None required.
+
+#### npm dependencies
+
+None — uses `radix-ui` (unified package), which is a peer dependency of any shadcn/ui setup.
+
+#### Internal dependencies
+
+| File           | Purpose                                     |
+| -------------- | ------------------------------------------- |
+| `lib/utils.ts` | `cn()` utility — already in any shadcn project |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
+<Tabs defaultValue="overview">
+  <TabsList variant="line">
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+    <TabsTrigger value="settings">Settings</TabsTrigger>
+    <TabsTrigger value="billing" disabled>Billing</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">Overview content</TabsContent>
+  <TabsContent value="settings">Settings content</TabsContent>
+  <TabsContent value="billing">Billing content</TabsContent>
+</Tabs>
+```
+
+**Props:**
+
+`Tabs` (root):
+
+| Prop            | Type                       | Default | Description                                  |
+| --------------- | -------------------------- | ------- | -------------------------------------------- |
+| `defaultValue`  | `string`                   | —       | Initially active tab value (uncontrolled)    |
+| `value`         | `string`                   | —       | Controlled active tab value                  |
+| `onValueChange` | `(value: string) => void`  | —       | Callback fired when the active tab changes   |
+| `className`     | `string`                   | —       | Additional CSS classes on the root element   |
+
+`TabsList`:
+
+| Prop        | Type                  | Default    | Description                                                                              |
+| ----------- | --------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `variant`   | `"line" \| "solid"`   | `"line"`   | `"line"` uses a border-bottom underline; `"solid"` uses a pill container with background |
+| `className` | `string`              | —          | Additional CSS classes                                                                   |
+
+`TabsTrigger`:
+
+| Prop        | Type      | Default | Description                               |
+| ----------- | --------- | ------- | ----------------------------------------- |
+| `value`     | `string`  | —       | Identifier for this tab (required)        |
+| `disabled`  | `boolean` | `false` | Disables interaction with the trigger     |
+| `className` | `string`  | —       | Additional CSS classes                    |
+
+`TabsContent`:
+
+| Prop        | Type     | Default | Description                                            |
+| ----------- | -------- | ------- | ------------------------------------------------------ |
+| `value`     | `string` | —       | Must match the corresponding `TabsTrigger` value (required) |
+| `className` | `string` | —       | Additional CSS classes                                 |
+
+**Features:**
+
+- Two visual variants: `line` (underline indicator) and `solid` (pill/card active state)
+- Icon support — place any `lucide-react` icon as a child of `TabsTrigger`
+- Disabled triggers via the `disabled` prop
+- Full keyboard navigation (arrow keys, Home/End) inherited from Radix UI
+- Variant context passed automatically from `TabsList` to `TabsTrigger` — no extra prop threading needed
+- All sub-components accept `className` for full styling override
+
+#### Notes
+
+- Import as named exports: `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`
+- `radix-ui` must be installed (`npm install radix-ui`)
+
+---
+
 ### ComponentDoc
 
 An in-page documentation block rendered at the bottom of demo pages. Shows a usage code snippet with a copy button and a props table. Follows the component's own props-driven API standard.

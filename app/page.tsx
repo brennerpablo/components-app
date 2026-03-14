@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, BarChart2, TableProperties } from "lucide-react";
+import { ArrowUpRight, BarChart2, PanelTop, TableProperties } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -29,6 +29,19 @@ const sections = [
         href: "/status-map",
         icon: BarChart2,
         tags: ["StatusMap", "date-fns", "Dark Mode"],
+      },
+    ],
+  },
+  {
+    title: "UI",
+    components: [
+      {
+        title: "Tabs",
+        description:
+          "Accessible tabbed navigation with line and solid variants. Supports icons, disabled states, and keyboard navigation.",
+        href: "/ui/tabs",
+        icon: PanelTop,
+        tags: ["Radix UI", "Line", "Solid"],
       },
     ],
   },
