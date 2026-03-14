@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 import { useDataTableLocale } from "./DataTableLocaleContext";
 import { DataTableLocale } from "./i18n";
+import { resolveAccentColor } from "./types";
 
 export type ConditionFilter = {
   condition: string;
@@ -39,6 +40,32 @@ export type DateRangeFilter = { from: Date | undefined; to: Date | undefined };
 
 const DEFAULT_PERCENTAGE_RANGE: PercentageRangeFilter = [0, 100];
 const DEFAULT_DATE_RANGE: DateRangeFilter = { from: undefined, to: undefined };
+
+function getEmptyValue(type: FilterType): FilterValues {
+  switch (type) {
+    case "percentage": return DEFAULT_PERCENTAGE_RANGE;
+    case "date": return DEFAULT_DATE_RANGE;
+    case "checkbox": return [];
+    case "number": return { condition: "", value: ["", ""] };
+    default: return "";
+  }
+}
+
+function isFilterActive(type: FilterType, value: FilterValues): boolean {
+  if (value === undefined || value === null) return false;
+  if (type === "date") {
+    const d = value as DateRangeFilter;
+    return d.from !== undefined || d.to !== undefined;
+  }
+  if (type === "percentage") {
+    const [min, max] = value as PercentageRangeFilter;
+    return min !== DEFAULT_PERCENTAGE_RANGE[0] || max !== DEFAULT_PERCENTAGE_RANGE[1];
+  }
+  if (typeof value === "string") return value !== "";
+  if (typeof value === "object" && "condition" in value) return (value as ConditionFilter).condition !== "";
+  if (Array.isArray(value)) return value.length > 0;
+  return false;
+}
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -232,6 +259,7 @@ interface DataTableFilterProps<TData, TValue> {
   }[];
   type?: FilterType;
   formatter?: (value: string | number) => string;
+  accentColor?: string;
 }
 
 const ColumnFiltersLabel = ({
@@ -250,9 +278,8 @@ const ColumnFiltersLabel = ({
         {columnFilterLabels.map((value, index) => (
           <span
             key={value}
-            className={cn(
-              "font-semibold text-emerald-600 dark:text-emerald-400",
-            )}
+            className="font-semibold"
+            style={{ color: "var(--dt-accent)" }}
           >
             {value}
             {index < columnFilterLabels.length - 1 && ", "}
@@ -263,17 +290,13 @@ const ColumnFiltersLabel = ({
   }
 
   return (
-    <>
-      <span
-        className={cn(
-          "font-semibold text-emerald-600 dark:text-emerald-400",
-          className,
-        )}
-      >
-        {columnFilterLabels[0]} {locale.filterLabelAnd}{" "}
-        {columnFilterLabels.length - 1} more
-      </span>
-    </>
+    <span
+      className={cn("font-semibold", className)}
+      style={{ color: "var(--dt-accent)" }}
+    >
+      {columnFilterLabels[0]} {locale.filterLabelAnd}{" "}
+      {columnFilterLabels.length - 1} {locale.filterLabelMore}
+    </span>
   );
 };
 
@@ -283,6 +306,7 @@ export function DataTableFilter<TData, TValue>({
   options: optionsProp,
   type = "select",
   formatter = (value) => value.toString(),
+  accentColor,
 }: DataTableFilterProps<TData, TValue>) {
   const locale = useDataTableLocale();
   const options =
@@ -350,26 +374,7 @@ export function DataTableFilter<TData, TValue>({
     return undefined;
   }, [selectedValues, options, formatter, type, locale.rangeAnd]);
 
-  const hasActiveFilter =
-    selectedValues &&
-    ((type === "date" &&
-      typeof selectedValues === "object" &&
-      !Array.isArray(selectedValues) &&
-      "from" in selectedValues &&
-      ((selectedValues as DateRangeFilter).from !== undefined ||
-        (selectedValues as DateRangeFilter).to !== undefined)) ||
-      (typeof selectedValues === "object" &&
-        "condition" in selectedValues &&
-        selectedValues.condition !== "") ||
-      (typeof selectedValues === "string" && selectedValues !== "") ||
-      (type === "percentage" &&
-        Array.isArray(selectedValues) &&
-        typeof selectedValues[0] === "number" &&
-        (selectedValues[0] !== DEFAULT_PERCENTAGE_RANGE[0] ||
-          selectedValues[1] !== DEFAULT_PERCENTAGE_RANGE[1])) ||
-      (type !== "percentage" &&
-        Array.isArray(selectedValues) &&
-        selectedValues.length > 0));
+  const hasActiveFilter = isFilterActive(type, selectedValues);
 
   const getDisplayedFilter = () => {
     switch (type) {
@@ -445,15 +450,17 @@ export function DataTableFilter<TData, TValue>({
         const [min, max] = range;
         return (
           <div className="mt-3 space-y-4">
-            <Slider
-              min={0}
-              max={100}
-              step={1}
-              value={[min, max]}
-              onValueChange={(value) => {
-                setSelectedValues(value as PercentageRangeFilter);
-              }}
-            />
+            <div style={{ "--primary": "var(--dt-accent)" } as React.CSSProperties}>
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[min, max]}
+                onValueChange={(value) => {
+                  setSelectedValues(value as PercentageRangeFilter);
+                }}
+              />
+            </div>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="font-medium tabular-nums">{min}%</span>
               <span className="font-medium tabular-nums">{max}%</span>
@@ -558,21 +565,26 @@ export function DataTableFilter<TData, TValue>({
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-x-1.5 whitespace-nowrap rounded-md border border-border px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted sm:w-fit sm:text-xs",
-            hasActiveFilter ? "" : "border-dashed",
+            "flex w-full items-center gap-x-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted sm:w-fit sm:text-xs",
+            hasActiveFilter ? "" : "border-dashed border-border",
           )}
+          style={
+            hasActiveFilter
+              ? {
+                  backgroundColor:
+                    "color-mix(in srgb, var(--dt-accent) 10%, transparent)",
+                  borderColor:
+                    "color-mix(in srgb, var(--dt-accent) 35%, transparent)",
+                }
+              : undefined
+          }
         >
           <span
             aria-hidden="true"
             onClick={(e) => {
               if (hasActiveFilter) {
                 e.stopPropagation();
-                const emptyValue =
-                  type === "percentage"
-                    ? DEFAULT_PERCENTAGE_RANGE
-                    : type === "date"
-                      ? DEFAULT_DATE_RANGE
-                      : "";
+                const emptyValue = getEmptyValue(type);
                 column?.setFilterValue(emptyValue);
                 setSelectedValues(emptyValue);
               }
@@ -613,32 +625,13 @@ export function DataTableFilter<TData, TValue>({
             ? "sm:w-fit sm:min-w-0 sm:max-w-none"
             : "sm:min-w-56 sm:max-w-56",
         )}
+        style={
+          { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
+        }
         onInteractOutside={() => {
-          const hasNoCommittedFilter =
-            !columnFilters ||
-            (typeof columnFilters === "string" && columnFilters === "") ||
-            (type !== "percentage" &&
-              Array.isArray(columnFilters) &&
-              columnFilters.length === 0) ||
-            (typeof columnFilters === "object" &&
-              "condition" in columnFilters &&
-              columnFilters.condition === "") ||
-            (type === "date" &&
-              typeof columnFilters === "object" &&
-              !Array.isArray(columnFilters) &&
-              "from" in columnFilters &&
-              !(columnFilters as DateRangeFilter).from &&
-              !(columnFilters as DateRangeFilter).to);
-
-          if (hasNoCommittedFilter) {
+          if (!isFilterActive(type, columnFilters)) {
             column?.setFilterValue(undefined);
-            const defaultValue =
-              type === "percentage"
-                ? DEFAULT_PERCENTAGE_RANGE
-                : type === "date"
-                  ? DEFAULT_DATE_RANGE
-                  : "";
-            setSelectedValues(defaultValue);
+            setSelectedValues(getEmptyValue(type));
           } else {
             setSelectedValues(columnFilters);
           }
@@ -658,7 +651,15 @@ export function DataTableFilter<TData, TValue>({
               {getDisplayedFilter()}
             </div>
             <PopoverClose className="w-full" asChild>
-              <Button type="submit" className="w-full" size="sm">
+              <Button
+                type="submit"
+                className="w-full"
+                size="sm"
+                style={{
+                  backgroundColor: "var(--dt-accent)",
+                  borderColor: "var(--dt-accent)",
+                }}
+              >
                 {locale.apply}
               </Button>
             </PopoverClose>
@@ -669,24 +670,9 @@ export function DataTableFilter<TData, TValue>({
                 size="sm"
                 type="button"
                 onClick={() => {
-                  const emptyValue =
-                    type === "percentage"
-                      ? DEFAULT_PERCENTAGE_RANGE
-                      : type === "date"
-                        ? DEFAULT_DATE_RANGE
-                        : "";
+                  const emptyValue = getEmptyValue(type);
                   column?.setFilterValue(emptyValue);
-                  setSelectedValues(
-                    type === "checkbox"
-                      ? []
-                      : type === "number"
-                        ? { condition: "", value: ["", ""] }
-                        : type === "percentage"
-                          ? DEFAULT_PERCENTAGE_RANGE
-                          : type === "date"
-                            ? DEFAULT_DATE_RANGE
-                            : "",
-                  );
+                  setSelectedValues(emptyValue);
                 }}
               >
                 {locale.reset}

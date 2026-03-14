@@ -1,6 +1,18 @@
 import { CellContext, HeaderContext } from "@tanstack/react-table"
 import { ReactNode } from "react"
 
+export function resolveAccentColor(accentColor?: string): string {
+  if (!accentColor) return "var(--color-zinc-800)";
+  if (
+    accentColor.startsWith("#") ||
+    accentColor.startsWith("rgb") ||
+    accentColor.startsWith("hsl")
+  ) {
+    return accentColor;
+  }
+  return `var(--color-${accentColor})`;
+}
+
 export type OptionItem = {
   value: string
   label: string

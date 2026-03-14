@@ -6,7 +6,6 @@ export function DataTableDocs() {
       title="DataTable"
       description="A flexible data table with sorting, filtering, pagination, row selection, and column visibility."
       usage={`import { DataTable, ColumnMetadata } from "@/components/ui/data-table"
-import { createColumns } from "./columns"
 
 type Row = { name: string; status: string; cost: number }
 
@@ -17,7 +16,6 @@ const columnsMetadata = [
 ] as const satisfies ColumnMetadata<Row>[]
 
 <DataTable<Row>
-  columns={createColumns<Row>()}
   columnsMetadata={columnsMetadata}
   data={data}
   bordered
@@ -118,6 +116,24 @@ const columnsMetadata = [
               default: '"default"',
               description:
                 'Visual style preset. "ghost" removes all background colors and row dividers, keeping only the outer border when bordered is true.',
+            },
+            {
+              name: "accentColor",
+              type: "string",
+              description:
+                "Accent color applied to active filter button backgrounds, filter value labels, the row-selection indicator bar, and the clear-filters button. Accepts a Tailwind color token (e.g. \"blue-600\") or any CSS color value (e.g. \"#3b82f6\"). Defaults to zinc-800.",
+            },
+            {
+              name: "onRowAction",
+              type: "{ onAdd?: (row: TData) => void; onEdit?: (row: TData) => void; onDelete?: (row: TData) => void }",
+              description:
+                "Callbacks for the per-row action dropdown (requires enableRowActions). Only menu items with a corresponding callback are rendered.",
+            },
+            {
+              name: "onBulkAction",
+              type: "{ onEdit?: (rows: TData[]) => void; onDelete?: (rows: TData[]) => void }",
+              description:
+                "Callbacks for the bulk editor toolbar (requires enableRowSelection). Edit and Delete commands are disabled when the corresponding callback is not provided.",
             },
           ],
         },

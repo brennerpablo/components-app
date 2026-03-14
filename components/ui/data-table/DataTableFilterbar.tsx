@@ -47,6 +47,7 @@ interface DataTableToolbarProps<TData> {
   columnsMetadata?: readonly ColumnMetadata<TData>[];
   persistColumnOrder?: boolean;
   tableName?: string;
+  accentColor?: string;
 }
 
 export function Filterbar<TData>({
@@ -54,6 +55,7 @@ export function Filterbar<TData>({
   columnsMetadata,
   persistColumnOrder = false,
   tableName,
+  accentColor,
 }: DataTableToolbarProps<TData>) {
   const locale = useDataTableLocale();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -80,6 +82,7 @@ export function Filterbar<TData>({
                   title={col.title}
                   options={col.options}
                   type="select"
+                  accentColor={accentColor}
                 />
               )}
               {col.filters.checkbox && (
@@ -88,6 +91,7 @@ export function Filterbar<TData>({
                   title={col.title}
                   options={col.options}
                   type="checkbox"
+                  accentColor={accentColor}
                 />
               )}
               {col.filters.number && (
@@ -100,6 +104,7 @@ export function Filterbar<TData>({
                       ? (value) => col.filterValueFormatter!(Number(value))
                       : undefined
                   }
+                  accentColor={accentColor}
                 />
               )}
               {col.filters.percentage && (
@@ -107,6 +112,7 @@ export function Filterbar<TData>({
                   column={column}
                   title={col.title}
                   type="percentage"
+                  accentColor={accentColor}
                 />
               )}
               {col.filters.date && (
@@ -114,6 +120,7 @@ export function Filterbar<TData>({
                   column={column}
                   title={col.title}
                   type="date"
+                  accentColor={accentColor}
                 />
               )}
               {col.filters.text && (
@@ -130,7 +137,8 @@ export function Filterbar<TData>({
           <Button
             variant="ghost"
             onClick={handleClearFilters}
-            className="border border-border px-2 font-semibold text-emerald-600 sm:border-none sm:py-1 dark:text-emerald-500"
+            className="border border-border px-2 font-semibold sm:border-none sm:py-1"
+            style={{ color: "var(--dt-accent)" }}
             size="sm"
           >
             {locale.clearFilters}

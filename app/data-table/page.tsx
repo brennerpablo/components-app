@@ -128,12 +128,10 @@ export default function DataTablePage() {
           enableRowActions={false}
           enablePagination={true}
           pageSize={10}
-          // enablePageSizeSelect={true}
           paginationDisplayTop={true}
           language="pt"
           enableTextSelection
           bordered
-          // tableStyle="ghost"
         />
         <DataTableDocs />
       </div>

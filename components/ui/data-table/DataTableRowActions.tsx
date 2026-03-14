@@ -15,9 +15,17 @@ import { useDataTableLocale } from "./DataTableLocaleContext"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
+  onAdd?: (row: TData) => void
+  onEdit?: (row: TData) => void
+  onDelete?: (row: TData) => void
 }
 
-export function DataTableRowActions<TData>({}: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions<TData>({
+  row,
+  onAdd,
+  onEdit,
+  onDelete,
+}: DataTableRowActionsProps<TData>) {
   const locale = useDataTableLocale()
   return (
     <DropdownMenu>
@@ -33,9 +41,24 @@ export function DataTableRowActions<TData>({}: DataTableRowActionsProps<TData>) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuItem>{locale.add}</DropdownMenuItem>
-        <DropdownMenuItem>{locale.edit}</DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive">{locale.delete}</DropdownMenuItem>
+        {onAdd && (
+          <DropdownMenuItem onClick={() => onAdd(row.original)}>
+            {locale.add}
+          </DropdownMenuItem>
+        )}
+        {onEdit && (
+          <DropdownMenuItem onClick={() => onEdit(row.original)}>
+            {locale.edit}
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={() => onDelete(row.original)}
+          >
+            {locale.delete}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

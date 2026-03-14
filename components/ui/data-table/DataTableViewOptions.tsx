@@ -450,47 +450,41 @@ function ViewOptions<TData>({
   }, [registry.register, reorderItem, instanceId, getListLength])
 
   return (
-    <div>
-      <div className="flex justify-center">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                "ml-auto hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex",
-              )}
-            >
-              <SlidersHorizontal className="size-4" aria-hidden="true" />
-              {locale.view}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            sideOffset={7}
-            className="z-50 w-fit space-y-2"
-          >
-            <Label className="font-medium">{locale.displayProperties}</Label>
-            <ListContext.Provider value={contextValue}>
-              <div className="flex flex-col">
-                {items.map((item, index) => {
-                  const column = table.getColumn(item.id)
-                  if (!column) return null
-                  return (
-                    <div
-                      key={column.id}
-                      className={cn(!column.getCanHide() && "hidden")}
-                    >
-                      <ListItem column={column} item={item} index={index} />
-                    </div>
-                  )
-                })}
-              </div>
-            </ListContext.Provider>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+        >
+          <SlidersHorizontal className="size-4" aria-hidden="true" />
+          {locale.view}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={7}
+        className="z-50 w-fit space-y-2"
+      >
+        <Label className="font-medium">{locale.displayProperties}</Label>
+        <ListContext.Provider value={contextValue}>
+          <div className="flex flex-col">
+            {items.map((item, index) => {
+              const column = table.getColumn(item.id)
+              if (!column) return null
+              return (
+                <div
+                  key={column.id}
+                  className={cn(!column.getCanHide() && "hidden")}
+                >
+                  <ListItem column={column} item={item} index={index} />
+                </div>
+              )
+            })}
+          </div>
+        </ListContext.Provider>
+      </PopoverContent>
+    </Popover>
   )
 }
 

@@ -6,6 +6,62 @@ Personal component library built with Next.js + React + shadcn/ui. Components ar
 
 ---
 
+## Agent Skills — Copying Components Efficiently
+
+This section is written for AI coding agents. Follow this protocol to copy or update a component with no wasted steps.
+
+### 1. Read the component entry first
+
+Each component section contains everything needed. Before touching any files, read the entry for the component you want:
+
+- **Files to copy** — exact paths relative to this repo root
+- **shadcn dependencies** — run these in the target project before pasting files
+- **npm dependencies** — install these in the target project
+- **Internal dependencies** — files outside the component folder (e.g. `lib/`) that must also be copied
+- **Type augmentations** — `.d.ts` files that extend third-party modules; copy alongside the component files
+
+### 2. Install dependencies first (order matters)
+
+Run shadcn and npm installs in the target project **before** copying files. If the target already has shadcn set up, `npx shadcn@latest add` is safe to re-run — it skips already-present primitives.
+
+```
+1. npx shadcn@latest add <primitives>    # generates shadcn primitives
+2. npm install <packages>                # installs npm deps
+3. Copy files from this repo             # paste component files
+```
+
+> If Atlaskit DnD packages are listed, always use `--legacy-peer-deps`.
+
+### 3. Copy files at the exact same paths
+
+Preserve the directory structure. A component at `components/ui/data-table/DataTable.tsx` here should land at the same path in the target. The barrel `index.ts` must be included — imports reference it.
+
+### 4. Check for internal dependencies
+
+Any file listed under **Internal dependencies** that is not `lib/utils.ts` must also be copied. `lib/utils.ts` is assumed present in every shadcn project and can be skipped.
+
+### 5. Apply type augmentations
+
+Files listed under **Type augmentations** (e.g. `TanstackTable.d.ts`) extend third-party module types. Copy them into the same path in the target project. They must be included in `tsconfig.json`'s `include` glob (the default `"**/*.d.ts"` covers it).
+
+### 6. Verify
+
+After copying, confirm:
+- No missing import errors (check `@/components/ui/<name>` resolves)
+- No missing peer dependency warnings at runtime
+- The component renders correctly against the **Usage** example in the README entry
+
+### Updating an existing component
+
+When pulling in a newer version of a component from this repo:
+
+1. Diff the component files — look for new or removed props, changed types, new internal deps
+2. Re-check **shadcn dependencies** and **npm dependencies** for any additions
+3. Update call sites in the target project if props changed (the **Props** table in the README entry is the source of truth)
+4. Update any type augmentation files if the `.d.ts` changed
+
+---
+
 ## Copying Components
 
 Each component below lists everything you need to bring it into another project:
@@ -290,13 +346,16 @@ export default function Page() {
 | `columnsMetadata`    | `ColumnMetadata<TData>[]` | No       | Declarative descriptors that auto-build the data columns and filter controls                                         |
 | `persistColumnOrder` | `boolean`                 | No       | Saves column order to a cookie (`data-table-column-order`) and restores it on mount. Defaults to `false`.            |
 | `tableName`          | `string`                  | No       | Base name for the exported CSV file. Produces `{tableName}-{YYYY-MM-DD}.csv`. Defaults to `"export"`.                |
-| `enableRowSelection` | `boolean`                 | No       | Enables row checkboxes and click-to-select. Shows emerald left-border on selected rows and reveals the BulkEditor bar. Defaults to `false`. |
+| `enableRowSelection` | `boolean`                 | No       | Enables row checkboxes and click-to-select. Shows an accent-colored left-border on selected rows and reveals the BulkEditor bar. Defaults to `false`. |
 | `enableRowActions`   | `boolean`                 | No       | Appends the per-row actions column (ellipsis menu via `DataTableRowActions`). Defaults to `false`.                    |
 | `enablePagination`      | `boolean`                 | No       | Shows pagination controls and slices rows into pages. Defaults to `true`. Set to `false` to render all rows at once. |
 | `pageSize`              | `number`                  | No       | Number of rows per page when pagination is enabled. Defaults to `20`.                                                |
 | `paginationDisplayTop`  | `boolean`                 | No       | When `true`, renders the pagination row between the filterbar and the table instead of below it. Defaults to `false`. |
 | `language`              | `DataTableLanguage`       | No       | UI language for built-in labels. `"en"` (default) or `"pt"`. Import `DataTableLanguage` from `@/components/ui/data-table`. |
 | `enableTextSelection`   | `boolean`                 | No       | Allows users to select and copy text from table cells. Defaults to `true`. Set to `false` to disable selection (e.g. when click interactions conflict). |
+| `accentColor`           | `string`                  | No       | Accent color for active filter button backgrounds, filter value labels, the row-selection indicator bar, and the clear-filters button. Accepts a Tailwind color token (`"blue-600"`) or any CSS color value (`"#3b82f6"`). Defaults to `zinc-800`. |
+| `onRowAction`           | `{ onAdd?, onEdit?, onDelete? }` | No | Callbacks for the per-row action dropdown (requires `enableRowActions`). Each receives `row.original` as `TData`. Only items with a provided callback are rendered in the menu. |
+| `onBulkAction`          | `{ onEdit?, onDelete? }`  | No       | Callbacks for the bulk editor toolbar (requires `enableRowSelection`). Each receives `TData[]` for all selected rows. Commands are disabled when no callback is provided. |
 
 **`ColumnMetadata` fields:**
 

@@ -55,7 +55,7 @@ const CommandBarValue = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "px-3 py-2.5 text-sm tabular-nums text-gray-300",
+        "px-3 py-2.5 text-sm tabular-nums text-background/60",
         className,
       )}
       {...props}
@@ -72,7 +72,7 @@ const CommandBarBar = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex items-center rounded-lg bg-gray-900 px-1 shadow-lg shadow-black/30 dark:ring-1 dark:ring-white/10",
+        "relative flex items-center rounded-lg bg-foreground px-1 shadow-lg shadow-black/30 dark:ring-1 dark:ring-background/10",
         className,
       )}
       {...props}
@@ -88,7 +88,7 @@ const CommandBarSeparator = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("h-4 w-px bg-gray-700", className)}
+      className={cn("h-4 w-px bg-background/20", className)}
       {...props}
     />
   )
@@ -139,7 +139,7 @@ const CommandBarCommand = React.forwardRef<HTMLButtonElement, CommandProps>(
     return (
       <span
         className={cn(
-          "flex items-center gap-x-2 rounded-lg bg-gray-900 p-1 text-base font-medium text-gray-50 outline-none transition focus:z-10 sm:text-sm",
+          "flex items-center gap-x-2 rounded-lg bg-foreground p-1 text-base font-medium text-background outline-none transition focus:z-10 sm:text-sm",
           "sm:last-of-type:-mr-1",
           className,
         )}
@@ -150,14 +150,14 @@ const CommandBarCommand = React.forwardRef<HTMLButtonElement, CommandProps>(
           onClick={action}
           disabled={disabled}
           className={cn(
-            "flex items-center gap-x-2 rounded-md px-1 py-1 hover:bg-gray-800",
-            "focus-visible:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-600",
-            "disabled:text-gray-500",
+            "flex items-center gap-x-2 rounded-md px-1 py-1 hover:bg-background/10",
+            "focus-visible:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/30",
+            "disabled:text-background/40",
           )}
           {...props}
         >
           <span>{label}</span>
-          <span className="hidden h-6 select-none items-center justify-center rounded-md bg-gray-800 px-2 font-mono text-xs text-gray-400 ring-1 ring-inset ring-gray-700 transition sm:flex">
+          <span className="hidden h-6 select-none items-center justify-center rounded-md bg-background/10 px-2 font-mono text-xs text-background/60 ring-1 ring-inset ring-background/20 transition sm:flex">
             {shortcut.label
               ? shortcut.label.toUpperCase()
               : shortcut.shortcut.toUpperCase()}
@@ -172,14 +172,23 @@ CommandBarCommand.displayName = "CommandBarCommand"
 type DataTableBulkEditorProps<TData> = {
   table: Table<TData>
   rowSelection: RowSelectionState
+  onEdit?: (rows: TData[]) => void
+  onDelete?: (rows: TData[]) => void
 }
 
 function DataTableBulkEditor<TData>({
   table,
   rowSelection,
+  onEdit,
+  onDelete,
 }: DataTableBulkEditorProps<TData>) {
   const locale = useDataTableLocale()
   const hasSelectedRows = Object.keys(rowSelection).length > 0
+
+  function getSelectedRows() {
+    return table.getSelectedRowModel().rows.map((r) => r.original)
+  }
+
   return (
     <CommandBar open={hasSelectedRows}>
       <CommandBarBar>
@@ -189,18 +198,16 @@ function DataTableBulkEditor<TData>({
         <CommandBarSeparator />
         <CommandBarCommand
           label={locale.edit}
-          action={() => {
-            console.log("Edit")
-          }}
+          action={() => onEdit?.(getSelectedRows())}
           shortcut={{ shortcut: "e" }}
+          disabled={!onEdit}
         />
         <CommandBarSeparator />
         <CommandBarCommand
           label={locale.delete}
-          action={() => {
-            console.log("Delete")
-          }}
+          action={() => onDelete?.(getSelectedRows())}
           shortcut={{ shortcut: "d" }}
+          disabled={!onDelete}
         />
         <CommandBarSeparator />
         <CommandBarCommand

@@ -12,6 +12,7 @@ export type DataTableLocale = {
 
   // Filter UI
   filterLabelAnd: string
+  filterLabelMore: string
   selectPlaceholder: string
   selectConditionPlaceholder: string
   numberInputPlaceholder: string
@@ -66,6 +67,7 @@ const en: DataTableLocale = {
   conditionIsLessThan: "is less than",
 
   filterLabelAnd: "and",
+  filterLabelMore: "more",
   selectPlaceholder: "Select",
   selectConditionPlaceholder: "Select condition",
   numberInputPlaceholder: "0",
@@ -111,6 +113,7 @@ const pt: DataTableLocale = {
   conditionIsLessThan: "é menor que",
 
   filterLabelAnd: "e",
+  filterLabelMore: "mais",
   selectPlaceholder: "Selecionar",
   selectConditionPlaceholder: "Selecionar condição",
   numberInputPlaceholder: "0",

@@ -30,7 +30,7 @@ import { DataTableLocaleContext } from "./DataTableLocaleContext";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableRowActions } from "./DataTableRowActions";
 import { DataTableLanguage, getLocale } from "./i18n";
-import { ColumnMetadata } from "./types";
+import { ColumnMetadata, resolveAccentColor } from "./types";
 
 function createSelectColumn<TData>(): ColumnDef<TData> {
   const helper = createColumnHelper<TData>();
@@ -64,7 +64,13 @@ function createSelectColumn<TData>(): ColumnDef<TData> {
   });
 }
 
-function createActionsColumn<TData>(): ColumnDef<TData> {
+type RowActionCallbacks<TData> = {
+  onAdd?: (row: TData) => void;
+  onEdit?: (row: TData) => void;
+  onDelete?: (row: TData) => void;
+};
+
+function createActionsColumn<TData>(callbacks: RowActionCallbacks<TData>): ColumnDef<TData> {
   const helper = createColumnHelper<TData>();
   return helper.display({
     id: "edit",
@@ -72,9 +78,21 @@ function createActionsColumn<TData>(): ColumnDef<TData> {
     enableSorting: false,
     enableHiding: false,
     meta: { className: "text-right", displayName: "Edit" },
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => (
+      <DataTableRowActions
+        row={row}
+        onAdd={callbacks.onAdd}
+        onEdit={callbacks.onEdit}
+        onDelete={callbacks.onDelete}
+      />
+    ),
   });
 }
+
+type BulkActionCallbacks<TData> = {
+  onEdit?: (rows: TData[]) => void;
+  onDelete?: (rows: TData[]) => void;
+};
 
 interface DataTableProps<TData> {
   data: TData[];
@@ -91,6 +109,9 @@ interface DataTableProps<TData> {
   enableTextSelection?: boolean;
   bordered?: boolean;
   tableStyle?: "default" | "ghost";
+  accentColor?: string;
+  onRowAction?: RowActionCallbacks<TData>;
+  onBulkAction?: BulkActionCallbacks<TData>;
 }
 
 export function DataTable<TData>({
@@ -108,6 +129,9 @@ export function DataTable<TData>({
   enableTextSelection = true,
   bordered = false,
   tableStyle = "default",
+  accentColor,
+  onRowAction,
+  onBulkAction,
 }: DataTableProps<TData>) {
   const isGhost = tableStyle === "ghost";
   const locale = getLocale(language);
@@ -137,9 +161,9 @@ export function DataTable<TData>({
       ? buildColumnsFromMetadata(enrichedMetadata)
       : [];
     const selectCol = enableRowSelection ? [createSelectColumn<TData>()] : [];
-    const actionsCol = enableRowActions ? [createActionsColumn<TData>()] : [];
+    const actionsCol = enableRowActions ? [createActionsColumn<TData>(onRowAction ?? {})] : [];
     return [...selectCol, ...builtCols, ...actionsCol];
-  }, [enrichedMetadata, enableRowSelection, enableRowActions]);
+  }, [enrichedMetadata, enableRowSelection, enableRowActions, onRowAction]);
 
   const table = useReactTable({
     data,
@@ -151,7 +175,7 @@ export function DataTable<TData>({
       initialState: { pagination: { pageIndex: 0, pageSize } },
       getPaginationRowModel: getPaginationRowModel(),
     }),
-    enableRowSelection: enableRowSelection,
+    enableRowSelection,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
@@ -160,12 +184,18 @@ export function DataTable<TData>({
 
   return (
     <DataTableLocaleContext.Provider value={locale}>
-      <div className="space-y-3">
+      <div
+        className="space-y-3"
+        style={
+          { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
+        }
+      >
         <Filterbar
           table={table}
           columnsMetadata={enrichedMetadata}
           persistColumnOrder={persistColumnOrder}
           tableName={tableName}
+          accentColor={accentColor}
         />
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
@@ -202,7 +232,7 @@ export function DataTable<TData>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -223,6 +253,7 @@ export function DataTable<TData>({
                       <TableCell
                         key={cell.id}
                         className={cn(
+                          !isGhost && "bg-background group-hover:bg-muted/30",
                           !isGhost && row.getIsSelected() && "bg-muted/70",
                           "relative whitespace-nowrap py-2 text-muted-foreground first:w-10",
                           bordered && "first:pl-4 last:pr-4",
@@ -232,7 +263,10 @@ export function DataTable<TData>({
                         {index === 0 &&
                           row.getIsSelected() &&
                           enableRowSelection && (
-                            <div className="absolute inset-y-0 left-0 w-0.5 bg-emerald-600 dark:bg-emerald-500" />
+                            <div
+                              className="absolute inset-y-0 left-0 w-0.5"
+                              style={{ backgroundColor: "var(--dt-accent)" }}
+                            />
                           )}
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -255,7 +289,12 @@ export function DataTable<TData>({
             </TableBody>
           </Table>
           {enableRowSelection && (
-            <DataTableBulkEditor table={table} rowSelection={rowSelection} />
+            <DataTableBulkEditor
+              table={table}
+              rowSelection={rowSelection}
+              onEdit={onBulkAction?.onEdit}
+              onDelete={onBulkAction?.onDelete}
+            />
           )}
         </div>
         {enablePagination && !paginationDisplayTop && (
