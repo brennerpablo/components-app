@@ -105,6 +105,13 @@ const columnsMetadata = [
                 "Allows text selection inside cells. Set to false to prevent accidental selection on click.",
             },
             {
+              name: "enableFullscreen",
+              type: "boolean",
+              default: "false",
+              description:
+                "Adds a fullscreen toggle button to the toolbar. Opens the table in a fixed overlay covering the entire viewport via a React portal. Press Escape or click the button again to exit.",
+            },
+            {
               name: "bordered",
               type: "boolean",
               default: "false",

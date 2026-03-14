@@ -1,7 +1,7 @@
 "use client";
 
 import { Column, Table } from "@tanstack/react-table";
-import { Download } from "lucide-react";
+import { Download, Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -48,6 +48,8 @@ interface DataTableToolbarProps<TData> {
   persistColumnOrder?: boolean;
   tableName?: string;
   accentColor?: string;
+  isFullscreen: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export function Filterbar<TData>({
@@ -56,6 +58,8 @@ export function Filterbar<TData>({
   persistColumnOrder = false,
   tableName,
   accentColor,
+  isFullscreen,
+  onToggleFullscreen,
 }: DataTableToolbarProps<TData>) {
   const locale = useDataTableLocale();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -156,6 +160,22 @@ export function Filterbar<TData>({
           {locale.export}
         </Button>
         <ViewOptions table={table} persistColumnOrder={persistColumnOrder} />
+        {onToggleFullscreen && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+            onClick={onToggleFullscreen}
+            aria-label={isFullscreen ? locale.exitFullscreen : locale.fullscreen}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="size-4 shrink-0" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="size-4 shrink-0" aria-hidden="true" />
+            )}
+            {isFullscreen ? locale.exitFullscreen : locale.fullscreen}
+          </Button>
+        )}
       </div>
     </div>
   );

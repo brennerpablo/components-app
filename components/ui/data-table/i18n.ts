@@ -29,6 +29,8 @@ export type DataTableLocale = {
   searchBy: (title: string) => string
   clearFilters: string
   export: string
+  fullscreen: string
+  exitFullscreen: string
 
   // Pagination
   firstPage: string
@@ -82,6 +84,8 @@ const en: DataTableLocale = {
   searchBy: (title) => `Search by ${title.toLowerCase()}...`,
   clearFilters: "Clear filters",
   export: "Export",
+  fullscreen: "Fullscreen",
+  exitFullscreen: "Exit fullscreen",
 
   firstPage: "First page",
   previousPage: "Previous page",
@@ -128,6 +132,8 @@ const pt: DataTableLocale = {
   searchBy: (title) => `Buscar por ${title.toLowerCase()}...`,
   clearFilters: "Limpar filtros",
   export: "Exportar",
+  fullscreen: "Tela cheia",
+  exitFullscreen: "Sair da tela cheia",
 
   firstPage: "Primeira página",
   previousPage: "Página anterior",

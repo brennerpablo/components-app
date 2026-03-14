@@ -353,6 +353,7 @@ export default function Page() {
 | `paginationDisplayTop`  | `boolean`                 | No       | When `true`, renders the pagination row between the filterbar and the table instead of below it. Defaults to `false`. |
 | `language`              | `DataTableLanguage`       | No       | UI language for built-in labels. `"en"` (default) or `"pt"`. Import `DataTableLanguage` from `@/components/ui/data-table`. |
 | `enableTextSelection`   | `boolean`                 | No       | Allows users to select and copy text from table cells. Defaults to `true`. Set to `false` to disable selection (e.g. when click interactions conflict). |
+| `enableFullscreen`      | `boolean`                 | No       | Adds a fullscreen toggle button to the toolbar (right of the View button). Opens the table in a fixed overlay covering the entire viewport via a React portal. Press Escape or click the button again to exit. Defaults to `false`. |
 | `accentColor`           | `string`                  | No       | Accent color for active filter button backgrounds, filter value labels, the row-selection indicator bar, and the clear-filters button. Accepts a Tailwind color token (`"blue-600"`) or any CSS color value (`"#3b82f6"`). Defaults to `zinc-800`. |
 | `onRowAction`           | `{ onAdd?, onEdit?, onDelete? }` | No | Callbacks for the per-row action dropdown (requires `enableRowActions`). Each receives `row.original` as `TData`. Only items with a provided callback are rendered in the menu. |
 | `onBulkAction`          | `{ onEdit?, onDelete? }`  | No       | Callbacks for the bulk editor toolbar (requires `enableRowSelection`). Each receives `TData[]` for all selected rows. Commands are disabled when no callback is provided. |
@@ -391,6 +392,7 @@ export default function Page() {
 - Persistent column order via cookie (`persistColumnOrder` prop)
 - Pagination (20 rows/page) with responsive first/last buttons
 - CSV export (visible columns only, PapaParse) — filename controlled via `tableName` prop
+- Fullscreen overlay mode via React portal (ESC to dismiss)
 
 #### Notes
 

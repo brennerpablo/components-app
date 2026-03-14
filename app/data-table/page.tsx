@@ -132,6 +132,7 @@ export default function DataTablePage() {
           language="pt"
           enableTextSelection
           bordered
+          enableFullscreen
         />
         <DataTableDocs />
       </div>

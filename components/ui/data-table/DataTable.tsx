@@ -11,6 +11,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
+import ReactDOM from "react-dom";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -110,6 +111,7 @@ interface DataTableProps<TData> {
   bordered?: boolean;
   tableStyle?: "default" | "ghost";
   accentColor?: string;
+  enableFullscreen?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
 }
@@ -130,12 +132,24 @@ export function DataTable<TData>({
   bordered = false,
   tableStyle = "default",
   accentColor,
+  enableFullscreen = false,
   onRowAction,
   onBulkAction,
 }: DataTableProps<TData>) {
   const isGhost = tableStyle === "ghost";
   const locale = getLocale(language);
   const [rowSelection, setRowSelection] = React.useState({});
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const toggleFullscreen = React.useCallback(() => setIsFullscreen((v) => !v), []);
+
+  React.useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
 
   const enrichedMetadata = React.useMemo(() => {
     if (!columnsMetadata?.length) return columnsMetadata;
@@ -182,7 +196,7 @@ export function DataTable<TData>({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  return (
+  const tableContent = (
     <DataTableLocaleContext.Provider value={locale}>
       <div
         className="space-y-3"
@@ -196,6 +210,8 @@ export function DataTable<TData>({
           persistColumnOrder={persistColumnOrder}
           tableName={tableName}
           accentColor={accentColor}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={enableFullscreen ? toggleFullscreen : undefined}
         />
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
@@ -303,4 +319,17 @@ export function DataTable<TData>({
       </div>
     </DataTableLocaleContext.Provider>
   );
+
+  if (isFullscreen) {
+    return ReactDOM.createPortal(
+      <div className="fixed inset-0 z-50 flex flex-col bg-background p-4 animate-in fade-in-0 zoom-in-95 duration-200 sm:p-6">
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+          {tableContent}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
+  return tableContent;
 }
