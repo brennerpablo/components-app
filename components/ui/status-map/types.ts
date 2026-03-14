@@ -1,3 +1,5 @@
+import type React from "react"
+
 export type StatusMapEntry = {
   row: string     // row label (e.g. machine name)
   date: string    // ISO "YYYY-MM-DD"
@@ -5,8 +7,9 @@ export type StatusMapEntry = {
 }
 
 export type StatusItemConfig = {
-  color: string   // Tailwind class, e.g. "bg-emerald-500"
-  label: string   // Human-readable label
+  color: string        // Tailwind class, e.g. "bg-emerald-500"
+  label: string        // Human-readable label
+  enableAction?: boolean  // If true, clicking this status cell triggers onAction
 }
 
 export type StatusMapProps = {
@@ -19,4 +22,7 @@ export type StatusMapProps = {
   labelTop?: boolean
   className?: string
   onCellClick?: (row: string, date: string, status: string) => void
+  onAction?: (row: string, date: string, status: string) => void
+  tooltip?: boolean
+  tooltipContent?: (row: string, date: string, status: string, label: string) => React.ReactNode
 }

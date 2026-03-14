@@ -2,6 +2,7 @@
 
 import { format } from "date-fns"
 import { useMemo } from "react"
+import { Tooltip } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
@@ -23,6 +24,9 @@ export function StatusMap({
   labelTop = true,
   className,
   onCellClick,
+  onAction,
+  tooltip = false,
+  tooltipContent,
 }: StatusMapProps) {
   const { rows, dates, index, counts } = useMemo(() => {
     const rowsSet = new Set<string>()
@@ -67,6 +71,7 @@ export function StatusMap({
   )
 
   return (
+    <Tooltip.Provider delayDuration={300}>
     <div className={cn("space-y-4", className)}>
       {labelTop && legend}
 
@@ -111,6 +116,22 @@ export function StatusMap({
                 {dates.map((date, di) => {
                   const status = index.get(`${row}|${date}`) ?? fallbackStatus
                   const config = labelConfig[status] ?? labelConfig[statuses[0]]
+                  const isActionable = onAction && config.enableAction
+                  const cell = (
+                    <div
+                      title={tooltip ? undefined : `${row} · ${date} · ${config.label}`}
+                      className={cn(
+                        "transition-opacity hover:opacity-75",
+                        tight ? "w-full h-5 block" : rounded ? "h-5 w-5 rounded-sm mx-auto" : "h-5 w-5 mx-auto",
+                        config.color,
+                        (onCellClick || isActionable) ? "cursor-pointer" : "cursor-default"
+                      )}
+                      onClick={() => {
+                        onCellClick?.(row, date, status)
+                        if (isActionable) onAction(row, date, status)
+                      }}
+                    />
+                  )
                   return (
                     <td
                       key={date}
@@ -120,16 +141,22 @@ export function StatusMap({
                         !tight && ri === rows.length - 1 && "pb-3"
                       )}
                     >
-                      <div
-                        title={`${row} · ${date} · ${config.label}`}
-                        className={cn(
-                          "transition-opacity hover:opacity-75",
-                          tight ? "w-full h-5 block" : rounded ? "h-5 w-5 rounded-sm mx-auto" : "h-5 w-5 mx-auto",
-                          config.color,
-                          onCellClick ? "cursor-pointer" : "cursor-default"
-                        )}
-                        onClick={onCellClick ? () => onCellClick(row, date, status) : undefined}
-                      />
+                      {tooltip ? (
+                        <Tooltip.Root>
+                          <Tooltip.Trigger asChild>{cell}</Tooltip.Trigger>
+                          <Tooltip.Portal>
+                            <Tooltip.Content
+                              side="top"
+                              sideOffset={6}
+                              className="z-50 rounded-md bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md"
+                            >
+                              {tooltipContent
+                                ? tooltipContent(row, date, status, config.label)
+                                : `${row} · ${date} · ${config.label}`}
+                            </Tooltip.Content>
+                          </Tooltip.Portal>
+                        </Tooltip.Root>
+                      ) : cell}
                     </td>
                   )
                 })}
@@ -141,5 +168,6 @@ export function StatusMap({
 
       {!labelTop && legend}
     </div>
+    </Tooltip.Provider>
   )
 }

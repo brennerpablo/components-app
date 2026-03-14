@@ -29,6 +29,16 @@ const GROUPS = [
       },
     ],
   },
+  {
+    category: "UI",
+    components: [
+      {
+        href: "/ui/tabs",
+        label: "Tabs",
+        description: "Accessible tabbed navigation",
+      },
+    ],
+  },
 ];
 
 const ALL = GROUPS.flatMap((g) => g.components);
