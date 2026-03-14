@@ -86,7 +86,7 @@ export function StatusMap({
                   key={date}
                   className={cn(
                     "pt-3 pb-2 text-sm font-medium text-muted-foreground text-center whitespace-nowrap",
-                    tight ? "w-5" : "min-w-7",
+                    tight ? "min-w-5" : "min-w-7",
                     !tight && di === dates.length - 1 && "pr-6"
                   )}
                 >

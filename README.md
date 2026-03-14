@@ -442,6 +442,73 @@ export default function Page() {
 
 ---
 
+### Badge
+
+A small label component for displaying status, categories, or counts. Inspired by Tremor's Badge. Supports five semantic color variants (`default`, `neutral`, `success`, `warning`, `error`) with automatic light and dark mode styling.
+
+**Demo:** `localhost:3000/ui/badge`
+
+#### Files to copy
+
+```
+components/ui/badge.tsx
+```
+
+#### shadcn dependencies
+
+None required.
+
+#### npm dependencies
+
+```bash
+npm install class-variance-authority
+```
+
+#### Internal dependencies
+
+| File           | Purpose                                         |
+| -------------- | ----------------------------------------------- |
+| `lib/utils.ts` | `cn()` utility — already in any shadcn project  |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { Badge } from "@/components/ui/badge"
+
+<Badge variant="default">Default</Badge>
+<Badge variant="neutral">Neutral</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="error">Error</Badge>
+```
+
+**Props:**
+
+| Prop        | Type                                                       | Default       | Description                                   |
+| ----------- | ---------------------------------------------------------- | ------------- | --------------------------------------------- |
+| `variant`   | `"default" \| "neutral" \| "success" \| "error" \| "warning"` | `"default"` | Color scheme of the badge                     |
+| `className` | `string`                                                   | —             | Additional CSS classes                        |
+| `children`  | `React.ReactNode`                                          | —             | Badge content — text and/or Lucide icons      |
+
+**Features:**
+
+- Five semantic variants: `default` (blue), `neutral` (gray), `success` (emerald), `warning` (yellow), `error` (red)
+- Icon support — place any `lucide-react` icon as a direct child, auto-sized to 12 px
+- Full light and dark mode support via Tailwind color classes
+- Spreads all native `span` props for aria attributes, event handlers, etc.
+- Exports `badgeVariants` CVA function for reuse on other elements
+
+#### Notes
+
+- Replaces the default shadcn `badge.tsx` — the variant names differ from shadcn's (`default/secondary/destructive/outline`)
+- `cva` is already installed via shadcn's `class-variance-authority` dependency
+
+---
+
 ### Tabs
 
 Accessible tabbed navigation built on Radix UI Tabs primitives. Supports `line` (underline indicator) and `solid` (pill with background) variants, icon support inside triggers, disabled states, and full keyboard navigation.

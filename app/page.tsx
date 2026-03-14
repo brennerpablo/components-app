@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, BarChart2, PanelTop, TableProperties } from "lucide-react";
+import { ArrowUpRight, BarChart2, PanelTop, TableProperties, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -43,6 +43,14 @@ const sections = [
         href: "/ui/tabs",
         icon: PanelTop,
         tags: ["Radix UI", "Line", "Solid"],
+      },
+      {
+        title: "Badge",
+        description:
+          "A small label component for displaying status, categories, or counts. Five semantic variants with light and dark mode support.",
+        href: "/ui/badge",
+        icon: Tag,
+        tags: ["Status", "Semantic", "Dark Mode"],
       },
     ],
   },

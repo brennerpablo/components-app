@@ -49,6 +49,16 @@
 
 :root {
   --radius: 0.625rem;
+  /* sugar-high syntax highlighting — light */
+  --sh-keyword: #d73a49;
+  --sh-string: #22863a;
+  --sh-comment: #6a737d;
+  --sh-class: #6f42c1;
+  --sh-identifier: #24292e;
+  --sh-sign: #24292e;
+  --sh-property: #005cc5;
+  --sh-entity: #e36209;
+  --sh-jsxliterals: #005cc5;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -84,6 +94,16 @@
 
 .dark {
   --background: oklch(0.145 0 0);
+  /* sugar-high syntax highlighting — dark */
+  --sh-keyword: #ff7b72;
+  --sh-string: #a5d6ff;
+  --sh-comment: #8b949e;
+  --sh-class: #d2a8ff;
+  --sh-identifier: #c9d1d9;
+  --sh-sign: #c9d1d9;
+  --sh-property: #79c0ff;
+  --sh-entity: #ffa657;
+  --sh-jsxliterals: #79c0ff;
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);

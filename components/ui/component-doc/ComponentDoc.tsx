@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
+import { highlight } from "sugar-high";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -94,11 +95,25 @@ function CodeBlock({ code }: { code: string }) {
   };
 
   return (
-    <div className="relative rounded-lg border border-border bg-muted/40 overflow-hidden">
+    <div
+      className="relative rounded-lg border border-neutral-700/60 overflow-hidden"
+      style={{
+        backgroundColor: "#272822",
+        "--sh-keyword": "#f92672",
+        "--sh-string": "#e6db74",
+        "--sh-comment": "#75715e",
+        "--sh-class": "#a6e22e",
+        "--sh-identifier": "#f8f8f2",
+        "--sh-sign": "#f8f8f2",
+        "--sh-property": "#66d9e8",
+        "--sh-entity": "#fd971f",
+        "--sh-jsxliterals": "#66d9e8",
+      } as React.CSSProperties}
+    >
       <button
         onClick={handleCopy}
         aria-label="Copy code"
-        className="absolute right-3 top-3 flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+        className="absolute right-3 top-3 flex items-center gap-1.5 rounded-md border border-neutral-600/60 bg-black/20 px-2 py-1 text-xs text-neutral-400 hover:text-neutral-100 hover:bg-black/40 transition-colors"
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-emerald-500" />
@@ -107,8 +122,8 @@ function CodeBlock({ code }: { code: string }) {
         )}
         {copied ? "Copied" : "Copy"}
       </button>
-      <pre className="overflow-x-auto p-4 pr-20 text-sm font-mono text-foreground leading-relaxed">
-        <code>{code}</code>
+      <pre className="overflow-x-auto p-6 pr-20 text-sm font-mono text-[#f8f8f2] leading-relaxed">
+        <code dangerouslySetInnerHTML={{ __html: highlight(code) }} />
       </pre>
     </div>
   );
