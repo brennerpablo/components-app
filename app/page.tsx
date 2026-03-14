@@ -1,5 +1,9 @@
+"use client";
+
 import { ArrowUpRight, BarChart2, TableProperties } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 const sections = [
   {
@@ -31,53 +35,68 @@ const sections = [
 ];
 
 export default function Home() {
+  const [bgLoaded, setBgLoaded] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-5xl px-6 py-20">
-        {/* Hero */}
-        <section className="mb-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground mb-6">
-            <span className="size-1.5 rounded-full bg-green-500" />
-            Open source
-          </div>
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl mb-5 max-w-2xl leading-tight">
-            Reusable components for building cool dashboards.
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-            A collection of production-ready UI components crafted with
-            shadcn/ui, Tailwind CSS, and React. Copy, paste, ship.{" "}
+      {/* Hero with background image */}
+      <div className="relative">
+        <Image
+          src="/hero_bg.png"
+          alt=""
+          fill
+          priority
+          className={`object-cover object-center transition-opacity duration-700 ${bgLoaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setBgLoaded(true)}
+        />
+        <div className="absolute inset-0 bg-background/70" />
+        <div className="relative mx-auto max-w-5xl px-6 py-20">
+          <section>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground mb-6">
+              <span className="size-1.5 rounded-full bg-green-500" />
+              Open source
+            </div>
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl mb-5 max-w-2xl leading-tight">
+              Reusable components for building cool dashboards.
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+              A collection of production-ready UI components crafted with
+              shadcn/ui, Tailwind CSS, and React. Copy, paste, ship.{" "}
+              <a
+                href="https://x.com/pablobrenner_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground font-medium underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors"
+              >
+                Made by @pablobrenner_
+              </a>
+            </p>
+
             <a
-              href="https://x.com/pablobrenner_"
+              href="https://github.com/brennerpablo/components-app"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-foreground font-medium underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors"
+              className="mt-8 inline-flex items-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-white transition-colors hover:bg-blue-500 group"
             >
-              Made by @pablobrenner_
+              <span className="flex size-8 items-center justify-center rounded-lg bg-blue-500 group-hover:bg-blue-400 transition-colors">
+                <GitHubIcon className="size-4 fill-white" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold leading-tight">
+                  Discover the components repo
+                </span>
+                <span className="text-xs text-blue-200 leading-tight">
+                  github.com/brennerpablo/components-app
+                </span>
+              </span>
+              <ArrowUpRight className="ml-1 size-4 text-blue-300 group-hover:text-white transition-colors" />
             </a>
-          </p>
+          </section>
+        </div>
+      </div>
 
-          <a
-            href="https://github.com/brennerpablo/components-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-white transition-colors hover:bg-blue-500 group"
-          >
-            <span className="flex size-8 items-center justify-center rounded-lg bg-blue-500 group-hover:bg-blue-400 transition-colors">
-              <GitHubIcon className="size-4 fill-white" />
-            </span>
-            <span className="flex flex-col">
-              <span className="text-sm font-semibold leading-tight">
-                Discover the components repo
-              </span>
-              <span className="text-xs text-blue-200 leading-tight">
-                github.com/brennerpablo/components-app
-              </span>
-            </span>
-            <ArrowUpRight className="ml-1 size-4 text-blue-300 group-hover:text-white transition-colors" />
-          </a>
-        </section>
-
-        {/* Components by section */}
+      {/* Components by section */}
+      <main className="mx-auto max-w-5xl px-6 py-20">
         <div className="space-y-10">
           {sections.map((section) => (
             <section key={section.title}>
