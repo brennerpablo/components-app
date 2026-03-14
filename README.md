@@ -757,3 +757,115 @@ import { ComponentDoc } from "@/components/ui/component-doc"
 
 - Place `<ComponentDoc>` at the bottom of every demo page, after the live component demo
 - Update it whenever props are added, removed, or changed
+
+---
+
+### AreaChart
+
+A Tremor-inspired responsive area chart built on Recharts. Supports single and multi-series data, gradient/solid/no-fill modes, stacked and percentage layouts, an interactive legend with optional horizontal slider, custom tooltips, and click events on dots and legend categories.
+
+**Demo:** `localhost:3000/charts/area-chart`
+
+#### Files to copy
+
+```
+components/charts/area-chart/AreaChart.tsx
+components/charts/area-chart/index.ts
+components/charts/utils/chartColors.ts
+components/charts/utils/chartHelpers.ts
+components/charts/utils/useOnWindowResize.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install recharts
+```
+
+#### Internal dependencies
+
+| File                                          | Purpose                                              |
+| --------------------------------------------- | ---------------------------------------------------- |
+| `lib/utils.ts`                                | `cn()` utility — already present in any shadcn project |
+| `components/charts/utils/chartColors.ts`      | Color palette, `getColorClass()`, `constructCategoryColors()` |
+| `components/charts/utils/chartHelpers.ts`     | `getYAxisDomain()`, `hasOnlyOneValueForKey()`        |
+| `components/charts/utils/useOnWindowResize.ts`| Window resize hook used to recalculate legend height |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { AreaChart } from "@/components/charts/area-chart"
+
+// Single series with value formatter
+<AreaChart
+  data={revenueData}
+  index="month"
+  categories={["Revenue"]}
+  valueFormatter={(v) => `$${v.toLocaleString()}`}
+/>
+
+// Multi-series stacked with solid fill
+<AreaChart
+  data={trafficData}
+  index="month"
+  categories={["Organic", "Direct", "Referral"]}
+  type="stacked"
+  fill="solid"
+/>
+
+// Interactive with event callback
+<AreaChart
+  data={trafficData}
+  index="month"
+  categories={["Organic", "Direct", "Referral"]}
+  onValueChange={(event) => console.log(event)}
+/>
+```
+
+#### Props
+
+| Prop                | Type                                               | Default                        | Description |
+| ------------------- | -------------------------------------------------- | ------------------------------ | ----------- |
+| `data`              | `Record<string, any>[]`                            | —                              | **Required.** Array of data objects with the index key and one key per category. |
+| `index`             | `string`                                           | —                              | **Required.** Key used as the X-axis label (e.g. `"month"`). |
+| `categories`        | `string[]`                                         | —                              | **Required.** Keys from data objects to render as area series. |
+| `colors`            | `ChartColor[]`                                     | `CHART_COLORS`                 | Color names for each category, in order. |
+| `valueFormatter`    | `(value: number) => string`                        | `v => v.toString()`            | Formats Y-axis ticks and tooltip values. |
+| `type`              | `"default" \| "stacked" \| "percent"`              | `"default"`                    | Layout mode — default overlapping, stacked cumulative, or normalized to 100%. |
+| `fill`              | `"gradient" \| "solid" \| "none"`                  | `"gradient"`                   | Fill style for the area under each line. |
+| `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
+| `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |
+| `showGridLines`     | `boolean`                                          | `true`                         | Show horizontal grid lines. |
+| `showLegend`        | `boolean`                                          | `true`                         | Show the legend above the chart. |
+| `showTooltip`       | `boolean`                                          | `true`                         | Show the tooltip on hover. |
+| `legendPosition`    | `"left" \| "center" \| "right"`                    | `"right"`                      | Horizontal alignment of the legend. |
+| `enableLegendSlider`| `boolean`                                          | `false`                        | Make the legend horizontally scrollable with arrow buttons. |
+| `yAxisWidth`        | `number`                                           | `56`                           | Width in pixels reserved for the Y-axis. |
+| `autoMinValue`      | `boolean`                                          | `false`                        | Set Y-axis minimum to `"auto"` instead of `0`. |
+| `minValue`          | `number`                                           | —                              | Explicit Y-axis domain minimum. |
+| `maxValue`          | `number`                                           | —                              | Explicit Y-axis domain maximum. |
+| `allowDecimals`     | `boolean`                                          | `true`                         | Allow decimal Y-axis tick values. |
+| `startEndOnly`      | `boolean`                                          | `false`                        | Show only the first and last X-axis tick labels. |
+| `intervalType`      | `"preserveStartEnd" \| "equidistantPreserveStart"` | `"equidistantPreserveStart"`   | Recharts X-axis tick interval strategy. |
+| `tickGap`           | `number`                                           | `5`                            | Minimum gap in pixels between X-axis tick labels. |
+| `connectNulls`      | `boolean`                                          | `false`                        | Bridge null data points instead of creating gaps. |
+| `xAxisLabel`        | `string`                                           | —                              | Optional label rendered below the X-axis. |
+| `yAxisLabel`        | `string`                                           | —                              | Optional label rendered to the left of the Y-axis (rotated). |
+| `onValueChange`     | `(value: AreaChartEventProps) => void`             | —                              | Fired when a dot or legend item is clicked; `null` on deselect. |
+| `tooltipCallback`   | `(content: TooltipProps) => void`                  | —                              | Side-effect callback when tooltip active state or label changes. |
+| `customTooltip`     | `React.ComponentType<TooltipProps>`                | —                              | Custom component rendered in place of the default tooltip. |
+| `className`         | `string`                                           | —                              | Additional classes on the outer wrapper (default height `h-80`). |
+
+#### Notes
+
+- The `ChartColor` type and `CHART_COLORS` constant are exported from the barrel for external use.
+- The three utility files in `components/charts/utils/` are shared across chart components — copy them once and reuse.
+- Recharts requires a fixed height on the container; override with `className="h-96"` or similar.

@@ -6,6 +6,7 @@ import {
   PanelTop,
   TableProperties,
   Tag,
+  TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,6 +36,14 @@ const sections = [
         href: "/status-map",
         icon: BarChart2,
         tags: ["StatusMap", "date-fns", "Dark Mode"],
+      },
+      {
+        title: "Area Chart",
+        description:
+          "A responsive area chart with gradient fills, stacked/percent modes, interactive legend, and custom tooltips. Tremor-inspired, powered by Recharts.",
+        href: "/charts/area-chart",
+        icon: TrendingUp,
+        tags: ["Recharts", "Gradient", "Interactive"],
       },
     ],
   },
