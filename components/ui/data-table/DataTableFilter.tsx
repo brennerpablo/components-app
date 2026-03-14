@@ -1,8 +1,11 @@
 "use client";
 
-import { ChevronDown, CornerDownRight, Plus } from "lucide-react";
 import { Column } from "@tanstack/react-table";
+import { ChevronDown, CornerDownRight, Plus } from "lucide-react";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import React from "react";
+
 import { useDataTableLocale } from "./DataTableLocaleContext";
 import { DataTableLocale } from "./i18n";
 

@@ -1,30 +1,5 @@
 "use client"
 
-import React from "react"
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Column, Table } from "@tanstack/react-table"
-
-import ReactDOM from "react-dom"
-import invariant from "tiny-invariant"
-
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
-import { triggerPostMoveFlash } from "@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash"
-import {
-  attachClosestEdge,
-  extractClosestEdge,
-  type Edge,
-} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge"
-import { getReorderDestinationIndex } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index"
-import * as liveRegion from "@atlaskit/pragmatic-drag-and-drop-live-region"
-import { DropIndicator } from "@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box"
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine"
 import {
   draggable,
@@ -34,7 +9,31 @@ import {
 import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview"
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview"
 import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder"
+import { triggerPostMoveFlash } from "@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash"
+import {
+  attachClosestEdge,
+  type Edge,
+  extractClosestEdge,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge"
+import { getReorderDestinationIndex } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index"
+import * as liveRegion from "@atlaskit/pragmatic-drag-and-drop-live-region"
+import { DropIndicator } from "@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box"
+import { Column, Table } from "@tanstack/react-table"
 import { GripVertical, SlidersHorizontal } from "lucide-react"
+import React from "react"
+import ReactDOM from "react-dom"
+import invariant from "tiny-invariant"
+
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+
 import { useDataTableLocale } from "./DataTableLocaleContext"
 
 const COOKIE_KEY = "data-table-column-order"

@@ -1,9 +1,11 @@
 "use client"
 
+import { RowSelectionState, Table } from "@tanstack/react-table"
 import { Popover } from "radix-ui"
 import React from "react"
-import { RowSelectionState, Table } from "@tanstack/react-table"
+
 import { cn } from "@/lib/utils"
+
 import { useDataTableLocale } from "./DataTableLocaleContext"
 
 interface CommandBarProps extends React.PropsWithChildren {

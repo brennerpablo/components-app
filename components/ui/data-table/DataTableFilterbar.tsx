@@ -1,16 +1,18 @@
 "use client";
 
+import { Column, Table } from "@tanstack/react-table";
+import { Download } from "lucide-react";
+import { useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { exportTableToCSV } from "@/lib/exportTableToCSV";
-import { Download } from "lucide-react";
-import { Column, Table } from "@tanstack/react-table";
-import { useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
+
 import { DataTableFilter } from "./DataTableFilter";
+import { useDataTableLocale } from "./DataTableLocaleContext";
 import { ViewOptions } from "./DataTableViewOptions";
 import { ColumnMetadata } from "./types";
-import { useDataTableLocale } from "./DataTableLocaleContext";
 
 function TextFilterInput<TData>({
   column,

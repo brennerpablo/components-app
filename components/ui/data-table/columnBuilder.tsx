@@ -1,10 +1,12 @@
 "use client"
 
 import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
+
+import { cn } from "@/lib/utils"
+
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
 import { ColumnMetadata } from "./types"
-import { cn } from "@/lib/utils"
 
 export const percentageRangeFilterFn: FilterFn<unknown> = (
   row: Row<unknown>,

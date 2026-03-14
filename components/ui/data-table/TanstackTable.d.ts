@@ -1,4 +1,5 @@
 import "@tanstack/react-table"
+
 import { RowData } from "@tanstack/react-table"
 
 declare module "@tanstack/react-table" {

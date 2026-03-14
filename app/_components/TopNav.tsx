@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Popover } from "radix-ui";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 const GROUPS = [
@@ -22,8 +23,8 @@ const GROUPS = [
     category: "Data Visualization",
     components: [
       {
-        href: "/heatmap",
-        label: "Heatmap",
+        href: "/status-map",
+        label: "StatusMap",
         description: "Matrix of coloured status cells",
       },
     ],

@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronUp, Info } from "lucide-react"
 import { Column } from "@tanstack/react-table"
-import { cn } from "@/lib/utils"
+import { ChevronDown, ChevronUp, Info } from "lucide-react"
 import { Tooltip } from "radix-ui"
 import React from "react"
+
+import { cn } from "@/lib/utils"
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {

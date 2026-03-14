@@ -1,3 +1,11 @@
+import { Table } from "@tanstack/react-table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -7,13 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import {
-  ChevronsLeft,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsRight,
-} from "lucide-react";
-import { Table } from "@tanstack/react-table";
+
 import { useDataTableLocale } from "./DataTableLocaleContext";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200];

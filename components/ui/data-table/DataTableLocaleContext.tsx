@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+
 import { DataTableLocale, dataTableLocales } from "./i18n"
 
 export const DataTableLocaleContext = React.createContext<DataTableLocale>(

@@ -339,18 +339,18 @@ export default function Page() {
 
 ---
 
-### Heatmap
+### StatusMap
 
-A GitHub-style activity heatmap showing 52 weeks of contribution data. Cells are color-coded by intensity across 5 levels, with hover tooltips, month/weekday labels, a legend, and four built-in color schemes. Dark mode aware.
+A grid-based status heatmap that renders rows × dates cells, each colored by a status key. Useful for operational dashboards (machine status, service health, etc.). Fully driven by props — pass data, a label config, and display options.
 
-**Demo:** `localhost:3000/heatmap`
+**Demo:** `localhost:3000/status-map`
 
 #### Files to copy
 
 ```
-components/ui/heatmap/Heatmap.tsx
-components/ui/heatmap/types.ts
-components/ui/heatmap/index.ts
+components/ui/status-map/StatusHeatmap.tsx
+components/ui/status-map/types.ts
+components/ui/status-map/index.ts
 ```
 
 #### shadcn dependencies
@@ -362,8 +362,6 @@ None required.
 ```bash
 npm install date-fns
 ```
-
-(`date-fns` is likely already present in any project using shadcn's Calendar component.)
 
 #### Internal dependencies
 
@@ -378,25 +376,30 @@ None.
 #### Usage
 
 ```tsx
-import { Heatmap } from "@/components/ui/heatmap"
-import type { HeatmapDay } from "@/components/ui/heatmap"
+import { StatusMap } from "@/components/ui/status-map"
+import type { StatusMapEntry } from "@/components/ui/status-map"
 
-const data: HeatmapDay[] = [
-  { date: "2025-03-01", count: 4 },
-  { date: "2025-03-02", count: 12 },
-  // ...
+const data: StatusMapEntry[] = [
+  { row: "Machine A", date: "2025-03-01", status: "green" },
+  { row: "Machine A", date: "2025-03-02", status: "red" },
+  { row: "Machine B", date: "2025-03-01", status: "orange" },
 ]
 
 export default function Page() {
   return (
-    <Heatmap
+    <StatusMap
       data={data}
-      colorScheme="green"
-      showWeekdayLabels
-      showMonthLabels
-      showLegend
-      weekStart={0}
-      onDayClick={(date, count) => console.log(date, count)}
+      labelConfig={{
+        green:  { color: "bg-emerald-500", label: "Operational" },
+        orange: { color: "bg-orange-400",  label: "Warning" },
+        red:    { color: "bg-red-500",     label: "Fault" },
+        grey:   { color: "bg-muted",       label: "No data" },
+      }}
+      label
+      labelAlign="right"
+      labelTop={false}
+      style="rounded"
+      onCellClick={(row, date, status) => console.log(row, date, status)}
     />
   )
 }
@@ -404,27 +407,129 @@ export default function Page() {
 
 **Props:**
 
-| Prop                 | Type                                          | Default    | Description                                              |
-| -------------------- | --------------------------------------------- | ---------- | -------------------------------------------------------- |
-| `data`               | `HeatmapDay[]`                                | —          | Array of `{ date: string; count: number }` objects       |
-| `colorScheme`        | `"green" \| "blue" \| "purple" \| "orange"`  | `"green"`  | Color theme for the 5 intensity levels                   |
-| `showWeekdayLabels`  | `boolean`                                     | `true`     | Show Mon/Wed/Fri labels on the left                      |
-| `showMonthLabels`    | `boolean`                                     | `true`     | Show month abbreviations above the grid                  |
-| `showLegend`         | `boolean`                                     | `true`     | Show "Less → More" color scale below the grid            |
-| `weekStart`          | `0 \| 1`                                      | `0`        | `0` = week starts Sunday, `1` = Monday                  |
-| `className`          | `string`                                      | —          | Additional class names for the root element              |
-| `onDayClick`         | `(date: string, count: number) => void`       | —          | Called when a day cell is clicked                        |
+| Prop          | Type                                    | Default      | Description                                                                       |
+| ------------- | --------------------------------------- | ------------ | --------------------------------------------------------------------------------- |
+| `data`        | `StatusMapEntry[]`                      | —            | Array of `{ row, date, status }`. Missing row/date combinations fall back to the last key in `labelConfig`. |
+| `labelConfig` | `Record<string, StatusItemConfig>`      | —            | Maps status keys to `{ color: string, label: string }`. `color` is a Tailwind bg class (e.g. `"bg-emerald-500"`). |
+| `style`       | `"rounded" \| "squared" \| "tight"`    | `"rounded"`  | Cell shape. `tight` collapses padding for dense grids.                            |
+| `bordered`    | `boolean`                               | `true`       | Wraps the grid in a rounded border.                                               |
+| `label`       | `boolean`                               | `false`      | Shows a color legend.                                                             |
+| `labelAlign`  | `"left" \| "center" \| "right"`        | `"left"`     | Horizontal alignment of the legend.                                               |
+| `labelTop`    | `boolean`                               | `false`      | Renders the legend above the grid instead of below.                               |
+| `className`   | `string`                                | —            | Additional class names on the root element.                                       |
+| `onCellClick` | `(row, date, status) => void`           | —            | Callback fired when a cell is clicked.                                            |
+
+**`StatusMapEntry` fields:**
+
+| Field    | Type     | Description                      |
+| -------- | -------- | -------------------------------- |
+| `row`    | `string` | Row label (e.g. machine name)    |
+| `date`   | `string` | ISO `"YYYY-MM-DD"` date          |
+| `status` | `string` | Key into `labelConfig`           |
 
 **Features:**
 
-- 52-week × 7-day CSS Grid layout, horizontally scrollable on small screens
-- 5 intensity levels (0–3, 4–7, 8–11, 12+ contributions) with distinct color steps
-- Single shared hover tooltip (fixed-position, no Radix overhead) showing date + count
-- Today indicator (outline ring on the current day's cell)
-- `useDarkMode` hook via `MutationObserver` on `document.documentElement` — reacts to `.dark` class changes instantly
+- Derives unique rows and dates automatically from `data` — no manual axis config
+- Missing cells fall back to the last key in `labelConfig` (intended as a "no data" state)
+- Legend shows count of cells per status in parentheses
+- Horizontally scrollable for wide date ranges
+- `onCellClick` for interactive dashboards
 
 #### Notes
 
-- Dates outside the 52-week window are silently ignored
-- Duplicate dates in `data` are summed automatically
-- The `date` field must be in `"YYYY-MM-DD"` format; the component appends `T00:00:00` internally to avoid timezone-related off-by-one errors when formatting
+- Rows appear in insertion order from `data`; dates are sorted ascending
+- The `date` field must be `"YYYY-MM-DD"`; the component appends `T00:00:00` to avoid timezone off-by-one errors
+
+---
+
+### ComponentDoc
+
+An in-page documentation block rendered at the bottom of demo pages. Shows a usage code snippet with a copy button and a props table. Follows the component's own props-driven API standard.
+
+**Demo:** Visible at the bottom of every component demo page (e.g. `localhost:3000/data-table`, `localhost:3000/status-map`).
+
+#### Files to copy
+
+```
+components/ui/component-doc/ComponentDoc.tsx
+components/ui/component-doc/index.ts
+```
+
+#### shadcn dependencies
+
+None required.
+
+#### npm dependencies
+
+None.
+
+#### Internal dependencies
+
+| File           | Purpose                                     |
+| -------------- | ------------------------------------------- |
+| `lib/utils.ts` | `cn()` utility — already in any shadcn project |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { ComponentDoc } from "@/components/ui/component-doc"
+
+// Single flat props list:
+<ComponentDoc
+  title="MyComponent"
+  description="Short description of what it does."
+  usage={`import { MyComponent } from "@/components/ui/my-component"
+
+<MyComponent requiredProp="value" optionalProp />`}
+  props={[
+    { name: "requiredProp", type: "string", required: true, description: "..." },
+    { name: "optionalProp", type: "boolean", default: "false", description: "..." },
+  ]}
+/>
+
+// Multiple named prop sections (e.g. component props + sub-type fields):
+<ComponentDoc
+  title="MyComponent"
+  usage={`...`}
+  propSections={[
+    {
+      title: "MyComponent props",
+      props: [{ name: "data", type: "Row[]", required: true, description: "..." }],
+    },
+    {
+      title: "Row fields",
+      props: [{ name: "id", type: "string", required: true, description: "..." }],
+    },
+  ]}
+/>
+```
+
+**Props:**
+
+| Prop           | Type              | Description                                                                          |
+| -------------- | ----------------- | ------------------------------------------------------------------------------------ |
+| `title`        | `string`          | Component name shown as the section heading.                                         |
+| `description`  | `string`          | Optional subtitle below the heading.                                                 |
+| `usage`        | `string`          | Raw code string rendered in a syntax-highlighted block with a copy button.           |
+| `props`        | `PropDef[]`       | Flat list of prop definitions. Renders under a single "Props" heading.               |
+| `propSections` | `PropSection[]`   | Multiple named prop groups, each with its own sub-heading. Use instead of `props` when there are multiple distinct types to document. |
+| `className`    | `string`          | Additional class names on the root `<section>`.                                      |
+
+**`PropDef` fields:**
+
+| Field         | Type      | Description                                   |
+| ------------- | --------- | --------------------------------------------- |
+| `name`        | `string`  | Prop name (rendered in monospace)             |
+| `type`        | `string`  | Type string (rendered in a muted code badge)  |
+| `default`     | `string`  | Default value, if any                         |
+| `required`    | `boolean` | Adds a red `*` next to the prop name          |
+| `description` | `string`  | Human-readable description                    |
+
+#### Notes
+
+- Place `<ComponentDoc>` at the bottom of every demo page, after the live component demo
+- Update it whenever props are added, removed, or changed

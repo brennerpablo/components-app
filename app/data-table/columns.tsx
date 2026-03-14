@@ -1,7 +1,8 @@
 "use client"
 
-import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table"
+
+import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableRowActions } from "@/components/ui/data-table/DataTableRowActions"
 
 export function createColumns<TData>(): ColumnDef<TData>[] {

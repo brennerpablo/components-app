@@ -1,25 +1,6 @@
 "use client";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import * as React from "react";
-
-import { DataTableBulkEditor } from "./DataTableBulkEditor";
-import { Filterbar } from "./DataTableFilterbar";
-import { DataTablePagination } from "./DataTablePagination";
-import { buildColumnsFromMetadata } from "./columnBuilder";
-import { ColumnMetadata } from "./types";
-import { DataTableLocaleContext } from "./DataTableLocaleContext";
-import { DataTableLanguage, getLocale } from "./i18n";
-
-import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -28,6 +9,25 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import * as React from "react";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+import { buildColumnsFromMetadata } from "./columnBuilder";
+import { DataTableBulkEditor } from "./DataTableBulkEditor";
+import { Filterbar } from "./DataTableFilterbar";
+import { DataTableLocaleContext } from "./DataTableLocaleContext";
+import { DataTablePagination } from "./DataTablePagination";
+import { DataTableLanguage, getLocale } from "./i18n";
+import { ColumnMetadata } from "./types";
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];

@@ -1,14 +1,16 @@
 "use client";
 
+import { User } from "lucide-react";
+
+import { ComponentDoc } from "@/components/ui/component-doc";
 import {
+  ColumnMetadata,
   DataTable,
   DataTableColumnHeader,
-  ColumnMetadata,
 } from "@/components/ui/data-table";
-import { ComponentDoc } from "@/components/ui/component-doc";
+
 import { createColumns } from "./columns";
 import { data } from "./data";
-import { User } from "lucide-react";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
