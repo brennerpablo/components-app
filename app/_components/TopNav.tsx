@@ -7,41 +7,9 @@ import { Popover } from "radix-ui";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { COMPONENT_SECTIONS } from "@/lib/components-registry";
 
-const GROUPS = [
-  {
-    category: "Data Navigation",
-    components: [
-      {
-        href: "/data-table",
-        label: "DataTable",
-        description: "Sortable, filterable data grid",
-      },
-    ],
-  },
-  {
-    category: "Data Visualization",
-    components: [
-      {
-        href: "/status-map",
-        label: "StatusMap",
-        description: "Matrix of coloured status cells",
-      },
-    ],
-  },
-  {
-    category: "UI",
-    components: [
-      {
-        href: "/ui/tabs",
-        label: "Tabs",
-        description: "Accessible tabbed navigation",
-      },
-    ],
-  },
-];
-
-const ALL = GROUPS.flatMap((g) => g.components);
+const ALL = COMPONENT_SECTIONS.flatMap((s) => s.components);
 
 export function TopNav() {
   const pathname = usePathname();
@@ -50,11 +18,11 @@ export function TopNav() {
   const active = ALL.find((c) => pathname.startsWith(c.href));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95">
       <div className="mx-auto max-w-7xl px-6 flex h-12 items-center gap-4">
         <Link
           href="/"
-          className="text-sm font-semibold text-foreground tracking-tight hover:text-foreground/80 transition-colors"
+          className="hidden sm:block text-sm font-semibold text-foreground tracking-tight hover:text-foreground/80 transition-colors"
         >
           components-app
         </Link>
@@ -62,7 +30,7 @@ export function TopNav() {
         <Popover.Root open={open} onOpenChange={setOpen}>
           <Popover.Trigger asChild>
             <button className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 h-8 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-              {active?.label ?? "Components"}
+              {active?.title ?? "Components"}
               <ChevronDown
                 className={cn(
                   "h-3.5 w-3.5 transition-transform",
@@ -78,16 +46,16 @@ export function TopNav() {
               sideOffset={6}
               className="z-50 w-64 rounded-md border border-border bg-popover shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
             >
-              {GROUPS.map((group, gi) => (
-                <div key={group.category}>
+              {COMPONENT_SECTIONS.map((section, gi) => (
+                <div key={section.title}>
                   {gi > 0 && <div className="mx-2 border-t border-border" />}
                   <div className="px-3 pt-3 pb-1">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {group.category}
+                      {section.title}
                     </p>
                   </div>
                   <div className="px-1.5 pb-1.5 space-y-px">
-                    {group.components.map(({ href, label, description }) => {
+                    {section.components.map(({ href, title, shortDescription }) => {
                       const isActive = pathname.startsWith(href);
                       return (
                         <Link
@@ -107,10 +75,10 @@ export function TopNav() {
                                 : "text-foreground/80",
                             )}
                           >
-                            {label}
+                            {title}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {description}
+                            {shortDescription}
                           </span>
                         </Link>
                       );
@@ -129,7 +97,7 @@ export function TopNav() {
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <GitHubIcon />
-            GitHub
+            <span className="hidden sm:inline">GitHub</span>
           </a>
           <a
             href="https://x.com/pablobrenner_"
@@ -138,7 +106,7 @@ export function TopNav() {
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <XIcon />
-            @pablobrenner_
+            <span className="hidden sm:inline">@pablobrenner_</span>
           </a>
         </div>
       </div>

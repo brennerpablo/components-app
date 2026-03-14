@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowUpRight, BarChart2, PanelTop, TableProperties, Tag } from "lucide-react";
+import {
+  ArrowUpRight,
+  BarChart2,
+  PanelTop,
+  TableProperties,
+  Tag,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";

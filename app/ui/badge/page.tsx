@@ -1,4 +1,10 @@
-import { CheckCircle, AlertCircle, AlertTriangle, Info, Minus } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Minus,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { ComponentDoc } from "@/components/ui/component-doc";
@@ -20,6 +26,24 @@ export default function BadgePage() {
             <Badge variant="success">Success</Badge>
             <Badge variant="warning">Warning</Badge>
             <Badge variant="error">Error</Badge>
+          </div>
+        </section>
+
+        {/* Sizes */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Sizes
+          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant="default" size="sm">
+              Small
+            </Badge>
+            <Badge variant="default" size="md">
+              Medium
+            </Badge>
+            <Badge variant="default" size="lg">
+              Large
+            </Badge>
           </div>
         </section>
 
@@ -52,6 +76,27 @@ export default function BadgePage() {
           </div>
         </section>
 
+        {/* With Tooltip */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            With Tooltip
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            <Badge variant="default" tooltip>
+              Default
+            </Badge>
+            <Badge variant="success" tooltip>
+              Success
+            </Badge>
+            <Badge variant="warning" tooltip>
+              Warning
+            </Badge>
+            <Badge variant="error" tooltip>
+              Error
+            </Badge>
+          </div>
+        </section>
+
         <ComponentDoc
           title="Badge"
           description="A small label component for displaying status, categories, or counts. Supports five semantic variants with light and dark mode."
@@ -68,6 +113,19 @@ export default function BadgePage() {
               type: '"default" | "neutral" | "success" | "error" | "warning"',
               default: '"default"',
               description: "Controls the color scheme of the badge.",
+            },
+            {
+              name: "size",
+              type: '"sm" | "md" | "lg"',
+              default: '"md"',
+              description: "Controls the size of the badge.",
+            },
+            {
+              name: "tooltip",
+              type: "boolean",
+              default: "false",
+              description:
+                "When true, wraps the badge in a tooltip showing its content on hover.",
             },
             {
               name: "className",
