@@ -4,8 +4,8 @@ import { format } from "date-fns";
 import { AlertTriangle, CalendarDays, Cpu } from "lucide-react";
 import { useState } from "react";
 
+import { DemoBreadcrumb } from "@/app/_components/DemoBreadcrumb";
 import { Button } from "@/components/ui/button";
-import { ComponentDoc } from "@/components/ui/component-doc";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,23 +27,24 @@ import { StatusMap } from "@/components/ui/status-map";
 import { Textarea } from "@/components/ui/textarea";
 
 import { data } from "./data";
+import { StatusMapDocs } from "./docs";
 
 const STATUS_STYLES: Record<string, { dot: string; text: string; bg: string }> =
   {
     green: {
-      dot: "bg-emerald-400",
-      text: "text-emerald-400",
+      dot: "bg-emerald-500",
+      text: "text-emerald-600",
       bg: "bg-emerald-500/10",
     },
     orange: {
-      dot: "bg-orange-400",
-      text: "text-orange-400",
-      bg: "bg-orange-400/10",
+      dot: "bg-amber-400",
+      text: "text-amber-600",
+      bg: "bg-amber-400/10",
     },
     red: {
-      dot: "bg-orange-700",
-      text: "text-orange-600",
-      bg: "bg-orange-700/10",
+      dot: "bg-rose-500",
+      text: "text-rose-600",
+      bg: "bg-rose-500/10",
     },
     grey: {
       dot: "bg-muted-foreground/40",
@@ -113,11 +114,10 @@ function IncidentReportSheet({
 
   const statusLabel = context?.status === "red" ? "Fault" : "Warning";
   const statusColor =
-    context?.status === "red" ? "text-orange-700" : "text-orange-400";
+    context?.status === "red" ? "text-rose-600" : "text-amber-600";
   const statusBg =
-    context?.status === "red" ? "bg-orange-700/10" : "bg-orange-400/10";
-  const statusDot =
-    context?.status === "red" ? "bg-orange-700" : "bg-orange-400";
+    context?.status === "red" ? "bg-rose-500/10" : "bg-amber-400/10";
+  const statusDot = context?.status === "red" ? "bg-rose-500" : "bg-amber-400";
 
   return (
     <Sheet
@@ -129,8 +129,8 @@ function IncidentReportSheet({
       <SheetContent className="sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/10">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/10">
+              <AlertTriangle className="h-4 w-4 text-rose-500" />
             </div>
             <div>
               <SheetTitle className="text-base">Report Incident</SheetTitle>
@@ -244,6 +244,7 @@ export default function StatusMapPage() {
   return (
     <main className="p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
+        <DemoBreadcrumb />
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
           Factory Machine Status
         </h1>
@@ -262,12 +263,12 @@ export default function StatusMapPage() {
             labelConfig={{
               green: { color: "bg-emerald-500", label: "Operational" },
               orange: {
-                color: "bg-orange-400",
+                color: "bg-amber-400",
                 label: "Warning",
                 enableAction: true,
               },
               red: {
-                color: "bg-orange-700",
+                color: "bg-rose-500",
                 label: "Fault",
                 enableAction: true,
               },
@@ -283,9 +284,9 @@ export default function StatusMapPage() {
             style="tight"
             bordered={false}
             labelConfig={{
-              green: { color: "bg-emerald-500", label: "Operational" },
-              orange: { color: "bg-orange-400", label: "Warning" },
-              red: { color: "bg-orange-700", label: "Fault" },
+              green: { color: "bg-sky-400", label: "Operational" },
+              orange: { color: "bg-blue-600", label: "Warning" },
+              red: { color: "bg-blue-900", label: "Fault" },
               grey: { color: "bg-muted", label: "No data" },
             }}
           />
@@ -296,102 +297,7 @@ export default function StatusMapPage() {
           onClose={() => setActionContext(null)}
         />
 
-        <ComponentDoc
-          title="StatusMap"
-          description="A grid-based heatmap that maps status values to colored cells across rows and dates."
-          usage={`import { StatusMap } from "@/components/ui/status-map"
-
-<StatusMap
-  data={data}
-  labelConfig={{
-    green:  { color: "bg-emerald-500", label: "Operational" },
-    orange: { color: "bg-orange-400",  label: "Warning", enableAction: true },
-    red:    { color: "bg-orange-700",  label: "Fault",   enableAction: true },
-    grey:   { color: "bg-muted",       label: "No data" },
-  }}
-  onAction={(row, date, status) => console.log(row, date, status)}
-  label
-  labelAlign="right"
-  labelTop={false}
-  style="rounded"
-/>`}
-          props={[
-            {
-              name: "data",
-              type: "StatusMapEntry[]",
-              required: true,
-              description:
-                "Array of entries, each with a row label, ISO date, and status key.",
-            },
-            {
-              name: "labelConfig",
-              type: "Record<string, StatusItemConfig>",
-              required: true,
-              description:
-                "Maps status keys to a Tailwind color class, human-readable label, and optional enableAction flag.",
-            },
-            {
-              name: "style",
-              type: '"rounded" | "squared" | "tight"',
-              default: '"rounded"',
-              description: "Cell shape style.",
-            },
-            {
-              name: "bordered",
-              type: "boolean",
-              default: "true",
-              description: "Adds a border around the grid.",
-            },
-            {
-              name: "label",
-              type: "boolean",
-              default: "false",
-              description: "Shows the color legend below (or above) the grid.",
-            },
-            {
-              name: "labelAlign",
-              type: '"left" | "center" | "right"',
-              default: '"left"',
-              description: "Horizontal alignment of the legend.",
-            },
-            {
-              name: "labelTop",
-              type: "boolean",
-              default: "false",
-              description:
-                "Renders the legend above the grid instead of below.",
-            },
-            {
-              name: "className",
-              type: "string",
-              description:
-                "Additional class names applied to the root element.",
-            },
-            {
-              name: "onCellClick",
-              type: "(row, date, status) => void",
-              description: "Callback fired on every cell click.",
-            },
-            {
-              name: "onAction",
-              type: "(row, date, status) => void",
-              description:
-                "Callback fired when a cell whose status has enableAction: true is clicked.",
-            },
-            {
-              name: "tooltip",
-              type: "boolean",
-              default: "false",
-              description: "Shows a tooltip on cell hover.",
-            },
-            {
-              name: "tooltipContent",
-              type: "(row, date, status, label) => ReactNode",
-              description: "Custom tooltip renderer.",
-            },
-          ]}
-          propSections={undefined}
-        />
+        <StatusMapDocs />
       </div>
     </main>
   );

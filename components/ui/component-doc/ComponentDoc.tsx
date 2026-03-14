@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { highlight } from "sugar-high";
 import { useState } from "react";
+import { highlight } from "sugar-high";
 
 import { cn } from "@/lib/utils";
 
@@ -40,10 +40,7 @@ export function ComponentDoc({
 }: ComponentDocProps) {
   return (
     <section
-      className={cn(
-        "mt-16 border-t border-border pt-10 space-y-8",
-        className,
-      )}
+      className={cn("mt-16 border-t border-border pt-10 space-y-8", className)}
     >
       {/* Header */}
       <div className="space-y-1">
@@ -97,18 +94,20 @@ function CodeBlock({ code }: { code: string }) {
   return (
     <div
       className="relative rounded-lg border border-neutral-700/60 overflow-hidden"
-      style={{
-        backgroundColor: "#272822",
-        "--sh-keyword": "#f92672",
-        "--sh-string": "#e6db74",
-        "--sh-comment": "#75715e",
-        "--sh-class": "#a6e22e",
-        "--sh-identifier": "#f8f8f2",
-        "--sh-sign": "#f8f8f2",
-        "--sh-property": "#66d9e8",
-        "--sh-entity": "#fd971f",
-        "--sh-jsxliterals": "#66d9e8",
-      } as React.CSSProperties}
+      style={
+        {
+          backgroundColor: "#272822",
+          "--sh-keyword": "#f92672",
+          "--sh-string": "#e6db74",
+          "--sh-comment": "#75715e",
+          "--sh-class": "#a6e22e",
+          "--sh-identifier": "#f8f8f2",
+          "--sh-sign": "#f8f8f2",
+          "--sh-property": "#66d9e8",
+          "--sh-entity": "#fd971f",
+          "--sh-jsxliterals": "#66d9e8",
+        } as React.CSSProperties
+      }
     >
       <button
         onClick={handleCopy}
@@ -135,13 +134,13 @@ function PropsTable({ props }: { props: PropDef[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/40">
-            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-[160px]">
+            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-40">
               Prop
             </th>
-            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-[200px]">
+            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-50">
               Type
             </th>
-            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-[100px]">
+            <th className="text-left px-4 py-2.5 font-medium text-foreground/70 w-25">
               Default
             </th>
             <th className="text-left px-4 py-2.5 font-medium text-foreground/70">

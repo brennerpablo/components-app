@@ -2,6 +2,7 @@
 
 import {
   ColumnDef,
+  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -11,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import * as React from "react";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -26,11 +28,55 @@ import { DataTableBulkEditor } from "./DataTableBulkEditor";
 import { Filterbar } from "./DataTableFilterbar";
 import { DataTableLocaleContext } from "./DataTableLocaleContext";
 import { DataTablePagination } from "./DataTablePagination";
+import { DataTableRowActions } from "./DataTableRowActions";
 import { DataTableLanguage, getLocale } from "./i18n";
 import { ColumnMetadata } from "./types";
 
+function createSelectColumn<TData>(): ColumnDef<TData> {
+  const helper = createColumnHelper<TData>();
+  return helper.display({
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected()
+            ? true
+            : table.getIsSomeRowsSelected()
+              ? "indeterminate"
+              : false
+        }
+        onCheckedChange={() => table.toggleAllPageRowsSelected()}
+        className="translate-y-0.5"
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={() => row.toggleSelected()}
+        className="translate-y-0.5"
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    meta: { displayName: "Select" },
+  });
+}
+
+function createActionsColumn<TData>(): ColumnDef<TData> {
+  const helper = createColumnHelper<TData>();
+  return helper.display({
+    id: "edit",
+    header: "Edit",
+    enableSorting: false,
+    enableHiding: false,
+    meta: { className: "text-right", displayName: "Edit" },
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  });
+}
+
 interface DataTableProps<TData> {
-  columns: ColumnDef<TData>[];
   data: TData[];
   columnsMetadata?: readonly ColumnMetadata<TData>[];
   persistColumnOrder?: boolean;
@@ -44,10 +90,10 @@ interface DataTableProps<TData> {
   language?: DataTableLanguage;
   enableTextSelection?: boolean;
   bordered?: boolean;
+  tableStyle?: "default" | "ghost";
 }
 
 export function DataTable<TData>({
-  columns,
   data,
   columnsMetadata,
   persistColumnOrder = false,
@@ -61,7 +107,9 @@ export function DataTable<TData>({
   language = "en",
   enableTextSelection = true,
   bordered = false,
+  tableStyle = "default",
 }: DataTableProps<TData>) {
+  const isGhost = tableStyle === "ghost";
   const locale = getLocale(language);
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -85,15 +133,13 @@ export function DataTable<TData>({
   }, [columnsMetadata, data]);
 
   const allColumns = React.useMemo(() => {
-    if (!enrichedMetadata?.length) return columns;
-    const builtCols = buildColumnsFromMetadata(enrichedMetadata);
-    // columns[0] = select, columns[last] = edit/actions
-    const actionsCol = enableRowActions ? [columns[columns.length - 1]] : [];
-    if (enableRowSelection) {
-      return [columns[0], ...builtCols, ...actionsCol];
-    }
-    return [...builtCols, ...actionsCol];
-  }, [columns, enrichedMetadata, enableRowSelection, enableRowActions]);
+    const builtCols = enrichedMetadata?.length
+      ? buildColumnsFromMetadata(enrichedMetadata)
+      : [];
+    const selectCol = enableRowSelection ? [createSelectColumn<TData>()] : [];
+    const actionsCol = enableRowActions ? [createActionsColumn<TData>()] : [];
+    return [...selectCol, ...builtCols, ...actionsCol];
+  }, [enrichedMetadata, enableRowSelection, enableRowActions]);
 
   const table = useReactTable({
     data,
@@ -126,11 +172,16 @@ export function DataTable<TData>({
         )}
         <div className={cn("relative overflow-hidden overflow-x-auto", bordered && "rounded-md border border-border")}>
           <Table>
-            <TableHeader>
+            <TableHeader className={cn(isGhost && "[&_tr]:border-0!")}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className={cn("border-border bg-muted/50 hover:bg-muted/50", bordered ? "border-b" : "border-y")}
+                  className={cn(
+                    "border-border",
+                    !isGhost && "bg-muted/50 hover:bg-muted/50",
+                    !isGhost && (bordered ? "border-b" : "border-y"),
+                    isGhost && "hover:bg-transparent",
+                  )}
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
@@ -162,15 +213,17 @@ export function DataTable<TData>({
                     }
                     className={cn(
                       "group",
+                      isGhost && "border-0! hover:bg-transparent",
                       !enableTextSelection && "select-none",
-                      enableRowSelection && "cursor-pointer hover:bg-muted/50",
+                      enableRowSelection && "cursor-pointer",
+                      enableRowSelection && !isGhost && "hover:bg-muted/50",
                     )}
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          row.getIsSelected() ? "bg-muted/70" : "",
+                          !isGhost && row.getIsSelected() && "bg-muted/70",
                           "relative whitespace-nowrap py-2 text-muted-foreground first:w-10",
                           bordered && "first:pl-4 last:pr-4",
                           cell.column.columnDef.meta?.className,

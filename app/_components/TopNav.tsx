@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { Popover } from "radix-ui";
 import { useState } from "react";
 
-import { cn } from "@/lib/utils";
 import { COMPONENT_SECTIONS } from "@/lib/components-registry";
+import { cn } from "@/lib/utils";
 
 const ALL = COMPONENT_SECTIONS.flatMap((s) => s.components);
 

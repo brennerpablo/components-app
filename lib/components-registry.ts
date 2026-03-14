@@ -1,5 +1,5 @@
-import { BarChart2, PanelTop, TableProperties, Tag } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { BarChart2, PanelTop, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;

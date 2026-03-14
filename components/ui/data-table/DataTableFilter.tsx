@@ -40,16 +40,31 @@ export type DateRangeFilter = { from: Date | undefined; to: Date | undefined };
 const DEFAULT_PERCENTAGE_RANGE: PercentageRangeFilter = [0, 100];
 const DEFAULT_DATE_RANGE: DateRangeFilter = { from: undefined, to: undefined };
 
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function formatDateRange(filter: DateRangeFilter): string {
   const { from, to } = filter;
-  if (from && to) return `${DATE_FORMATTER.format(from)} – ${DATE_FORMATTER.format(to)}`;
+  if (from && to)
+    return `${DATE_FORMATTER.format(from)} – ${DATE_FORMATTER.format(to)}`;
   if (from) return `From ${DATE_FORMATTER.format(from)}`;
   if (to) return `Until ${DATE_FORMATTER.format(to)}`;
   return "";
@@ -97,7 +112,9 @@ function DateRangeCalendarPicker({
   return (
     <div className="mt-2 flex flex-col gap-4 sm:flex-row">
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-muted-foreground">{locale.dateFrom}</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          {locale.dateFrom}
+        </p>
         <div className="flex gap-1">
           <Select
             value={String(fromMonth.getMonth())}
@@ -137,14 +154,18 @@ function DateRangeCalendarPicker({
         <Calendar
           mode="single"
           selected={dateRange.from}
-          onSelect={(date) => onChange({ ...dateRange, from: date ?? undefined })}
+          onSelect={(date) =>
+            onChange({ ...dateRange, from: date ?? undefined })
+          }
           month={fromMonth}
           onMonthChange={setFromMonth}
           modifiers={rangeModifiers}
         />
       </div>
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-muted-foreground">{locale.dateTo}</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          {locale.dateTo}
+        </p>
         <div className="flex gap-1">
           <Select
             value={String(toMonth.getMonth())}
@@ -194,6 +215,14 @@ function DateRangeCalendarPicker({
   );
 }
 
+type FilterValues =
+  | string
+  | string[]
+  | ConditionFilter
+  | PercentageRangeFilter
+  | DateRangeFilter
+  | undefined;
+
 interface DataTableFilterProps<TData, TValue> {
   column: Column<TData, TValue> | undefined;
   title?: string;
@@ -202,7 +231,7 @@ interface DataTableFilterProps<TData, TValue> {
     value: string;
   }[];
   type?: FilterType;
-  formatter?: (value: any) => string;
+  formatter?: (value: string | number) => string;
 }
 
 const ColumnFiltersLabel = ({
@@ -241,13 +270,12 @@ const ColumnFiltersLabel = ({
           className,
         )}
       >
-        {columnFilterLabels[0]} {locale.filterLabelAnd} {columnFilterLabels.length - 1} more
+        {columnFilterLabels[0]} {locale.filterLabelAnd}{" "}
+        {columnFilterLabels.length - 1} more
       </span>
     </>
   );
 };
-
-type FilterValues = string | string[] | ConditionFilter | PercentageRangeFilter | DateRangeFilter | undefined;
 
 export function DataTableFilter<TData, TValue>({
   column,
@@ -258,7 +286,9 @@ export function DataTableFilter<TData, TValue>({
 }: DataTableFilterProps<TData, TValue>) {
   const locale = useDataTableLocale();
   const options =
-    type === "number" && !optionsProp ? getNumberConditions(locale) : optionsProp;
+    type === "number" && !optionsProp
+      ? getNumberConditions(locale)
+      : optionsProp;
   const columnFilters = column?.getFilterValue() as FilterValues;
 
   const [selectedValues, setSelectedValues] =
@@ -267,7 +297,12 @@ export function DataTableFilter<TData, TValue>({
   const columnFilterLabels = React.useMemo(() => {
     if (!selectedValues) return undefined;
 
-    if (type === "date" && typeof selectedValues === "object" && !Array.isArray(selectedValues) && "from" in selectedValues) {
+    if (
+      type === "date" &&
+      typeof selectedValues === "object" &&
+      !Array.isArray(selectedValues) &&
+      "from" in selectedValues
+    ) {
       const dateRange = selectedValues as DateRangeFilter;
       if (!dateRange.from && !dateRange.to) return undefined;
       return [formatDateRange(dateRange)];
@@ -280,7 +315,10 @@ export function DataTableFilter<TData, TValue>({
       typeof selectedValues[0] === "number"
     ) {
       const [min, max] = selectedValues as PercentageRangeFilter;
-      if (min === DEFAULT_PERCENTAGE_RANGE[0] && max === DEFAULT_PERCENTAGE_RANGE[1])
+      if (
+        min === DEFAULT_PERCENTAGE_RANGE[0] &&
+        max === DEFAULT_PERCENTAGE_RANGE[1]
+      )
         return undefined;
       return [`${min}% – ${max}%`];
     }
@@ -310,7 +348,7 @@ export function DataTableFilter<TData, TValue>({
     }
 
     return undefined;
-  }, [selectedValues, options, formatter, type]);
+  }, [selectedValues, options, formatter, type, locale.rangeAnd]);
 
   const hasActiveFilter =
     selectedValues &&
@@ -336,7 +374,8 @@ export function DataTableFilter<TData, TValue>({
   const getDisplayedFilter = () => {
     switch (type) {
       case "date": {
-        const dateRange = (selectedValues as DateRangeFilter | undefined) ?? DEFAULT_DATE_RANGE;
+        const dateRange =
+          (selectedValues as DateRangeFilter | undefined) ?? DEFAULT_DATE_RANGE;
         return (
           <DateRangeCalendarPicker
             dateRange={dateRange}
@@ -401,7 +440,8 @@ export function DataTableFilter<TData, TValue>({
           </div>
         );
       case "percentage": {
-        const range = (selectedValues as PercentageRangeFilter) ?? DEFAULT_PERCENTAGE_RANGE;
+        const range =
+          (selectedValues as PercentageRangeFilter) ?? DEFAULT_PERCENTAGE_RANGE;
         const [min, max] = range;
         return (
           <div className="mt-3 space-y-4">
@@ -527,7 +567,12 @@ export function DataTableFilter<TData, TValue>({
             onClick={(e) => {
               if (hasActiveFilter) {
                 e.stopPropagation();
-                const emptyValue = type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : type === "date" ? DEFAULT_DATE_RANGE : "";
+                const emptyValue =
+                  type === "percentage"
+                    ? DEFAULT_PERCENTAGE_RANGE
+                    : type === "date"
+                      ? DEFAULT_DATE_RANGE
+                      : "";
                 column?.setFilterValue(emptyValue);
                 setSelectedValues(emptyValue);
               }
@@ -564,7 +609,9 @@ export function DataTableFilter<TData, TValue>({
         sideOffset={7}
         className={cn(
           "min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))]",
-          type === "date" ? "sm:w-fit sm:min-w-0 sm:max-w-none" : "sm:min-w-56 sm:max-w-56",
+          type === "date"
+            ? "sm:w-fit sm:min-w-0 sm:max-w-none"
+            : "sm:min-w-56 sm:max-w-56",
         )}
         onInteractOutside={() => {
           const hasNoCommittedFilter =
@@ -585,7 +632,12 @@ export function DataTableFilter<TData, TValue>({
 
           if (hasNoCommittedFilter) {
             column?.setFilterValue(undefined);
-            const defaultValue = type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : type === "date" ? DEFAULT_DATE_RANGE : "";
+            const defaultValue =
+              type === "percentage"
+                ? DEFAULT_PERCENTAGE_RANGE
+                : type === "date"
+                  ? DEFAULT_DATE_RANGE
+                  : "";
             setSelectedValues(defaultValue);
           } else {
             setSelectedValues(columnFilters);
@@ -617,7 +669,12 @@ export function DataTableFilter<TData, TValue>({
                 size="sm"
                 type="button"
                 onClick={() => {
-                  const emptyValue = type === "percentage" ? DEFAULT_PERCENTAGE_RANGE : type === "date" ? DEFAULT_DATE_RANGE : "";
+                  const emptyValue =
+                    type === "percentage"
+                      ? DEFAULT_PERCENTAGE_RANGE
+                      : type === "date"
+                        ? DEFAULT_DATE_RANGE
+                        : "";
                   column?.setFilterValue(emptyValue);
                   setSelectedValues(
                     type === "checkbox"
