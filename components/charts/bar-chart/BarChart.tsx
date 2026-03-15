@@ -552,7 +552,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       yAxisLabel,
       legendPosition = "right",
       axisTextSize = "xs",
-      legendTextSize = "xs",
+      legendTextSize = "sm",
       rounded = false,
       labelTruncateAt,
       tooltipFullLabel = true,
