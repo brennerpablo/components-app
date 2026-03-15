@@ -100,15 +100,15 @@ function TabsTrigger({
   return (
     <Tabs.Trigger
       className={cn(
-        "inline-flex items-center gap-1.5 font-medium text-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center gap-1.5 text-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50",
         variant === "line" &&
           cn(
-            "px-3 pb-2 text-muted-foreground hover:text-foreground border-b-2 border-transparent -mb-px",
+            "px-3 pb-2 font-normal text-muted-foreground hover:text-foreground hover:border-foreground/50 border-b-2 border-transparent -mb-px data-[state=active]:font-medium",
             lineActiveClasses[color],
           ),
         variant === "solid" &&
           cn(
-            "px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground",
+            "px-3 py-1.5 rounded-md font-medium text-muted-foreground hover:text-foreground",
             solidActiveClasses[color],
           ),
         className,
