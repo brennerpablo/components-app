@@ -64,7 +64,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     const baseClass = ghost
       ? "relative w-full"
       : cn(
-          "relative w-full rounded-lg border border-border bg-card p-6 text-left shadow-sm",
+          "relative w-full rounded-lg border border-border bg-card p-6 text-left shadow-xs",
           accentColor && accentSideClass[accentSide],
         );
 
@@ -74,7 +74,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           ref={ref}
           className={cn(
             baseClass,
-            !ghost && hoverShadow && "transition-shadow duration-200 ease-in-out hover:shadow-md",
+            !ghost && hoverShadow && "transition-all duration-200 ease-in-out hover:border-foreground/20 hover:shadow-sm",
             className,
           )}
           style={{ ...accentStyle, ...props.style }}
@@ -110,7 +110,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           isFullscreen
             ? "h-full overflow-auto"
             : [
-                !ghost && hoverShadow && "transition-shadow duration-200 ease-in-out hover:shadow-md",
+                !ghost && hoverShadow && "transition-all duration-200 ease-in-out hover:border-foreground/20 hover:shadow-sm",
                 className,
               ],
         )}

@@ -3,6 +3,7 @@
 import {
   ArrowUpRight,
   BarChart2,
+  GaugeCircle,
   PanelTop,
   PieChart,
   TableProperties,
@@ -74,6 +75,14 @@ const sections: {
         href: "/charts/donut-chart",
         icon: PieChart,
         tags: ["Recharts", "Pie", "Interactive"],
+      },
+      {
+        title: "Progress Bar",
+        description:
+          "A Tremor-style horizontal progress bar with semantic color variants, optional animation, and an optional label.",
+        href: "/charts/progress-bar",
+        icon: GaugeCircle,
+        tags: ["Tremor", "Semantic", "Animation"],
       },
     ],
   },

@@ -137,6 +137,60 @@ return <ComponentName prop="value" />
 
 ## Components
 
+### ProgressBar
+
+A Tremor-style horizontal progress bar with semantic color variants (default, neutral, success, warning, error), optional animation, and an optional label. Adapted from [Tremor](https://tremor.so/docs/visualizations/progress-bar) — no external dependencies beyond `cn()`.
+
+**Demo:** `localhost:3000/charts/progress-bar`
+
+#### Files to copy
+
+```
+components/charts/progress-bar/ProgressBar.tsx
+components/charts/progress-bar/index.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+None.
+
+#### Internal dependencies
+
+| File           | Purpose               |
+| -------------- | --------------------- |
+| `lib/utils.ts` | `cn()` class utility  |
+
+#### Usage
+
+```tsx
+import { ProgressBar } from "@/components/ui/progress-bar"
+
+<ProgressBar value={60} variant="default" label="60%" />
+<ProgressBar value={3} max={5} showAnimation label="3/5" />
+```
+
+#### Props
+
+| Prop            | Type                                                       | Default       | Description                                         |
+| --------------- | ---------------------------------------------------------- | ------------- | --------------------------------------------------- |
+| `value`         | `number`                                                   | `0`           | Current progress value.                             |
+| `max`           | `number`                                                   | `100`         | Upper boundary value.                               |
+| `variant`       | `"default" \| "neutral" \| "success" \| "warning" \| "error"` | `"default"` | Color scheme of the bar.                            |
+| `showAnimation` | `boolean`                                                  | `false`       | Enables a CSS transition when the value changes.    |
+| `label`         | `string`                                                   | —             | Optional text displayed to the right of the bar.   |
+| `className`     | `string`                                                   | —             | Extra classes applied to the outer wrapper div.     |
+
+#### Notes
+
+- Inherits all `HTMLDivElement` props (forwarded to the outer wrapper).
+- Value is clamped between `0` and `max` internally — no need to guard at call sites.
+
+---
+
 ### DataTable
 
 A fully-featured data table with sorting, filtering, pagination, row selection, column management, and CSV export. Built on TanStack Table with drag-and-drop column reordering powered by Atlaskit Pragmatic DnD.

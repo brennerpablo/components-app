@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, GaugeCircle, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -69,6 +69,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Donut & pie chart",
         icon: PieChart,
         tags: ["Recharts", "Tremor", "Interactive"],
+      },
+      {
+        title: "Progress Bar",
+        href: "/charts/progress-bar",
+        description:
+          "A Tremor-style horizontal progress bar with semantic color variants (default, neutral, success, warning, error), optional animation, and an optional label.",
+        shortDescription: "Semantic progress indicator",
+        icon: GaugeCircle,
+        tags: ["Tremor", "Semantic", "Animation"],
       },
     ],
   },
