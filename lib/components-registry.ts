@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart3, BarChart2, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;

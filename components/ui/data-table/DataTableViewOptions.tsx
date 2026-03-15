@@ -130,7 +130,7 @@ function ListItem({
 }: {
   item: Item
   index: number
-  column: Column<any, unknown> | undefined
+  column: Column<unknown, unknown> | undefined
 }) {
   const { registerItem, instanceId } = useListContext()
   const locale = useDataTableLocale()

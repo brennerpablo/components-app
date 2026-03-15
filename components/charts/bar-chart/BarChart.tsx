@@ -3,13 +3,13 @@
 
 "use client"
 
-import React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import React from "react"
 import {
   Bar,
+  BarChart as RechartsBarChart,
   CartesianGrid,
   Label,
-  BarChart as RechartsBarChart,
   Legend as RechartsLegend,
   ResponsiveContainer,
   Tooltip,
@@ -19,7 +19,7 @@ import {
 import type { AxisDomain } from "recharts/types/util/types"
 
 import { cn } from "@/lib/utils"
-import { useOnWindowResize } from "../utils/useOnWindowResize"
+
 import {
   CHART_COLORS,
   type ChartColor,
@@ -27,6 +27,7 @@ import {
   getColorClass,
 } from "../utils/chartColors"
 import { getYAxisDomain, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+import { useOnWindowResize } from "../utils/useOnWindowResize"
 
 type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
 

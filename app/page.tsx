@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   ArrowUpRight,
   BarChart2,
@@ -12,13 +11,20 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import React from "react";
 import { useState } from "react";
 
 const sections: {
   title: string;
   compact?: boolean;
   horizontal?: boolean;
-  components: { title: string; description: string; href: string; icon: React.ElementType; tags: string[] }[];
+  components: {
+    title: string;
+    description: string;
+    href: string;
+    icon: React.ElementType;
+    tags: string[];
+  }[];
 }[] = [
   {
     title: "Rich Components",

@@ -1,3 +1,3 @@
-export { BarChart } from "./BarChart"
-export type { BarChartEventProps, TooltipProps } from "./BarChart"
 export type { ChartColor } from "../utils/chartColors"
+export type { BarChartEventProps, TooltipProps } from "./BarChart"
+export { BarChart } from "./BarChart"

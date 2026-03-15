@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react"
 
 export function useOnWindowResize(handler: () => void) {
-  const stableHandler = useCallback(handler, [handler])
+  const stableHandler = useCallback(() => handler(), [handler])
   useEffect(() => {
     window.addEventListener("resize", stableHandler)
     stableHandler()
