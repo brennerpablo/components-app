@@ -604,7 +604,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         return inferYAxisWidth([{ v: 0 }, { v: 0.5 }, { v: 1 }], ["v"], (v) => `${(v * 100).toFixed(0)}%`)
       }
       return inferYAxisWidth(data, categories, valueFormatter)
-    }, [yAxisWidth, data, categories, type, valueFormatter, isVertical, index])
+    }, [yAxisWidth, data, categories, type, valueFormatter, isVertical, index, labelTruncateAt])
 
     function onBarClick(barData: any, barIndex: number, category: string) {
       if (!hasOnValueChange) return

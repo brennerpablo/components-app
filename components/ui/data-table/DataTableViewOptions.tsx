@@ -430,7 +430,7 @@ function ViewOptions<TData>({
     liveRegion.announce(
       locale.movedColumn({ label: item.label, previousIndex, currentIndex, numberOfItems }),
     )
-  }, [lastCardMoved, registry])
+  }, [lastCardMoved, registry, locale])
 
   React.useEffect(() => {
     return function cleanup() {
