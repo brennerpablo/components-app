@@ -1,6 +1,6 @@
 import { DemoBreadcrumb } from "@/app/_components/DemoBreadcrumb";
-import { ComponentDoc } from "@/components/ui/component-doc";
 import { Card } from "@/components/ui/card";
+import { ComponentDoc } from "@/components/ui/component-doc";
 
 export default function CardPage() {
   return (
