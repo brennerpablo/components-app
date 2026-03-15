@@ -97,6 +97,14 @@ const sections: {
         icon: Tag,
         tags: ["Status", "Semantic", "Dark Mode"],
       },
+      {
+        title: "Card",
+        description:
+          "A fundamental layout primitive for grouping content. Supports asChild for semantic HTML rendering. Tremor-inspired.",
+        href: "/ui/card",
+        icon: PanelTop,
+        tags: ["Layout", "Tremor", "asChild"],
+      },
     ],
   },
 ];

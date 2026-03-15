@@ -477,7 +477,7 @@ function ViewOptions<TData>({
                   key={column.id}
                   className={cn(!column.getCanHide() && "hidden")}
                 >
-                  <ListItem column={column} item={item} index={index} />
+                  <ListItem column={column as Column<unknown, unknown>} item={item} index={index} />
                 </div>
               )
             })}

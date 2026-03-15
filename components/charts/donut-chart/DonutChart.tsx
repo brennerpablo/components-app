@@ -257,7 +257,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
     const parsedLabelInput = parseLabelInput(label, valueFormatter, data, value)
 
     const categories = Array.from(new Set(data.map((item) => item[category])))
-    const categoryColors = constructCategoryColors(categories, colors)
+    const categoryColors = constructCategoryColors(categories, [...colors])
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevCategoryRef = React.useRef<string | undefined>(undefined)
@@ -321,7 +321,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
             onClick={handleShapeClick}
             onMouseEnter={(_: any, index: number) => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(undefined)}
-            activeIndex={activeIndex !== undefined ? activeIndex : hoveredIndex}
+            {...({ activeIndex: activeIndex !== undefined ? activeIndex : hoveredIndex } as any)}
             activeShape={renderActiveShape}
             inactiveShape={activeIndex !== undefined ? renderInactiveShape : undefined}
             style={{ outline: "none" }}

@@ -1093,3 +1093,68 @@ import { DonutChart } from "@/components/charts/donut-chart"
 - Center label is only rendered when `variant="donut"` and `showLabel={true}`.
 - Clicking an active segment deselects it and fires `onValueChange(null)`.
 - Only `chartColors.ts` is required from the utils directory (no axis helpers needed).
+
+---
+
+### Card
+
+A fundamental layout primitive for grouping content — KPI cards, forms, or sections. Adapts Tremor's Card design using project CSS variable tokens. Supports `asChild` for rendering as any semantic element.
+
+**Demo:** `localhost:3000/ui/card`
+
+#### Files to copy
+
+```
+components/ui/card/Card.tsx
+components/ui/card/index.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+None (`radix-ui` unified package already required by other components).
+
+#### Internal dependencies
+
+| File           | Purpose           |
+| -------------- | ----------------- |
+| `lib/utils.ts` | `cn()` utility    |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { Card } from "@/components/ui/card"
+
+// Basic
+<Card className="max-w-sm">
+  <p className="text-sm text-muted-foreground">Card content</p>
+</Card>
+
+// Semantic HTML via asChild
+<ul>
+  <Card asChild>
+    <li>List item styled as a card</li>
+  </Card>
+</ul>
+```
+
+#### Props
+
+| Prop        | Type                                    | Default | Description                                                                                      |
+| ----------- | --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `asChild`   | `boolean`                               | `false` | When true, merges Card props onto its first child element instead of rendering a `<div>`.        |
+| `className` | `string`                                | —       | Additional Tailwind classes to customize the card.                                               |
+| `...props`  | `React.HTMLAttributes<HTMLDivElement>`  | —       | All standard div props are forwarded.                                                            |
+
+#### Notes
+
+- Default styles: `rounded-lg border border-border bg-card p-6 shadow-xs`.
+- Override padding with `className="p-4"` or any Tailwind spacing class.
+- `asChild` uses Radix UI's `Slot.Root` from the `radix-ui` unified package.
