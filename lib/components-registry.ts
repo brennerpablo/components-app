@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BarChart2, PanelTop, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart3, BarChart2, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -18,7 +18,7 @@ export type ComponentSection = {
 
 export const COMPONENT_SECTIONS: ComponentSection[] = [
   {
-    title: "Data Navigation",
+    title: "Rich Components",
     components: [
       {
         title: "Data Table",
@@ -42,6 +42,33 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Matrix of coloured status cells",
         icon: BarChart2,
         tags: ["StatusMap", "date-fns", "Dark Mode"],
+      },
+      {
+        title: "Area Chart",
+        href: "/charts/area-chart",
+        description:
+          "A responsive area chart with single and multi-series support, gradient/solid fill, stacked and percentage modes, and interactive legend.",
+        shortDescription: "Multi-series area chart",
+        icon: AreaChartIcon,
+        tags: ["Recharts", "Tremor", "Interactive"],
+      },
+      {
+        title: "Bar Chart",
+        href: "/charts/bar-chart",
+        description:
+          "A responsive bar chart with vertical and horizontal layouts, stacked and percentage modes, interactive legend, and click events.",
+        shortDescription: "Vertical & horizontal bar chart",
+        icon: BarChart3,
+        tags: ["Recharts", "Tremor", "Interactive"],
+      },
+      {
+        title: "Donut Chart",
+        href: "/charts/donut-chart",
+        description:
+          "A donut and pie chart for visualizing part-to-whole relationships. Supports center labels, click interactions, and custom tooltips.",
+        shortDescription: "Donut & pie chart",
+        icon: PieChart,
+        tags: ["Recharts", "Tremor", "Interactive"],
       },
     ],
   },

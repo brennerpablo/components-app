@@ -6,8 +6,51 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 type TabsVariant = "line" | "solid";
+type TabsColor =
+  | "default"
+  | "blue"
+  | "red"
+  | "green"
+  | "orange"
+  | "purple"
+  | "indigo"
+  | "pink"
+  | "yellow"
+  | "emerald";
 
-const TabsVariantContext = React.createContext<TabsVariant>("line");
+type TabsListContext = { variant: TabsVariant; color: TabsColor };
+
+const TabsListContext = React.createContext<TabsListContext>({
+  variant: "line",
+  color: "default",
+});
+
+// Static class maps so Tailwind doesn't purge them
+const lineActiveClasses: Record<TabsColor, string> = {
+  default: "data-[state=active]:border-foreground data-[state=active]:text-foreground",
+  blue:    "data-[state=active]:border-blue-500 data-[state=active]:text-blue-600",
+  red:     "data-[state=active]:border-red-500 data-[state=active]:text-red-600",
+  green:   "data-[state=active]:border-green-500 data-[state=active]:text-green-600",
+  orange:  "data-[state=active]:border-orange-500 data-[state=active]:text-orange-600",
+  purple:  "data-[state=active]:border-purple-500 data-[state=active]:text-purple-600",
+  indigo:  "data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600",
+  pink:    "data-[state=active]:border-pink-500 data-[state=active]:text-pink-600",
+  yellow:  "data-[state=active]:border-yellow-500 data-[state=active]:text-yellow-600",
+  emerald: "data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600",
+};
+
+const solidActiveClasses: Record<TabsColor, string> = {
+  default: "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+  blue:    "data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  red:     "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  green:   "data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  orange:  "data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  purple:  "data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  indigo:  "data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  pink:    "data-[state=active]:bg-pink-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  yellow:  "data-[state=active]:bg-yellow-400 data-[state=active]:text-white data-[state=active]:shadow-sm",
+  emerald: "data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-sm",
+};
 
 function TabsRoot({
   className,
@@ -23,12 +66,16 @@ function TabsRoot({
 
 function TabsList({
   variant = "line",
+  color = "default",
   className,
   children,
   ...props
-}: React.ComponentProps<typeof Tabs.List> & { variant?: TabsVariant }) {
+}: React.ComponentProps<typeof Tabs.List> & {
+  variant?: TabsVariant;
+  color?: TabsColor;
+}) {
   return (
-    <TabsVariantContext.Provider value={variant}>
+    <TabsListContext.Provider value={{ variant, color }}>
       <Tabs.List
         className={cn(
           variant === "line" &&
@@ -41,7 +88,7 @@ function TabsList({
       >
         {children}
       </Tabs.List>
-    </TabsVariantContext.Provider>
+    </TabsListContext.Provider>
   );
 }
 
@@ -49,15 +96,21 @@ function TabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof Tabs.Trigger>) {
-  const variant = React.useContext(TabsVariantContext);
+  const { variant, color } = React.useContext(TabsListContext);
   return (
     <Tabs.Trigger
       className={cn(
         "inline-flex items-center gap-1.5 font-medium text-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50",
         variant === "line" &&
-          "px-3 pb-2 text-muted-foreground hover:text-foreground border-b-2 border-transparent -mb-px data-[state=active]:text-foreground data-[state=active]:border-foreground",
+          cn(
+            "px-3 pb-2 text-muted-foreground hover:text-foreground border-b-2 border-transparent -mb-px",
+            lineActiveClasses[color],
+          ),
         variant === "solid" &&
-          "px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+          cn(
+            "px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground",
+            solidActiveClasses[color],
+          ),
         className,
       )}
       {...props}
@@ -77,4 +130,5 @@ function TabsContent({
   );
 }
 
-export { TabsRoot as Tabs, TabsContent,TabsList, TabsTrigger };
+export { TabsRoot as Tabs, TabsContent, TabsList, TabsTrigger };
+export type { TabsColor, TabsVariant };

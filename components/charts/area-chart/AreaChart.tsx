@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   Dot,
   Label,
+  LabelList,
   Line,
   AreaChart as RechartsAreaChart,
   Legend as RechartsLegend,
@@ -28,7 +29,14 @@ import {
   constructCategoryColors,
   getColorClass,
 } from "../utils/chartColors"
-import { getYAxisDomain, hasOnlyOneValueForKey } from "../utils/chartHelpers"
+import { getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+
+type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
+
+function resolveTextSize(size: ChartTextSize): number {
+  if (typeof size === "number") return size
+  return { xs: 12, sm: 14, md: 16, lg: 18 }[size]
+}
 
 //#region Legend
 
@@ -37,6 +45,7 @@ interface LegendItemProps {
   color: ChartColor
   onClick?: (name: string, color: ChartColor) => void
   activeLegend?: string
+  textSize?: number
 }
 
 const LegendItem = ({
@@ -44,6 +53,7 @@ const LegendItem = ({
   color,
   onClick,
   activeLegend,
+  textSize,
 }: LegendItemProps) => {
   const hasOnValueChange = !!onClick
   return (
@@ -62,7 +72,7 @@ const LegendItem = ({
     >
       <span
         className={cn(
-          "h-[3px] w-3.5 shrink-0 rounded-full",
+          "h-0.75 w-3.5 shrink-0 rounded-full",
           getColorClass(color, "bg"),
           activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
@@ -71,13 +81,14 @@ const LegendItem = ({
       <p
         className={cn(
           // base
-          "truncate text-xs whitespace-nowrap",
+          "truncate whitespace-nowrap",
           // text color
           "text-gray-700 dark:text-gray-300",
           hasOnValueChange &&
             "group-hover:text-gray-900 dark:group-hover:text-gray-50",
           activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
+        style={{ fontSize: textSize }}
       >
         {name}
       </p>
@@ -149,6 +160,7 @@ interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   onClickLegendItem?: (category: string, color: string) => void
   activeLegend?: string
   enableLegendSlider?: boolean
+  textSize?: number
 }
 
 type HasScrollProps = {
@@ -164,6 +176,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     onClickLegendItem,
     activeLegend,
     enableLegendSlider = false,
+    textSize,
     ...other
   } = props
   const scrollableRef = React.useRef<HTMLInputElement>(null)
@@ -276,6 +289,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
             color={colors[index] as ChartColor}
             onClick={onClickLegendItem}
             activeLegend={activeLegend}
+            textSize={textSize}
           />
         ))}
       </div>
@@ -324,12 +338,14 @@ const ChartLegend = (
   enableLegendSlider?: boolean,
   legendPosition?: "left" | "center" | "right",
   yAxisWidth?: number,
+  textSize?: number,
+  extraBottomPadding = 0,
 ) => {
   const legendRef = React.useRef<HTMLDivElement>(null)
 
   useOnWindowResize(() => {
     const calculateHeight = (height: number | undefined) =>
-      height ? Number(height) + 15 : 60
+      height ? Number(height) + 15 + extraBottomPadding : 60 + extraBottomPadding
     setLegendHeight(calculateHeight(legendRef.current?.clientHeight))
   })
 
@@ -357,6 +373,7 @@ const ChartLegend = (
         onClickLegendItem={onClick}
         activeLegend={activeLegend}
         enableLegendSlider={enableLegendSlider}
+        textSize={textSize}
       />
     </div>
   )
@@ -380,6 +397,7 @@ interface ChartTooltipProps {
   payload: PayloadItem[]
   label: string
   valueFormatter: (value: number) => string
+  showTotal?: boolean
 }
 
 const ChartTooltip = ({
@@ -387,8 +405,13 @@ const ChartTooltip = ({
   payload,
   label,
   valueFormatter,
+  showTotal = false,
 }: ChartTooltipProps) => {
   if (active && payload && payload.length) {
+    const total = showTotal
+      ? payload.reduce((sum, { value }) => sum + (value ?? 0), 0)
+      : null
+
     return (
       <div
         className={cn(
@@ -422,7 +445,7 @@ const ChartTooltip = ({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "h-[3px] w-3.5 shrink-0 rounded-full",
+                    "h-0.75 w-3.5 shrink-0 rounded-full",
                     getColorClass(color, "bg"),
                   )}
                 />
@@ -449,6 +472,16 @@ const ChartTooltip = ({
               </p>
             </div>
           ))}
+          {total !== null && (
+            <div className="mt-1 flex items-center justify-between space-x-8 border-t border-gray-200 pt-1 dark:border-gray-800">
+              <p className="whitespace-nowrap text-gray-700 dark:text-gray-300">
+                Total
+              </p>
+              <p className="whitespace-nowrap tabular-nums font-medium text-gray-900 dark:text-gray-50">
+                {valueFormatter(total)}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -498,6 +531,15 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   type?: "default" | "stacked" | "percent"
   legendPosition?: "left" | "center" | "right"
   fill?: "gradient" | "solid" | "none"
+  axisTextSize?: ChartTextSize
+  legendTextSize?: ChartTextSize
+  showDataPointLabels?: boolean
+  showDataPointLabelBackground?: boolean
+  dataPointTextSize?: ChartTextSize
+  dataPointLabelFormatter?: (value: number) => string
+  tooltipShowTotal?: boolean
+  showTotalDataPointLabels?: boolean
+  totalDataPointLabelPosition?: "top" | "bottom" | "line"
   tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void
   customTooltip?: React.ComponentType<TooltipProps>
 }
@@ -514,7 +556,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       showXAxis = true,
       showYAxis = true,
       showGridLines = true,
-      yAxisWidth = 56,
+      yAxisWidth,
       intervalType = "equidistantPreserveStart",
       showTooltip = true,
       showLegend = true,
@@ -532,6 +574,15 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       type = "default",
       legendPosition = "right",
       fill = "gradient",
+      axisTextSize = "xs",
+      legendTextSize = "xs",
+      showDataPointLabels = false,
+      showDataPointLabelBackground = false,
+      dataPointTextSize = "xs",
+      dataPointLabelFormatter,
+      tooltipShowTotal = false,
+      showTotalDataPointLabels = false,
+      totalDataPointLabelPosition = "line",
       tooltipCallback,
       customTooltip,
       ...other
@@ -549,9 +600,43 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     const categoryColors = constructCategoryColors(categories, colors as ChartColor[])
 
     const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
+    const resolvedAxisTextSize = resolveTextSize(axisTextSize)
+    const resolvedLegendTextSize = resolveTextSize(legendTextSize)
+    const resolvedDataPointTextSize = resolveTextSize(dataPointTextSize)
     const hasOnValueChange = !!onValueChange
     const stacked = type === "stacked" || type === "percent"
     const areaId = React.useId()
+    const TOTAL_KEY = `${areaId}__total__`
+    const TOTAL_ANCHOR_KEY = `${areaId}__totalAnchor__`
+
+    const dataWithTotals = React.useMemo(() => {
+      if (!showTotalDataPointLabels || type === "percent") return data
+      const totals = data.map((d) =>
+        categories.reduce(
+          (sum, cat) => sum + (typeof d[cat] === "number" ? (d[cat] as number) : 0),
+          0,
+        ),
+      )
+      const maxTotal = totals.length ? Math.max(...totals) : 0
+      return data.map((d, i) => ({
+        ...d,
+        [TOTAL_KEY]: totals[i],
+        [TOTAL_ANCHOR_KEY]:
+          totalDataPointLabelPosition === "top" ? maxTotal :
+          totalDataPointLabelPosition === "bottom" ? 0 :
+          totals[i],
+      }))
+    }, [data, categories, showTotalDataPointLabels, type, totalDataPointLabelPosition, TOTAL_KEY, TOTAL_ANCHOR_KEY])
+
+    const resolvedYAxisWidth = React.useMemo(() => {
+      if (yAxisWidth !== undefined) return yAxisWidth
+      if (type === "percent") {
+        // Recharts normalizes stacked percent charts to a 0–1 domain,
+        // so ticks are always 0%–100%. Measure against that range, not raw data values.
+        return inferYAxisWidth([{ v: 0 }, { v: 0.5 }, { v: 1 }], ["v"], (v) => `${(v * 100).toFixed(0)}%`)
+      }
+      return inferYAxisWidth(data, categories, valueFormatter)
+    }, [yAxisWidth, data, categories, type, valueFormatter])
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
@@ -645,12 +730,12 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-80 w-full", className)}
+        className={cn("h-80 w-full **:outline-none", className)}
         {...other}
       >
         <ResponsiveContainer>
           <RechartsAreaChart
-            data={data}
+            data={dataWithTotals}
             onClick={
               hasOnValueChange && (activeLegend || activeDot)
                 ? () => {
@@ -664,7 +749,11 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               bottom: xAxisLabel ? 30 : undefined,
               left: yAxisLabel ? 20 : undefined,
               right: yAxisLabel ? 5 : undefined,
-              top: 5,
+              top: (showTotalDataPointLabels && totalDataPointLabelPosition === "top")
+                ? 32
+                : (showDataPointLabels || (showTotalDataPointLabels && totalDataPointLabelPosition === "line"))
+                  ? 20
+                  : 5,
             }}
             stackOffset={type === "percent" ? "expand" : undefined}
           >
@@ -680,7 +769,12 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               hide={!showXAxis}
               dataKey={index}
               interval={startEndOnly ? "preserveStartEnd" : intervalType}
-              tick={{ transform: "translate(0, 6)" }}
+              tick={{
+                transform: (showTotalDataPointLabels && totalDataPointLabelPosition === "bottom")
+                  ? "translate(0, 28)"
+                  : "translate(0, 6)",
+                fontSize: resolvedAxisTextSize,
+              }}
               ticks={
                 startEndOnly
                   ? [data[0][index], data[data.length - 1][index]]
@@ -709,13 +803,13 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               )}
             </XAxis>
             <YAxis
-              width={yAxisWidth}
+              width={resolvedYAxisWidth}
               hide={!showYAxis}
               axisLine={false}
               tickLine={false}
               type="number"
               domain={yAxisDomain as AxisDomain}
-              tick={{ transform: "translate(-3, 0)" }}
+              tick={{ transform: "translate(-3, 0)", fontSize: resolvedAxisTextSize }}
               fill=""
               stroke=""
               className={cn(
@@ -742,7 +836,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               )}
             </YAxis>
             <Tooltip
-              wrapperStyle={{ outline: "none" }}
+              wrapperStyle={{ outline: "none", zIndex: 10 }}
               isAnimationActive={true}
               animationDuration={100}
               cursor={{ stroke: "#d1d5db", strokeWidth: 1 }}
@@ -750,7 +844,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               position={{ y: 0 }}
               content={({ active, payload, label }) => {
                 const cleanPayload: TooltipProps["payload"] = payload
-                  ? payload.map((item: any) => ({
+                  ? payload
+                      .filter((item: any) => categories.includes(item.dataKey))
+                      .map((item: any) => ({
                       category: item.dataKey,
                       value: item.value,
                       index: item.payload[index],
@@ -787,6 +883,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                       payload={cleanPayload}
                       label={labelStr}
                       valueFormatter={valueFormatter}
+                      showTotal={tooltipShowTotal}
                     />
                   )
                 ) : null
@@ -809,7 +906,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                       : undefined,
                     enableLegendSlider,
                     legendPosition,
-                    yAxisWidth,
+                    resolvedYAxisWidth,
+                    resolvedLegendTextSize,
+                    showTotalDataPointLabels && totalDataPointLabelPosition === "top" ? 24 : 0,
                   )
                 }
               />
@@ -818,9 +917,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               const categoryId = `${areaId}-${category.replace(/[^a-zA-Z0-9]/g, "")}`
               return (
                 <React.Fragment key={category}>
-                  <defs key={category}>
+                  <defs key={`defs-${category}`}>
                     <linearGradient
-                      key={category}
+                      key={`gradient-${category}`}
                       className={cn(
                         getColorClass(
                           categoryColors.get(
@@ -868,27 +967,37 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                         dataKey,
                       } = props
                       return (
-                        <Dot
-                          className={cn(
-                            "stroke-white dark:stroke-gray-950",
-                            onValueChange ? "cursor-pointer" : "",
-                            getColorClass(
-                              categoryColors.get(
-                                dataKey,
-                              ) as ChartColor,
-                              "fill",
-                            ),
-                          )}
-                          cx={cxCoord}
-                          cy={cyCoord}
-                          r={5}
-                          fill=""
-                          stroke={stroke}
-                          strokeLinecap={strokeLinecap}
-                          strokeLinejoin={strokeLinejoin}
-                          strokeWidth={strokeWidth}
-                          onClick={(_, event) => onDotClick(props, event)}
-                        />
+                        <g
+                          onClick={(event) => onDotClick(props, event)}
+                          className={onValueChange ? "cursor-pointer" : ""}
+                        >
+                          <circle
+                            cx={cxCoord}
+                            cy={cyCoord}
+                            r={14}
+                            fill="transparent"
+                            stroke="none"
+                          />
+                          <Dot
+                            className={cn(
+                              "stroke-white dark:stroke-gray-950",
+                              getColorClass(
+                                categoryColors.get(
+                                  dataKey,
+                                ) as ChartColor,
+                                "fill",
+                              ),
+                            )}
+                            cx={cxCoord}
+                            cy={cyCoord}
+                            r={5}
+                            fill=""
+                            stroke={stroke}
+                            strokeLinecap={strokeLinecap}
+                            strokeLinejoin={strokeLinejoin}
+                            strokeWidth={strokeWidth}
+                          />
+                        </g>
                       )
                     }}
                     dot={(props: any) => {
@@ -938,7 +1047,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                       }
                       return <React.Fragment key={index}></React.Fragment>
                     }}
-                    key={category}
+                    key={`area-${category}`}
                     name={category}
                     type="linear"
                     dataKey={category}
@@ -950,17 +1059,130 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                     connectNulls={connectNulls}
                     stackId={stacked ? "stack" : undefined}
                     fill={`url(#${categoryId})`}
-                  />
+                  >
+                    {showDataPointLabels ? (
+                      <LabelList
+                        dataKey={category}
+                        content={(props: any) => {
+                          const { x, y, value, index: pointIndex } = props
+                          if (value == null) return null
+
+                          const formatted =
+                            type === "percent"
+                              ? valueToPercent(value)
+                              : (dataPointLabelFormatter ?? valueFormatter)(value)
+
+                          const offset = 8
+                          const fontSize = resolvedDataPointTextSize
+                          const paddingX = 5
+                          const paddingY = 2
+                          const bgWidth = measureTextWidth(formatted) + paddingX * 2
+                          const bgHeight = fontSize + paddingY * 2
+                          const rectY = y - offset - bgHeight
+                          const color = categoryColors.get(category) as ChartColor
+
+                          return (
+                            <g key={`label-${category}-${pointIndex}`}>
+                              {showDataPointLabelBackground && (
+                                <rect
+                                  x={x - bgWidth / 2}
+                                  y={rectY}
+                                  width={bgWidth}
+                                  height={bgHeight}
+                                  rx={4}
+                                  className={cn(getColorClass(color, "fill"), "opacity-15")}
+                                />
+                              )}
+                              <text
+                                x={x}
+                                y={rectY + bgHeight / 2}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize={fontSize}
+                                className={cn(
+                                  "font-medium",
+                                  showDataPointLabelBackground
+                                    ? getColorClass(color, "fill")
+                                    : "fill-gray-600 dark:fill-gray-400",
+                                )}
+                              >
+                                {formatted}
+                              </text>
+                            </g>
+                          )
+                        }}
+                      />
+                    ) : null}
+                  </Area>
                 </React.Fragment>
               )
             })}
+            {showTotalDataPointLabels && type !== "percent" && (
+              <Area
+                key={TOTAL_ANCHOR_KEY}
+                name={TOTAL_ANCHOR_KEY}
+                dataKey={TOTAL_ANCHOR_KEY}
+                stroke="transparent"
+                fill="transparent"
+                strokeWidth={0}
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+                legendType="none"
+                tooltipType="none"
+              >
+                <LabelList
+                  dataKey={TOTAL_KEY}
+                  content={(props: any) => {
+                    const { x, y, value, index: pointIndex } = props
+                    if (value == null) return null
+
+                    const formatted = (dataPointLabelFormatter ?? valueFormatter)(value)
+                    const fontSize = resolvedDataPointTextSize
+                    const paddingX = 5
+                    const paddingY = 2
+                    const bgWidth = measureTextWidth(formatted) + paddingX * 2
+                    const bgHeight = fontSize + paddingY * 2
+                    const labelY = totalDataPointLabelPosition === "bottom"
+                      ? y + 4
+                      : y - 8 - bgHeight
+
+                    return (
+                      <g key={`total-label-${pointIndex}`}>
+                        {showDataPointLabelBackground && (
+                          <rect
+                            x={x - bgWidth / 2}
+                            y={labelY}
+                            width={bgWidth}
+                            height={bgHeight}
+                            rx={4}
+                            className="fill-gray-500 opacity-15"
+                          />
+                        )}
+                        <text
+                          x={x}
+                          y={labelY + bgHeight / 2}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fontSize={fontSize}
+                          className="fill-gray-600 font-medium dark:fill-gray-400"
+                        >
+                          {formatted}
+                        </text>
+                      </g>
+                    )
+                  }}
+                />
+              </Area>
+            )}
+
             {/* hidden lines to increase clickable target area */}
             {onValueChange
               ? categories.map((category) => (
                   <Line
                     className={cn("cursor-pointer")}
                     strokeOpacity={0}
-                    key={category}
+                    key={`line-${category}`}
                     name={category}
                     type="linear"
                     dataKey={category}
@@ -987,4 +1209,4 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
 
 AreaChart.displayName = "AreaChart"
 
-export { AreaChart, type AreaChartEventProps, type TooltipProps }
+export { AreaChart, type AreaChartEventProps, type ChartTextSize, type TooltipProps }

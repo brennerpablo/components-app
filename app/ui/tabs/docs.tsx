@@ -53,6 +53,13 @@ export function TabsDocs() {
                 'Visual style. "line" shows an underline indicator; "solid" shows a pill with background.',
             },
             {
+              name: "color",
+              type: '"default" | "blue" | "red" | "green" | "orange" | "purple" | "indigo" | "pink" | "yellow" | "emerald"',
+              default: '"default"',
+              description:
+                "Color of the active tab indicator. Affects the underline (line) or background (solid) of the selected trigger.",
+            },
+            {
               name: "className",
               type: "string",
               description: "Additional CSS classes.",

@@ -1,9 +1,11 @@
 "use client";
 
+import React from "react";
 import {
   ArrowUpRight,
   BarChart2,
   PanelTop,
+  PieChart,
   TableProperties,
   Tag,
   TrendingUp,
@@ -12,9 +14,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-const sections = [
+const sections: {
+  title: string;
+  compact?: boolean;
+  horizontal?: boolean;
+  components: { title: string; description: string; href: string; icon: React.ElementType; tags: string[] }[];
+}[] = [
   {
-    title: "Data Navigation",
+    title: "Rich Components",
     components: [
       {
         title: "Data Table",
@@ -28,6 +35,7 @@ const sections = [
   },
   {
     title: "Data Visualization",
+    horizontal: true,
     components: [
       {
         title: "StatusMap",
@@ -44,6 +52,22 @@ const sections = [
         href: "/charts/area-chart",
         icon: TrendingUp,
         tags: ["Recharts", "Gradient", "Interactive"],
+      },
+      {
+        title: "Bar Chart",
+        description:
+          "A responsive bar chart with vertical and horizontal layouts, stacked and percentage modes, interactive legend, and bar click events. Tremor-inspired, powered by Recharts.",
+        href: "/charts/bar-chart",
+        icon: BarChart2,
+        tags: ["Recharts", "Stacked", "Interactive"],
+      },
+      {
+        title: "Donut Chart",
+        description:
+          "A donut and pie chart for visualizing part-to-whole relationships. Supports center labels, click interactions, and custom tooltips. Tremor-inspired, powered by Recharts.",
+        href: "/charts/donut-chart",
+        icon: PieChart,
+        tags: ["Recharts", "Pie", "Interactive"],
       },
     ],
   },
@@ -154,6 +178,26 @@ export default function Home() {
                         <span className="text-sm font-medium text-foreground">
                           {component.title}
                         </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : section.horizontal ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {section.components.map((component) => {
+                    const Icon = component.icon;
+                    return (
+                      <Link
+                        key={component.href}
+                        href={component.href}
+                        className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
+                      >
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                          <Icon className="size-4.5" />
+                        </div>
+                        <h3 className="text-sm font-medium text-foreground self-center">
+                          {component.title}
+                        </h3>
                       </Link>
                     );
                   })}

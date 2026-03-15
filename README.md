@@ -841,6 +841,12 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `valueFormatter`    | `(value: number) => string`                        | `v => v.toString()`            | Formats Y-axis ticks and tooltip values. |
 | `type`              | `"default" \| "stacked" \| "percent"`              | `"default"`                    | Layout mode — default overlapping, stacked cumulative, or normalized to 100%. |
 | `fill`              | `"gradient" \| "solid" \| "none"`                  | `"gradient"`                   | Fill style for the area under each line. |
+| `axisTextSize`      | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for axis tick labels. Named sizes: xs=12, sm=14, md=16, lg=18px. |
+| `legendTextSize`    | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for legend item labels. |
+| `dataPointTextSize` | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for data point labels (requires `showDataPointLabels`). |
+| `showDataPointLabels` | `boolean`                                        | `false`                        | When true, renders the formatted value as a label above each data point. |
+| `showDataPointLabelBackground` | `boolean`                               | `false`                        | When true, each label gets a rounded background tinted with the series color. Requires `showDataPointLabels`. |
+| `dataPointLabelFormatter` | `(value: number) => string`              | —                              | Custom formatter for data point labels. Falls back to `valueFormatter` when omitted. Useful for compact notation (e.g. `1500000 → "1.5M"`). |
 | `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
 | `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |
 | `showGridLines`     | `boolean`                                          | `true`                         | Show horizontal grid lines. |
@@ -848,7 +854,7 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `showTooltip`       | `boolean`                                          | `true`                         | Show the tooltip on hover. |
 | `legendPosition`    | `"left" \| "center" \| "right"`                    | `"right"`                      | Horizontal alignment of the legend. |
 | `enableLegendSlider`| `boolean`                                          | `false`                        | Make the legend horizontally scrollable with arrow buttons. |
-| `yAxisWidth`        | `number`                                           | `56`                           | Width in pixels reserved for the Y-axis. |
+| `yAxisWidth`        | `number`                                           | auto                           | Width in pixels reserved for the Y-axis. Defaults to auto-inferred from the largest formatted value in the dataset. |
 | `autoMinValue`      | `boolean`                                          | `false`                        | Set Y-axis minimum to `"auto"` instead of `0`. |
 | `minValue`          | `number`                                           | —                              | Explicit Y-axis domain minimum. |
 | `maxValue`          | `number`                                           | —                              | Explicit Y-axis domain maximum. |
@@ -869,3 +875,221 @@ import { AreaChart } from "@/components/charts/area-chart"
 - The `ChartColor` type and `CHART_COLORS` constant are exported from the barrel for external use.
 - The three utility files in `components/charts/utils/` are shared across chart components — copy them once and reuse.
 - Recharts requires a fixed height on the container; override with `className="h-96"` or similar.
+
+---
+
+### BarChart
+
+A Tremor-inspired responsive bar chart built on Recharts. Supports vertical and horizontal bar orientations, multi-category side-by-side and stacked layouts, percent-normalized stacking, an interactive legend with optional slider, custom tooltips, and click events on bars and legend categories.
+
+**Demo:** `localhost:3000/charts/bar-chart`
+
+#### Files to copy
+
+```
+components/charts/bar-chart/BarChart.tsx
+components/charts/bar-chart/index.ts
+components/charts/utils/chartColors.ts
+components/charts/utils/chartHelpers.ts
+components/charts/utils/useOnWindowResize.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install recharts
+```
+
+#### Internal dependencies
+
+| File                                          | Purpose                                              |
+| --------------------------------------------- | ---------------------------------------------------- |
+| `lib/utils.ts`                                | `cn()` utility — already present in any shadcn project |
+| `components/charts/utils/chartColors.ts`      | Color palette, `getColorClass()`, `constructCategoryColors()` |
+| `components/charts/utils/chartHelpers.ts`     | `getYAxisDomain()`, `inferYAxisWidth()`, `measureTextWidth()` |
+| `components/charts/utils/useOnWindowResize.ts`| Window resize hook used to recalculate legend height |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { BarChart } from "@/components/charts/bar-chart"
+
+// Basic single series
+<BarChart
+  data={salesData}
+  index="month"
+  categories={["Sales"]}
+  valueFormatter={(v) => `$${v.toLocaleString()}`}
+/>
+
+// Stacked multi-category
+<BarChart
+  data={departmentData}
+  index="month"
+  categories={["Engineering", "Marketing", "Support"]}
+  type="stacked"
+/>
+
+// Vertical (horizontal bars) with interactive events
+<BarChart
+  data={regionData}
+  index="region"
+  categories={["Revenue"]}
+  layout="vertical"
+  valueFormatter={(v) => `$${v.toLocaleString()}`}
+  onValueChange={(event) => console.log(event)}
+/>
+```
+
+#### Props
+
+| Prop                | Type                                               | Default                        | Description |
+| ------------------- | -------------------------------------------------- | ------------------------------ | ----------- |
+| `data`              | `Record<string, any>[]`                            | —                              | **Required.** Array of data objects with the index key and one key per category. |
+| `index`             | `string`                                           | —                              | **Required.** Key used as the category-axis label (e.g. `"month"`, `"region"`). |
+| `categories`        | `string[]`                                         | —                              | **Required.** Keys from data objects to render as bar series. |
+| `colors`            | `ChartColor[]`                                     | `CHART_COLORS`                 | Color names for each category, in order. |
+| `valueFormatter`    | `(value: number) => string`                        | `v => v.toString()`            | Formats numeric axis ticks and tooltip values. |
+| `layout`            | `"vertical" \| "horizontal"`                       | `"horizontal"`                 | Orientation — `"horizontal"` renders vertical bars, `"vertical"` renders horizontal bars. |
+| `type`              | `"default" \| "stacked" \| "percent"`              | `"default"`                    | Bar display mode — side-by-side, stacked cumulative, or normalized to 100%. |
+| `barCategoryGap`    | `string \| number`                                 | —                              | Gap between bar groups. Accepts a percentage string (e.g. `"20%"`) or pixel value. |
+| `axisTextSize`      | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for axis tick labels. Named sizes: xs=12, sm=14, md=16, lg=18px. |
+| `legendTextSize`    | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for legend item labels. |
+| `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
+| `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |
+| `showGridLines`     | `boolean`                                          | `true`                         | Show grid lines (horizontal for default layout, vertical for `layout="vertical"`). |
+| `showLegend`        | `boolean`                                          | `true`                         | Show the legend above the chart. |
+| `showTooltip`       | `boolean`                                          | `true`                         | Show the tooltip on hover. |
+| `legendPosition`    | `"left" \| "center" \| "right"`                    | `"right"`                      | Horizontal alignment of the legend. |
+| `enableLegendSlider`| `boolean`                                          | `false`                        | Make the legend horizontally scrollable with arrow buttons. |
+| `yAxisWidth`        | `number`                                           | auto                           | Width in pixels reserved for the Y-axis. Defaults to auto-inferred from labels. |
+| `autoMinValue`      | `boolean`                                          | `false`                        | Set numeric axis minimum to `"auto"` instead of `0`. |
+| `minValue`          | `number`                                           | —                              | Explicit numeric axis domain minimum. |
+| `maxValue`          | `number`                                           | —                              | Explicit numeric axis domain maximum. |
+| `allowDecimals`     | `boolean`                                          | `true`                         | Allow decimal tick values on the numeric axis. |
+| `startEndOnly`      | `boolean`                                          | `false`                        | Show only the first and last tick labels on the category axis. |
+| `intervalType`      | `"preserveStartEnd" \| "equidistantPreserveStart"` | `"equidistantPreserveStart"`   | Recharts tick interval strategy for the category axis. |
+| `tickGap`           | `number`                                           | `5`                            | Minimum gap in pixels between category-axis tick labels. |
+| `xAxisLabel`        | `string`                                           | —                              | Optional label rendered below the X-axis. |
+| `yAxisLabel`        | `string`                                           | —                              | Optional label rendered to the left of the Y-axis (rotated). |
+| `onValueChange`     | `(value: BarChartEventProps) => void`              | —                              | Fired when a bar or legend item is clicked; `null` on deselect. `eventType` is `"bar"` or `"category"`. |
+| `tooltipCallback`   | `(content: TooltipProps) => void`                  | —                              | Side-effect callback when tooltip active state or label changes. |
+| `customTooltip`     | `React.ComponentType<TooltipProps>`                | —                              | Custom component rendered in place of the default tooltip. |
+| `className`         | `string`                                           | —                              | Additional classes on the outer wrapper (default height `h-80`). |
+
+#### Notes
+
+- The `ChartColor` type and `CHART_COLORS` constant are exported from the barrel for external use.
+- The three utility files in `components/charts/utils/` are shared with `AreaChart` — copy them once and reuse.
+- For `type="percent"`, pass a percent formatter: `valueFormatter={(v) => \`${(v * 100).toFixed(0)}%\`}`.
+- Recharts requires a fixed height on the container; override with `className="h-96"` or similar.
+
+---
+
+### DonutChart
+
+A Tremor-inspired donut and pie chart for visualizing part-to-whole relationships. Supports an optional center label (auto-total or custom text), click interactions with active segment highlighting, custom tooltip, and tooltip callbacks. Powered by Recharts.
+
+**Demo:** `localhost:3000/charts/donut-chart`
+
+#### Files to copy
+
+```
+components/charts/donut-chart/DonutChart.tsx
+components/charts/donut-chart/index.ts
+components/charts/utils/chartColors.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install recharts
+```
+
+#### Internal dependencies
+
+| File                                     | Purpose                                                       |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| `lib/utils.ts`                           | `cn()` utility — already present in any shadcn project        |
+| `components/charts/utils/chartColors.ts` | Color palette, `getColorClass()`, `constructCategoryColors()` |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { DonutChart } from "@/components/charts/donut-chart"
+
+// Basic donut
+<DonutChart
+  data={data}
+  category="browser"
+  value="share"
+  valueFormatter={(v) => `${v}%`}
+/>
+
+// With center label (shows sum of all values)
+<DonutChart
+  data={data}
+  category="browser"
+  value="share"
+  showLabel
+  valueFormatter={(v) => `${v}%`}
+/>
+
+// Pie variant
+<DonutChart
+  data={data}
+  category="region"
+  value="revenue"
+  variant="pie"
+  valueFormatter={(v) => `$${v.toLocaleString()}`}
+/>
+
+// Interactive
+<DonutChart
+  data={data}
+  category="browser"
+  value="share"
+  onValueChange={(event) => console.log(event)}
+/>
+```
+
+#### Props
+
+| Prop              | Type                                    | Default             | Description |
+| ----------------- | --------------------------------------- | ------------------- | ----------- |
+| `data`            | `Record<string, any>[]`                 | —                   | **Required.** Array of data objects with keys for category labels and numeric values. |
+| `category`        | `string`                                | —                   | **Required.** Key in each data object used as the segment label (e.g. `"browser"`, `"region"`). |
+| `value`           | `string`                                | —                   | **Required.** Key in each data object used as the segment's numeric value. |
+| `colors`          | `ChartColor[]`                          | `CHART_COLORS`      | Color palette for each segment. Cycles if fewer colors than segments. |
+| `variant`         | `"donut" \| "pie"`                      | `"donut"`           | Shape variant — `"donut"` renders a ring, `"pie"` fills the center. |
+| `valueFormatter`  | `(value: number) => string`             | `v => v.toString()` | Formats tooltip values and the center label total. |
+| `label`           | `string`                                | —                   | Custom text shown in the center (donut only). When omitted, the sum of all values is shown. |
+| `showLabel`       | `boolean`                               | `false`             | Show a label in the center of the donut. Has no effect on the pie variant. |
+| `showTooltip`     | `boolean`                               | `true`              | Show or hide the tooltip on hover. |
+| `onValueChange`   | `(value: DonutChartEventProps) => void` | —                   | Fired when a segment is clicked. Returns `{ eventType: "sector", categoryClicked, ...dataRow }` or `null` on deselect. |
+| `tooltipCallback` | `(content: TooltipProps) => void`       | —                   | Side-effect callback fired when tooltip active state or hovered category changes. |
+| `customTooltip`   | `React.ComponentType<TooltipProps>`     | —                   | Custom component rendered in place of the default tooltip. Receives `active` and `payload`. |
+| `className`       | `string`                                | —                   | Additional classes on the outer wrapper. Default size is `h-40 w-40`. |
+
+#### Notes
+
+- Default size is `h-40 w-40` — override with `className="h-48 w-48"` or any size.
+- Center label is only rendered when `variant="donut"` and `showLabel={true}`.
+- Clicking an active segment deselects it and fires `onValueChange(null)`.
+- Only `chartColors.ts` is required from the utils directory (no axis helpers needed).

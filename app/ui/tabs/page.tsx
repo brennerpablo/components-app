@@ -3,24 +3,23 @@
 import { BarChart2, Settings, User } from "lucide-react";
 
 import { DemoBreadcrumb } from "@/app/_components/DemoBreadcrumb";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { TabsColor } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { TabsDocs } from "./docs";
 
-export default function TabsPage() {
-  return (
-    <main className="p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
-        <DemoBreadcrumb />
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Tabs</h1>
+const colors: TabsColor[] = ["default", "blue", "emerald"];
 
-        {/* Line variant */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Line
-          </h2>
+function DemoTabs({ variant }: { variant: "line" | "solid" }) {
+  return (
+    <div className="space-y-4">
+      {colors.map((color) => (
+        <div key={color} className="flex items-start gap-4">
+          <span className="w-16 shrink-0 pt-2 text-xs text-muted-foreground">
+            {color}
+          </span>
           <Tabs defaultValue="overview">
-            <TabsList variant="line">
+            <TabsList variant={variant} color={color}>
               <TabsTrigger value="overview">
                 <BarChart2 className="size-3.5" />
                 Overview
@@ -37,28 +36,26 @@ export default function TabsPage() {
                 Billing
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="overview">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Overview content — charts, summaries, and key metrics go here.
-              </div>
-            </TabsContent>
-            <TabsContent value="account">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Account content — user profile, avatar, and preferences.
-              </div>
-            </TabsContent>
-            <TabsContent value="settings">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Settings content — notifications, integrations, and advanced
-                options.
-              </div>
-            </TabsContent>
-            <TabsContent value="billing">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Billing content.
-              </div>
-            </TabsContent>
           </Tabs>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function TabsPage() {
+  return (
+    <main className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-10">
+        <DemoBreadcrumb />
+        <h1 className="text-2xl font-semibold tracking-tight">Tabs</h1>
+
+        {/* Line variant */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Line
+          </h2>
+          <DemoTabs variant="line" />
         </section>
 
         {/* Solid variant */}
@@ -66,46 +63,7 @@ export default function TabsPage() {
           <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
             Solid
           </h2>
-          <Tabs defaultValue="overview">
-            <TabsList variant="solid">
-              <TabsTrigger value="overview">
-                <BarChart2 className="size-3.5" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="account">
-                <User className="size-3.5" />
-                Account
-              </TabsTrigger>
-              <TabsTrigger value="settings">
-                <Settings className="size-3.5" />
-                Settings
-              </TabsTrigger>
-              <TabsTrigger value="billing" disabled>
-                Billing
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Overview content — charts, summaries, and key metrics go here.
-              </div>
-            </TabsContent>
-            <TabsContent value="account">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Account content — user profile, avatar, and preferences.
-              </div>
-            </TabsContent>
-            <TabsContent value="settings">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Settings content — notifications, integrations, and advanced
-                options.
-              </div>
-            </TabsContent>
-            <TabsContent value="billing">
-              <div className="rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                Billing content.
-              </div>
-            </TabsContent>
-          </Tabs>
+          <DemoTabs variant="solid" />
         </section>
 
         <TabsDocs />
