@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, GaugeCircle, PanelTop, PieChart, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -13,6 +13,7 @@ export type ComponentEntry = {
 export type ComponentSection = {
   title: string;
   compact?: boolean;
+  horizontal?: boolean;
   components: ComponentEntry[];
 };
 
@@ -33,6 +34,7 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
   },
   {
     title: "Data Visualization",
+    horizontal: true,
     components: [
       {
         title: "StatusMap",
@@ -102,6 +104,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Semantic status label",
         icon: Tag,
         tags: ["Status", "Semantic", "Dark Mode"],
+      },
+      {
+        title: "Card",
+        href: "/ui/card",
+        description:
+          "A fundamental layout primitive for grouping content. Supports asChild for semantic HTML rendering. Tremor-inspired.",
+        shortDescription: "Layout container primitive",
+        icon: Square,
+        tags: ["Layout", "Tremor", "asChild"],
       },
     ],
   },
