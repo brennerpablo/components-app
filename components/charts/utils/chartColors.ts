@@ -34,11 +34,15 @@ export function getColorClass(
   return colorMap[color]?.[variant] ?? ""
 }
 
+export function isHexColor(color: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(color)
+}
+
 export function constructCategoryColors(
   categories: string[],
-  colors: ChartColor[],
-): Map<string, ChartColor> {
-  const categoryColors = new Map<string, ChartColor>()
+  colors: (ChartColor | string)[],
+): Map<string, ChartColor | string> {
+  const categoryColors = new Map<string, ChartColor | string>()
   categories.forEach((category, index) => {
     categoryColors.set(category, colors[index % colors.length])
   })

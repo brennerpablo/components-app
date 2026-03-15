@@ -19,6 +19,7 @@ import {
   type ChartColor,
   constructCategoryColors,
   getColorClass,
+  isHexColor,
 } from "../utils/chartColors"
 
 const sumNumericArray = (arr: number[]): number =>
@@ -26,17 +27,19 @@ const sumNumericArray = (arr: number[]): number =>
 
 const parseData = (
   data: Record<string, any>[],
-  categoryColors: Map<string, ChartColor>,
+  categoryColors: Map<string, ChartColor | string>,
   category: string,
 ) =>
-  data.map((dataPoint) => ({
-    ...dataPoint,
-    color: categoryColors.get(dataPoint[category]) || CHART_COLORS[0],
-    className: getColorClass(
-      categoryColors.get(dataPoint[category]) || CHART_COLORS[0],
-      "fill",
-    ),
-  }))
+  data.map((dataPoint) => {
+    const color = categoryColors.get(dataPoint[category]) || CHART_COLORS[0]
+    const hex = isHexColor(color as string)
+    return {
+      ...dataPoint,
+      color,
+      className: hex ? undefined : getColorClass(color as ChartColor, "fill"),
+      fill: hex ? color : undefined,
+    }
+  })
 
 const calculateDefaultLabel = (data: any[], valueKey: string): number =>
   sumNumericArray(data.map((dataPoint) => dataPoint[valueKey]))
@@ -55,7 +58,7 @@ type TooltipProps = Pick<ChartTooltipProps, "active" | "payload">
 type PayloadItem = {
   category: string
   value: number
-  color: ChartColor
+  color: ChartColor | string
 }
 
 interface ChartTooltipProps {
@@ -79,7 +82,9 @@ const ChartTooltip = ({
         )}
       >
         <div className="space-y-1 px-4 py-2">
-          {payload.map(({ value, category, color }, index) => (
+          {payload.map(({ value, category, color }, index) => {
+            const hex = isHexColor(color as string)
+            return (
             <div
               key={`id-${index}`}
               className="flex items-center justify-between space-x-8"
@@ -87,10 +92,8 @@ const ChartTooltip = ({
               <div className="flex items-center space-x-2">
                 <span
                   aria-hidden="true"
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    getColorClass(color, "bg"),
-                  )}
+                  className={cn("size-2 shrink-0 rounded-full", hex ? undefined : getColorClass(color as ChartColor, "bg"))}
+                  style={hex ? { backgroundColor: color as string } : undefined}
                 />
                 <p className="whitespace-nowrap text-right text-gray-700 dark:text-gray-300">
                   {category}
@@ -100,7 +103,7 @@ const ChartTooltip = ({
                 {valueFormatter(value)}
               </p>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     )
@@ -109,8 +112,8 @@ const ChartTooltip = ({
 }
 
 const renderInactiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, className } =
-    props
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, className, fill } = props
+  const useHex = fill && isHexColor(fill)
   return (
     <Sector
       cx={cx}
@@ -119,8 +122,8 @@ const renderInactiveShape = (props: any) => {
       outerRadius={outerRadius}
       startAngle={startAngle}
       endAngle={endAngle}
-      className={className}
-      fill=""
+      className={useHex ? undefined : className}
+      fill={useHex ? fill : ""}
       opacity={0.3}
       style={{ outline: "none" }}
     />
@@ -128,8 +131,8 @@ const renderInactiveShape = (props: any) => {
 }
 
 const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, className } =
-    props
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, className, fill } = props
+  const useHex = fill && isHexColor(fill)
   return (
     <Sector
       cx={cx}
@@ -138,8 +141,8 @@ const renderActiveShape = (props: any) => {
       outerRadius={outerRadius + 4}
       startAngle={startAngle}
       endAngle={endAngle}
-      className={className}
-      fill=""
+      className={useHex ? undefined : className}
+      fill={useHex ? fill : ""}
       style={{ outline: "none" }}
     />
   )
@@ -153,7 +156,7 @@ interface ChartLegendProps {
   data: Record<string, any>[]
   category: string
   value: string
-  categoryColors: Map<string, ChartColor>
+  categoryColors: Map<string, ChartColor | string>
   valueFormatter: (value: number) => string
   position: LegendPosition
 }
@@ -180,11 +183,13 @@ const ChartLegend = ({
         const cat = item[category]
         const val = item[value]
         const color = categoryColors.get(cat) || CHART_COLORS[0]
+        const hex = isHexColor(color as string)
         return (
           <div key={index} className="flex items-center gap-2 min-w-0">
             <span
               aria-hidden="true"
-              className={cn("size-2 shrink-0 rounded-full", getColorClass(color, "bg"))}
+              className={cn("size-2 shrink-0 rounded-full", hex ? undefined : getColorClass(color as ChartColor, "bg"))}
+              style={hex ? { backgroundColor: color as string } : undefined}
             />
             <span className="text-sm text-muted-foreground whitespace-nowrap">
               {cat}
@@ -213,7 +218,7 @@ interface DonutChartProps extends React.HTMLAttributes<HTMLDivElement> {
   data: Record<string, any>[]
   category: string
   value: string
-  colors?: ChartColor[]
+  colors?: (ChartColor | string)[]
   /** 0 = thin ring, 100 = solid pie. Default 25. */
   thickness?: number
   valueFormatter?: (value: number) => string
@@ -233,7 +238,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
       data = [],
       value,
       category,
-      colors = CHART_COLORS,
+      colors = [...CHART_COLORS],
       thickness = 25,
       valueFormatter = (value: number) => value.toString(),
       label,
@@ -335,7 +340,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                   ? payload.map((item: any) => ({
                       category: item.payload[category],
                       value: item.value,
-                      color: categoryColors.get(item.payload[category]) as ChartColor,
+                      color: categoryColors.get(item.payload[category]) as ChartColor | string,
                     }))
                   : []
 
