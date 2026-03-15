@@ -329,7 +329,7 @@ Legend.displayName = "Legend"
 
 const ChartLegend = (
   { payload }: any,
-  categoryColors: Map<string, ChartColor>,
+  categoryColors: Map<string, ChartColor | string>,
   setLegendHeight: React.Dispatch<React.SetStateAction<number>>,
   activeLegend: string | undefined,
   onClick?: (category: string, color: string) => void,
