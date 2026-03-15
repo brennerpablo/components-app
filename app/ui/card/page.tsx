@@ -1,6 +1,26 @@
+"use client";
+
+import { TrendingUp } from "lucide-react";
+
 import { DemoBreadcrumb } from "@/app/_components/DemoBreadcrumb";
+import { AreaChart } from "@/components/charts/area-chart";
 import { Card } from "@/components/ui/card";
 import { ComponentDoc } from "@/components/ui/component-doc";
+
+const revenueData = [
+  { month: "Jan", Revenue: 4200 },
+  { month: "Feb", Revenue: 5800 },
+  { month: "Mar", Revenue: 5100 },
+  { month: "Apr", Revenue: 6700 },
+  { month: "May", Revenue: 7400 },
+  { month: "Jun", Revenue: 6900 },
+  { month: "Jul", Revenue: 8200 },
+  { month: "Aug", Revenue: 9100 },
+  { month: "Sep", Revenue: 8600 },
+  { month: "Oct", Revenue: 9800 },
+  { month: "Nov", Revenue: 11200 },
+  { month: "Dec", Revenue: 12400 },
+];
 
 export default function CardPage() {
   return (
@@ -57,6 +77,65 @@ export default function CardPage() {
           </div>
         </section>
 
+        {/* Dashboard card */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Dashboard Card
+          </h2>
+          <Card enableFullscreen className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                <TrendingUp className="size-4" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Monthly Revenue
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Jan – Dec 2024
+                </p>
+              </div>
+            </div>
+            <AreaChart
+              data={revenueData}
+              index="month"
+              categories={["Revenue"]}
+              valueFormatter={(v) =>
+                `$${(v / 1000).toFixed(1)}k`
+              }
+              showLegend={false}
+            />
+          </Card>
+        </section>
+
+        {/* Hover Shadow */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Hover Shadow
+          </h2>
+          <Card hoverShadow className="max-w-sm">
+            <p className="text-sm text-muted-foreground">
+              Hover over this card to see a subtle shadow fade in.
+            </p>
+          </Card>
+        </section>
+
+        {/* Fullscreen */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Fullscreen
+          </h2>
+          <Card enableFullscreen className="max-w-sm">
+            <p className="text-sm font-medium text-foreground">
+              Expandable card
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Click the icon in the top-right corner to expand this card to
+              fullscreen. Press Escape to exit.
+            </p>
+          </Card>
+        </section>
+
         {/* asChild — semantic list */}
         <section className="space-y-3">
           <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
@@ -87,6 +166,20 @@ export default function CardPage() {
   </Card>
 </ul>`}
           props={[
+            {
+              name: "enableFullscreen",
+              type: "boolean",
+              default: "false",
+              description:
+                "When true, shows a fullscreen toggle button in the top-right corner. Clicking it expands the card to fill the viewport via a portal. Press Escape to exit.",
+            },
+            {
+              name: "hoverShadow",
+              type: "boolean",
+              default: "false",
+              description:
+                "When true, applies a subtle shadow on hover with a smooth fade-in transition.",
+            },
             {
               name: "asChild",
               type: "boolean",

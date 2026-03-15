@@ -1147,11 +1147,13 @@ import { Card } from "@/components/ui/card"
 
 #### Props
 
-| Prop        | Type                                    | Default | Description                                                                                      |
-| ----------- | --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
-| `asChild`   | `boolean`                               | `false` | When true, merges Card props onto its first child element instead of rendering a `<div>`.        |
-| `className` | `string`                                | —       | Additional Tailwind classes to customize the card.                                               |
-| `...props`  | `React.HTMLAttributes<HTMLDivElement>`  | —       | All standard div props are forwarded.                                                            |
+| Prop               | Type                                    | Default | Description                                                                                                        |
+| ------------------ | --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| `enableFullscreen` | `boolean`                               | `false` | When true, shows a fullscreen toggle button in the top-right corner. Expands via portal; Escape to exit.           |
+| `hoverShadow`      | `boolean`                               | `false` | When true, applies a subtle shadow on hover with a smooth fade-in transition.                                      |
+| `asChild`          | `boolean`                               | `false` | When true, merges Card props onto its first child element instead of rendering a `<div>`.                          |
+| `className`        | `string`                                | —       | Additional Tailwind classes to customize the card.                                                                 |
+| `...props`         | `React.HTMLAttributes<HTMLDivElement>`  | —       | All standard div props are forwarded.                                                                              |
 
 #### Notes
 
