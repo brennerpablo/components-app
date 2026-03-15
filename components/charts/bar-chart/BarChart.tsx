@@ -154,7 +154,7 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
 
 interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   categories: string[]
-  colors?: ChartColor[]
+  colors?: readonly ChartColor[]
   onClickLegendItem?: (category: string, color: string) => void
   activeLegend?: string
   enableLegendSlider?: boolean
@@ -489,7 +489,7 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   data: Record<string, any>[]
   index: string
   categories: string[]
-  colors?: ChartColor[]
+  colors?: readonly ChartColor[]
   valueFormatter?: (value: number) => string
   layout?: "vertical" | "horizontal"
   type?: "default" | "stacked" | "percent"

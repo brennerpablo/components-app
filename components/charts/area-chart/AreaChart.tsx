@@ -159,7 +159,7 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
 
 interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   categories: string[]
-  colors?: (ChartColor | string)[]
+  colors?: readonly (ChartColor | string)[]
   onClickLegendItem?: (category: string, color: string) => void
   activeLegend?: string
   enableLegendSlider?: boolean
@@ -334,7 +334,7 @@ Legend.displayName = "Legend"
 
 const ChartLegend = (
   { payload }: any,
-  categoryColors: Map<string, ChartColor>,
+  categoryColors: Map<string, ChartColor | string>,
   setLegendHeight: React.Dispatch<React.SetStateAction<number>>,
   activeLegend: string | undefined,
   onClick?: (category: string, color: string) => void,
@@ -512,7 +512,7 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   data: Record<string, any>[]
   index: string
   categories: string[]
-  colors?: (ChartColor | string)[]
+  colors?: readonly (ChartColor | string)[]
   valueFormatter?: (value: number) => string
   startEndOnly?: boolean
   showXAxis?: boolean

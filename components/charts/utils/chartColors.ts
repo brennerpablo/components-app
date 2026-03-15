@@ -39,8 +39,8 @@ export function isHexColor(color: string): boolean {
 }
 
 export function constructCategoryColors(
-  categories: string[],
-  colors: (ChartColor | string)[],
+  categories: readonly string[],
+  colors: readonly (ChartColor | string)[],
 ): Map<string, ChartColor | string> {
   const categoryColors = new Map<string, ChartColor | string>()
   categories.forEach((category, index) => {
