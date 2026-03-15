@@ -28,6 +28,7 @@ import {
   type ChartColor,
   constructCategoryColors,
   getColorClass,
+  isHexColor,
 } from "../utils/chartColors"
 import { getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
 import { useOnWindowResize } from "../utils/useOnWindowResize"
@@ -43,8 +44,8 @@ function resolveTextSize(size: ChartTextSize): number {
 
 interface LegendItemProps {
   name: string
-  color: ChartColor
-  onClick?: (name: string, color: ChartColor) => void
+  color: ChartColor | string
+  onClick?: (name: string, color: ChartColor | string) => void
   activeLegend?: string
   textSize?: number
 }
@@ -74,9 +75,10 @@ const LegendItem = ({
       <span
         className={cn(
           "h-0.75 w-3.5 shrink-0 rounded-full",
-          getColorClass(color, "bg"),
+          isHexColor(color as string) ? undefined : getColorClass(color as ChartColor, "bg"),
           activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
+        style={isHexColor(color as string) ? { backgroundColor: color as string } : undefined}
         aria-hidden={true}
       />
       <p
@@ -157,7 +159,7 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
 
 interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   categories: string[]
-  colors?: ChartColor[]
+  colors?: (ChartColor | string)[]
   onClickLegendItem?: (category: string, color: string) => void
   activeLegend?: string
   enableLegendSlider?: boolean
@@ -287,7 +289,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
           <LegendItem
             key={`item-${index}`}
             name={category}
-            color={colors[index] as ChartColor}
+            color={colors[index] as ChartColor | string}
             onClick={onClickLegendItem}
             activeLegend={activeLegend}
             textSize={textSize}
@@ -332,7 +334,7 @@ Legend.displayName = "Legend"
 
 const ChartLegend = (
   { payload }: any,
-  categoryColors: Map<string, ChartColor | string>,
+  categoryColors: Map<string, ChartColor>,
   setLegendHeight: React.Dispatch<React.SetStateAction<number>>,
   activeLegend: string | undefined,
   onClick?: (category: string, color: string) => void,
@@ -388,7 +390,7 @@ type PayloadItem = {
   category: string
   value: number
   index: string
-  color: ChartColor
+  color: ChartColor | string
   type?: string
   payload: any
 }
@@ -447,8 +449,9 @@ const ChartTooltip = ({
                   aria-hidden="true"
                   className={cn(
                     "h-0.75 w-3.5 shrink-0 rounded-full",
-                    getColorClass(color, "bg"),
+                    isHexColor(color as string) ? undefined : getColorClass(color as ChartColor, "bg"),
                   )}
+                  style={isHexColor(color as string) ? { backgroundColor: color as string } : undefined}
                 />
                 <p
                   className={cn(
@@ -509,7 +512,7 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   data: Record<string, any>[]
   index: string
   categories: string[]
-  colors?: ChartColor[]
+  colors?: (ChartColor | string)[]
   valueFormatter?: (value: number) => string
   startEndOnly?: boolean
   showXAxis?: boolean
@@ -598,7 +601,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     const [activeLegend, setActiveLegend] = React.useState<string | undefined>(
       undefined,
     )
-    const categoryColors = constructCategoryColors(categories, colors as ChartColor[])
+    const categoryColors = constructCategoryColors(categories, colors)
 
     const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
     const resolvedAxisTextSize = resolveTextSize(axisTextSize)
@@ -647,32 +650,35 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       activeDot,
       activeLegend,
       category,
+      hexColor,
     }: {
       fillType: AreaChartProps["fill"]
       activeDot: ActiveDot | undefined
       activeLegend: string | undefined
       category: string
+      hexColor?: string
     }) => {
       const stopOpacity =
         activeDot || (activeLegend && activeLegend !== category) ? 0.1 : 0.3
+      const stopColor = hexColor ?? "currentColor"
 
       switch (fillType) {
         case "none":
-          return <stop stopColor="currentColor" stopOpacity={0} />
+          return <stop stopColor={stopColor} stopOpacity={0} />
         case "gradient":
           return (
             <>
               <stop
                 offset="5%"
-                stopColor="currentColor"
+                stopColor={stopColor}
                 stopOpacity={stopOpacity}
               />
-              <stop offset="95%" stopColor="currentColor" stopOpacity={0} />
+              <stop offset="95%" stopColor={stopColor} stopOpacity={0} />
             </>
           )
         case "solid":
         default:
-          return <stop stopColor="currentColor" stopOpacity={stopOpacity} />
+          return <stop stopColor={stopColor} stopOpacity={stopOpacity} />
       }
     }
 
@@ -922,12 +928,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                     <linearGradient
                       key={`gradient-${category}`}
                       className={cn(
-                        getColorClass(
-                          categoryColors.get(
-                            category,
-                          ) as ChartColor,
-                          "text",
-                        ),
+                        isHexColor(categoryColors.get(category) as string)
+                          ? undefined
+                          : getColorClass(categoryColors.get(category) as ChartColor, "text"),
                       )}
                       id={categoryId}
                       x1="0"
@@ -940,17 +943,17 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                         activeDot: activeDot,
                         activeLegend: activeLegend,
                         category: category,
+                        hexColor: isHexColor(categoryColors.get(category) as string)
+                          ? (categoryColors.get(category) as string)
+                          : undefined,
                       })}
                     </linearGradient>
                   </defs>
                   <Area
                     className={cn(
-                      getColorClass(
-                        categoryColors.get(
-                          category,
-                        ) as ChartColor,
-                        "stroke",
-                      ),
+                      isHexColor(categoryColors.get(category) as string)
+                        ? undefined
+                        : getColorClass(categoryColors.get(category) as ChartColor, "stroke"),
                     )}
                     strokeOpacity={
                       activeDot || (activeLegend && activeLegend !== category)
@@ -982,17 +985,14 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                           <Dot
                             className={cn(
                               "stroke-white dark:stroke-gray-950",
-                              getColorClass(
-                                categoryColors.get(
-                                  dataKey,
-                                ) as ChartColor,
-                                "fill",
-                              ),
+                              isHexColor(categoryColors.get(dataKey) as string)
+                                ? undefined
+                                : getColorClass(categoryColors.get(dataKey) as ChartColor, "fill"),
                             )}
                             cx={cxCoord}
                             cy={cyCoord}
                             r={5}
-                            fill=""
+                            fill={isHexColor(categoryColors.get(dataKey) as string) ? categoryColors.get(dataKey) as string : ""}
                             stroke={stroke}
                             strokeLinecap={strokeLinecap}
                             strokeLinejoin={strokeLinejoin}
@@ -1029,19 +1029,16 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                             cy={cyCoord}
                             r={5}
                             stroke={stroke}
-                            fill=""
+                            fill={isHexColor(categoryColors.get(dataKey) as string) ? categoryColors.get(dataKey) as string : ""}
                             strokeLinecap={strokeLinecap}
                             strokeLinejoin={strokeLinejoin}
                             strokeWidth={strokeWidth}
                             className={cn(
                               "stroke-white dark:stroke-gray-950",
                               onValueChange ? "cursor-pointer" : "",
-                              getColorClass(
-                                categoryColors.get(
-                                  dataKey,
-                                ) as ChartColor,
-                                "fill",
-                              ),
+                              isHexColor(categoryColors.get(dataKey) as string)
+                                ? undefined
+                                : getColorClass(categoryColors.get(dataKey) as ChartColor, "fill"),
                             )}
                           />
                         )
@@ -1052,7 +1049,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                     name={category}
                     type="linear"
                     dataKey={category}
-                    stroke=""
+                    stroke={isHexColor(categoryColors.get(category) as string) ? categoryColors.get(category) as string : ""}
                     strokeWidth={2}
                     strokeLinejoin="round"
                     strokeLinecap="round"
