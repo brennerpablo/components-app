@@ -1,2 +1,2 @@
-export type { CardProps } from "./Card";
+export type { AccentSide, CardProps } from "./Card";
 export { Card } from "./Card";

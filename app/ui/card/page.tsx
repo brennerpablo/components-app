@@ -1,11 +1,12 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, TrendingUp } from "lucide-react";
 
 import { DemoBreadcrumb } from "@/app/_components/DemoBreadcrumb";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Card } from "@/components/ui/card";
 import { ComponentDoc } from "@/components/ui/component-doc";
+
 
 const revenueData = [
   { month: "Jan", Revenue: 4200 },
@@ -136,6 +137,92 @@ export default function CardPage() {
           </Card>
         </section>
 
+        {/* Ghost — fullscreen container */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Ghost (fullscreen container)
+          </h2>
+          <Card ghost enableFullscreen>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Card>
+                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">$45,231</p>
+                <p className="mt-1 text-xs text-muted-foreground">+20.1% from last month</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-muted-foreground">Subscriptions</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">+2,350</p>
+                <p className="mt-1 text-xs text-muted-foreground">+180.1% from last month</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-muted-foreground">Active Now</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">+573</p>
+                <p className="mt-1 text-xs text-muted-foreground">+201 since last hour</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-muted-foreground">Bounce Rate</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">34.2%</p>
+                <p className="mt-1 text-xs text-muted-foreground">−2.4% from last month</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-muted-foreground">Avg. Session</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">4m 12s</p>
+                <p className="mt-1 text-xs text-muted-foreground">+0m 18s from last month</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-muted-foreground">New Users</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">1,892</p>
+                <p className="mt-1 text-xs text-muted-foreground">+12.7% from last month</p>
+              </Card>
+            </div>
+          </Card>
+        </section>
+
+        {/* Accent border */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Accent Border
+          </h2>
+          <Card accentColor="#ef4444" accentSide="left" className="max-w-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                <AlertTriangle className="size-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Operational Failures</p>
+                <p className="text-xs text-muted-foreground">Last 25 hours</p>
+              </div>
+              <p className="text-3xl font-semibold text-foreground">37</p>
+              <a
+                href="/dashboard"
+                className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Go to failures dashboard"
+              >
+                <ArrowUpRight className="size-4" />
+              </a>
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Card accentColor="#6366f1" accentSide="left">
+              <p className="text-sm font-medium text-foreground">Left accent</p>
+              <p className="mt-1 text-sm text-muted-foreground">Default side — indigo left border.</p>
+            </Card>
+            <Card accentColor="#f59e0b" accentSide="top">
+              <p className="text-sm font-medium text-foreground">Top accent</p>
+              <p className="mt-1 text-sm text-muted-foreground">Amber top border.</p>
+            </Card>
+            <Card accentColor="#10b981" accentSide="right">
+              <p className="text-sm font-medium text-foreground">Right accent</p>
+              <p className="mt-1 text-sm text-muted-foreground">Emerald right border.</p>
+            </Card>
+            <Card accentColor="#ef4444" accentSide="bottom">
+              <p className="text-sm font-medium text-foreground">Bottom accent</p>
+              <p className="mt-1 text-sm text-muted-foreground">Red bottom border.</p>
+            </Card>
+          </div>
+        </section>
+
         {/* asChild — semantic list */}
         <section className="space-y-3">
           <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
@@ -167,6 +254,13 @@ export default function CardPage() {
 </ul>`}
           props={[
             {
+              name: "ghost",
+              type: "boolean",
+              default: "false",
+              description:
+                "When true, renders the card without background, border, shadow, or padding — invisible container. Useful for grouping content or enabling fullscreen without a visible card shell.",
+            },
+            {
               name: "enableFullscreen",
               type: "boolean",
               default: "false",
@@ -179,6 +273,19 @@ export default function CardPage() {
               default: "false",
               description:
                 "When true, applies a subtle shadow on hover with a smooth fade-in transition.",
+            },
+            {
+              name: "accentColor",
+              type: "string",
+              description:
+                "Any valid CSS color value. When set, renders a 3px colored border on the side specified by accentSide.",
+            },
+            {
+              name: "accentSide",
+              type: '"top" | "right" | "bottom" | "left"',
+              default: '"left"',
+              description:
+                'Which side of the card the accent border appears on. Only relevant when accentColor is set.',
             },
             {
               name: "asChild",
