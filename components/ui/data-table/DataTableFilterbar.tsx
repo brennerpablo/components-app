@@ -6,8 +6,15 @@ import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { exportTableToCSV } from "@/lib/exportTableToCSV";
+import { exportTableToXLSX } from "@/lib/exportTableToXLSX";
 
 import { DataTableFilter } from "./DataTableFilter";
 import { useDataTableLocale } from "./DataTableLocaleContext";
@@ -150,15 +157,30 @@ export function Filterbar<TData>({
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
-          size="sm"
-          onClick={() => exportTableToCSV(table, tableName ?? "export")}
-        >
-          <Download className="size-4 shrink-0" aria-hidden="true" />
-          {locale.export}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+              size="sm"
+            >
+              <Download className="size-4 shrink-0" aria-hidden="true" />
+              {locale.export}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => exportTableToCSV(table, tableName ?? "export")}
+            >
+              {locale.exportCsv}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => exportTableToXLSX(table, tableName ?? "export")}
+            >
+              {locale.exportXlsx}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <ViewOptions table={table} persistColumnOrder={persistColumnOrder} />
         {onToggleFullscreen && (
           <Button

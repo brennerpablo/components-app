@@ -215,6 +215,7 @@ components/ui/data-table/i18n.ts
 components/ui/data-table/types.ts
 components/ui/data-table/index.ts
 lib/exportTableToCSV.ts
+lib/exportTableToXLSX.ts
 ```
 
 #### shadcn dependencies
@@ -226,7 +227,7 @@ npx shadcn@latest add button checkbox dropdown-menu input label popover select t
 #### npm dependencies
 
 ```bash
-npm install @tanstack/react-table papaparse use-debounce tiny-invariant
+npm install @tanstack/react-table papaparse xlsx use-debounce tiny-invariant
 ```
 
 ```bash
@@ -237,8 +238,9 @@ npm install --legacy-peer-deps @atlaskit/pragmatic-drag-and-drop @atlaskit/pragm
 
 | File                      | Purpose                                                |
 | ------------------------- | ------------------------------------------------------ |
-| `lib/utils.ts`            | `cn()` utility — already present in any shadcn project |
-| `lib/exportTableToCSV.ts` | CSV export helper using PapaParse                      |
+| `lib/utils.ts`             | `cn()` utility — already present in any shadcn project |
+| `lib/exportTableToCSV.ts`  | CSV export helper using PapaParse                      |
+| `lib/exportTableToXLSX.ts` | XLSX export helper using SheetJS                       |
 
 #### Type augmentations
 
@@ -399,7 +401,7 @@ export default function Page() {
 | `data`               | `TData[]`                 | Yes      | Row data                                                                                                             |
 | `columnsMetadata`    | `ColumnMetadata<TData>[]` | No       | Declarative descriptors that auto-build the data columns and filter controls                                         |
 | `persistColumnOrder` | `boolean`                 | No       | Saves column order to a cookie (`data-table-column-order`) and restores it on mount. Defaults to `false`.            |
-| `tableName`          | `string`                  | No       | Base name for the exported CSV file. Produces `{tableName}-{YYYY-MM-DD}.csv`. Defaults to `"export"`.                |
+| `tableName`          | `string`                  | No       | Base filename for CSV/XLSX exports. Produces `{tableName}-{YYYY-MM-DD}.csv` / `.xlsx`. Also used as localStorage key when `persistColumnOrder` is true. Defaults to `"export"`. |
 | `enableRowSelection` | `boolean`                 | No       | Enables row checkboxes and click-to-select. Shows an accent-colored left-border on selected rows and reveals the BulkEditor bar. Defaults to `false`. |
 | `enableRowActions`   | `boolean`                 | No       | Appends the per-row actions column (ellipsis menu via `DataTableRowActions`). Defaults to `false`.                    |
 | `enablePagination`      | `boolean`                 | No       | Shows pagination controls and slices rows into pages. Defaults to `true`. Set to `false` to render all rows at once. |
@@ -445,7 +447,7 @@ export default function Page() {
 - Column visibility toggle + drag-and-drop reordering with accessibility live region announcements
 - Persistent column order via cookie (`persistColumnOrder` prop)
 - Pagination (20 rows/page) with responsive first/last buttons
-- CSV export (visible columns only, PapaParse) — filename controlled via `tableName` prop
+- CSV and XLSX export via the Export dropdown (visible, filtered rows only) — filename controlled via `tableName` prop
 - Fullscreen overlay mode via React portal (ESC to dismiss)
 
 #### Notes

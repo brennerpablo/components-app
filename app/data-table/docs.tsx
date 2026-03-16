@@ -4,7 +4,7 @@ export function DataTableDocs() {
   return (
     <ComponentDoc
       title="DataTable"
-      description="A flexible data table with sorting, filtering, pagination, row selection, and column visibility."
+      description="A flexible data table with sorting, filtering, pagination, row selection, column visibility, and CSV/XLSX export."
       usage={`import { DataTable, ColumnMetadata } from "@/components/ui/data-table"
 
 type Row = { name: string; status: string; cost: number }
@@ -49,7 +49,7 @@ const columnsMetadata = [
               name: "tableName",
               type: "string",
               description:
-                "Key used for localStorage persistence when persistColumnOrder is true.",
+                "Base filename for CSV/XLSX exports (e.g. \"usage_overview\" → usage_overview-2026-03-16.csv). Also used as the localStorage key when persistColumnOrder is true.",
             },
             {
               name: "enableRowSelection",

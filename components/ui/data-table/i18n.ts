@@ -29,6 +29,8 @@ export type DataTableLocale = {
   searchBy: (title: string) => string
   clearFilters: string
   export: string
+  exportCsv: string
+  exportXlsx: string
   fullscreen: string
   exitFullscreen: string
 
@@ -84,6 +86,8 @@ const en: DataTableLocale = {
   searchBy: (title) => `Search by ${title.toLowerCase()}...`,
   clearFilters: "Clear filters",
   export: "Export",
+  exportCsv: ".csv",
+  exportXlsx: ".xlsx",
   fullscreen: "Fullscreen",
   exitFullscreen: "Exit fullscreen",
 
@@ -132,6 +136,8 @@ const pt: DataTableLocale = {
   searchBy: (title) => `Buscar por ${title.toLowerCase()}...`,
   clearFilters: "Limpar filtros",
   export: "Exportar",
+  exportCsv: ".csv",
+  exportXlsx: ".xlsx",
   fullscreen: "Tela cheia",
   exitFullscreen: "Sair da tela cheia",
 
