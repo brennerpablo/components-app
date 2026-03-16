@@ -171,10 +171,10 @@ export default function BarChartPage() {
               categories={["Cotas"]}
               layout="vertical"
               colors={["emerald"]}
-              labelTruncateAt={32}
+              labelTruncateAt={18}
               tooltipFullLabel={true}
               showLegend={false}
-              rounded
+              // rounded
               showGridLines={false}
               valueFormatter={(v) => v.toLocaleString()}
             />
