@@ -41,6 +41,46 @@ export const costData = [
   { quarter: "Q4", Personnel: 380, Infrastructure: 145, Marketing: 120 },
 ]
 
+// 36 months of sales — auto-scale labels demo (large dataset, no scroll)
+export const monthlySalesData = [
+  { month: "Jan 2023", Sales: 38000 },
+  { month: "Feb 2023", Sales: 41200 },
+  { month: "Mar 2023", Sales: 39500 },
+  { month: "Apr 2023", Sales: 47300 },
+  { month: "May 2023", Sales: 44800 },
+  { month: "Jun 2023", Sales: 52100 },
+  { month: "Jul 2023", Sales: 49600 },
+  { month: "Aug 2023", Sales: 58400 },
+  { month: "Sep 2023", Sales: 55200 },
+  { month: "Oct 2023", Sales: 63700 },
+  { month: "Nov 2023", Sales: 71900 },
+  { month: "Dec 2023", Sales: 80400 },
+  { month: "Jan 2024", Sales: 42100 },
+  { month: "Feb 2024", Sales: 46800 },
+  { month: "Mar 2024", Sales: 44200 },
+  { month: "Apr 2024", Sales: 53600 },
+  { month: "May 2024", Sales: 50900 },
+  { month: "Jun 2024", Sales: 59300 },
+  { month: "Jul 2024", Sales: 56700 },
+  { month: "Aug 2024", Sales: 65100 },
+  { month: "Sep 2024", Sales: 61800 },
+  { month: "Oct 2024", Sales: 70400 },
+  { month: "Nov 2024", Sales: 79600 },
+  { month: "Dec 2024", Sales: 88200 },
+  { month: "Jan 2025", Sales: 45300 },
+  { month: "Feb 2025", Sales: 50100 },
+  { month: "Mar 2025", Sales: 47800 },
+  { month: "Apr 2025", Sales: 57200 },
+  { month: "May 2025", Sales: 54600 },
+  { month: "Jun 2025", Sales: 63500 },
+  { month: "Jul 2025", Sales: 60900 },
+  { month: "Aug 2025", Sales: 69700 },
+  { month: "Sep 2025", Sales: 66300 },
+  { month: "Oct 2025", Sales: 75800 },
+  { month: "Nov 2025", Sales: 85100 },
+  { month: "Dec 2025", Sales: 94600 },
+]
+
 // Long labels — Brazilian investment fund names (label truncation demo)
 export const fundData = [
   { fund: "ALPHA REAL ESTATE INVESTMENT FUND - CORPORATE CREDIT CLASS A", Cotas: 142500 },

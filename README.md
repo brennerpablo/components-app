@@ -1016,6 +1016,7 @@ import { BarChart } from "@/components/charts/bar-chart"
 | `type`              | `"default" \| "stacked" \| "percent"`              | `"default"`                    | Bar display mode — side-by-side, stacked cumulative, or normalized to 100%. |
 | `barCategoryGap`    | `string \| number`                                 | —                              | Gap between bar groups. Accepts a percentage string (e.g. `"20%"`) or pixel value. |
 | `axisTextSize`      | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for axis tick labels. Named sizes: xs=12, sm=14, md=16, lg=18px. |
+| `autoScaleLabels`   | `boolean`                                          | `false`                        | Automatically shrinks axis tick font size as entry count grows, preventing label overlap on large datasets without scroll. |
 | `legendTextSize`    | `"xs" \| "sm" \| "md" \| "lg" \| number`          | `"xs"`                         | Font size for legend item labels. |
 | `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
 | `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |

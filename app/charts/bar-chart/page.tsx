@@ -12,6 +12,7 @@ import {
   costData,
   departmentData,
   fundData,
+  monthlySalesData,
   regionData,
   salesData,
 } from "./data";
@@ -19,6 +20,7 @@ import { BarChartDocs } from "./docs";
 
 export default function BarChartPage() {
   const [event, setEvent] = useState<BarChartEventProps>(null);
+  const [autoScaleCount, setAutoScaleCount] = useState(12);
 
   return (
     <main className="p-4 sm:p-6 lg:p-8">
@@ -151,36 +153,7 @@ export default function BarChartPage() {
             </p>
           </section>
 
-          {/* Section 8: Label Truncation */}
-          <section>
-            <h2 className="text-base font-medium mb-1">Label Truncation</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Use{" "}
-              <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                labelTruncateAt
-              </code>{" "}
-              to clip long axis labels at a given character count. Toggle{" "}
-              <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                tooltipFullLabel
-              </code>{" "}
-              to control whether the tooltip shows the full or truncated text.
-            </p>
-            <BarChart
-              data={fundData}
-              index="fund"
-              categories={["Cotas"]}
-              layout="vertical"
-              colors={["emerald"]}
-              labelTruncateAt={18}
-              tooltipFullLabel={true}
-              showLegend={false}
-              // rounded
-              showGridLines={false}
-              valueFormatter={(v) => v.toLocaleString()}
-            />
-          </section>
-
-          {/* Section 10: Custom Formatting */}
+          {/* Section 8: Custom Formatting */}
           <section>
             <h2 className="text-base font-medium mb-1">Custom Formatting</h2>
             <p className="text-sm text-muted-foreground mb-4">
@@ -198,6 +171,80 @@ export default function BarChartPage() {
               valueFormatter={(v) => `${v.toLocaleString()} hrs`}
               showLegend={false}
               barCategoryGap="35%"
+            />
+          </section>
+
+          {/* Section 9: Auto-Scale Labels */}
+          <section>
+            <h2 className="text-base font-medium mb-1">Auto-Scale Labels</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Use{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                autoScaleLabels
+              </code>{" "}
+              to automatically shrink tick font size as entries grow — no scroll
+              or truncation needed for large datasets.
+            </p>
+            <div className="mb-4 flex items-center gap-3">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Entries:{" "}
+                <span className="font-medium text-foreground">{autoScaleCount}</span>
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={monthlySalesData.length}
+                value={autoScaleCount}
+                onChange={(e) => setAutoScaleCount(Number(e.target.value))}
+                className="w-48"
+              />
+            </div>
+            <BarChart
+              data={monthlySalesData.slice(0, autoScaleCount)}
+              index="month"
+              categories={["Sales"]}
+              autoScaleLabels
+              valueFormatter={(v) => `$${v.toLocaleString()}`}
+            />
+          </section>
+
+          {/* Section 10: Label Truncation & Scroll */}
+          <section>
+            <h2 className="text-base font-medium mb-1">Label Truncation & Scroll</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              For datasets with very long label strings, use{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                labelTruncateAt
+              </code>{" "}
+              to clip them to a fixed character limit — the full label is still
+              shown in the tooltip via{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                tooltipFullLabel
+              </code>
+              . Pair with{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                minBarSize
+              </code>{" "}
+              and{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                maxHeight
+              </code>{" "}
+              to cap the chart height and make it scrollable, guaranteeing each
+              bar stays readable regardless of how many entries there are.
+            </p>
+            <BarChart
+              data={fundData}
+              index="fund"
+              categories={["Cotas"]}
+              layout="vertical"
+              colors={["emerald"]}
+              labelTruncateAt={18}
+              tooltipFullLabel={true}
+              showLegend={false}
+              showGridLines={false}
+              valueFormatter={(v) => v.toLocaleString()}
+              minBarSize={36}
+              maxHeight={400}
             />
           </section>
         </div>

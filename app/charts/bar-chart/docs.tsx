@@ -130,6 +130,13 @@ export function BarChartDocs() {
               description: "Font size for axis tick labels.",
             },
             {
+              name: "autoScaleLabels",
+              type: "boolean",
+              default: "false",
+              description:
+                "Automatically shrinks axis tick font size as entry count grows, preventing label overlap on large datasets without needing scroll.",
+            },
+            {
               name: "tickGap",
               type: "number",
               default: "5",
@@ -219,6 +226,16 @@ export function BarChartDocs() {
               name: "labelTruncateAt",
               type: "number",
               description: 'Truncate axis labels at this many characters, appending "...". When omitted, labels are shown in full.',
+            },
+            {
+              name: "minBarSize",
+              type: "number",
+              description: "Minimum pixels per bar row in vertical layout. When set, chart height is computed as data.length × minBarSize. Has no effect in horizontal layout.",
+            },
+            {
+              name: "maxHeight",
+              type: "number | string",
+              description: "Caps the outer container height and enables vertical scrolling when the computed height (from minBarSize) exceeds this value.",
             },
             {
               name: "tooltipFullLabel",

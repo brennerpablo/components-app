@@ -519,6 +519,9 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   tooltipFullLabel?: boolean
   tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void
   customTooltip?: React.ComponentType<TooltipProps>
+  minBarSize?: number
+  maxHeight?: number | string
+  autoScaleLabels?: boolean
 }
 
 const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
@@ -558,6 +561,9 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       tooltipFullLabel = true,
       tooltipCallback,
       customTooltip,
+      minBarSize,
+      maxHeight,
+      autoScaleLabels = false,
       ...other
     } = props
 
@@ -569,10 +575,25 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
     const categoryColors = constructCategoryColors(categories, colors as ChartColor[])
     const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
     const resolvedAxisTextSize = resolveTextSize(axisTextSize)
+    const effectiveAxisTextSize = autoScaleLabels
+      ? Math.max(6, Math.round(resolvedAxisTextSize * Math.min(1, 12 / data.length)))
+      : resolvedAxisTextSize
     const resolvedLegendTextSize = resolveTextSize(legendTextSize)
     const hasOnValueChange = !!onValueChange
     const stacked = type === "stacked" || type === "percent"
     const isVertical = layout === "vertical"
+
+    const axisBottomPad = xAxisLabel ? 70 : 40
+    const dynamicHeight =
+      isVertical && minBarSize != null
+        ? data.length * minBarSize + axisBottomPad
+        : null
+    const maxHeightPx =
+      maxHeight != null && typeof maxHeight === "number" ? maxHeight : undefined
+    const scrollable =
+      dynamicHeight != null &&
+      maxHeight != null &&
+      (maxHeightPx == null || dynamicHeight > maxHeightPx)
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
@@ -644,8 +665,8 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         hide={!showXAxis}
         dataKey={index}
         type="category"
-        interval={startEndOnly ? "preserveStartEnd" : intervalType}
-        tick={{ transform: "translate(0, 6)", fontSize: resolvedAxisTextSize }}
+        interval={autoScaleLabels ? 0 : startEndOnly ? "preserveStartEnd" : intervalType}
+        tick={{ transform: "translate(0, 6)", fontSize: effectiveAxisTextSize }}
         ticks={
           startEndOnly
             ? [data[0]?.[index], data[data.length - 1]?.[index]]
@@ -656,7 +677,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         className={cn("text-xs", "fill-gray-500 dark:fill-gray-500")}
         tickLine={false}
         axisLine={false}
-        minTickGap={tickGap}
+        minTickGap={autoScaleLabels ? 0 : tickGap}
         tickFormatter={truncateLabel}
       >
         {xAxisLabel && (
@@ -734,7 +755,8 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         hide={!showYAxis}
         dataKey={index}
         type="category"
-        tick={{ fontSize: resolvedAxisTextSize }}
+        interval={autoScaleLabels ? 0 : undefined}
+        tick={{ fontSize: effectiveAxisTextSize }}
         fill=""
         stroke=""
         className={cn("text-xs", "fill-gray-500 dark:fill-gray-500")}
@@ -759,10 +781,16 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-80 w-full **:outline-none", className)}
+        className={cn(
+          "w-full **:outline-none",
+          !dynamicHeight && "h-80",
+          scrollable && "overflow-y-auto",
+          className,
+        )}
+        style={scrollable ? { maxHeight } : undefined}
         {...other}
       >
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height={dynamicHeight ?? "100%"}>
           <RechartsBarChart
             data={data}
             layout={layout}
