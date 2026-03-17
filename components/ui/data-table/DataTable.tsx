@@ -112,6 +112,7 @@ interface DataTableProps<TData> {
   tableStyle?: "default" | "ghost";
   accentColor?: string;
   enableFullscreen?: boolean;
+  compact?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
 }
@@ -133,6 +134,7 @@ export function DataTable<TData>({
   tableStyle = "default",
   accentColor,
   enableFullscreen = false,
+  compact = false,
   onRowAction,
   onBulkAction,
 }: DataTableProps<TData>) {
@@ -265,7 +267,7 @@ export function DataTable<TData>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        "whitespace-nowrap py-2 text-sm sm:text-xs",
+                        compact ? "whitespace-nowrap py-0.5 text-sm sm:text-xs" : "whitespace-nowrap py-2 text-sm sm:text-xs",
                         bordered && "first:pl-4 last:pr-4",
                         header.column.columnDef.meta?.className,
                       )}
@@ -303,7 +305,7 @@ export function DataTable<TData>({
                         className={cn(
                           !isGhost && "bg-background group-hover:bg-muted/30",
                           !isGhost && row.getIsSelected() && "bg-muted/70",
-                          "relative whitespace-nowrap py-2 text-muted-foreground first:w-10",
+                          compact ? "relative whitespace-nowrap py-0.5 text-muted-foreground first:w-10" : "relative whitespace-nowrap py-2 text-muted-foreground first:w-10",
                           bordered && "first:pl-4 last:pr-4",
                           cell.column.columnDef.meta?.className,
                         )}
