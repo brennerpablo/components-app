@@ -43,12 +43,17 @@ const DEFAULT_DATE_RANGE: DateRangeFilter = { from: undefined, to: undefined };
 
 function getEmptyValue(type: FilterType): FilterValues {
   switch (type) {
-    case "percentage": return DEFAULT_PERCENTAGE_RANGE;
-    case "date": return DEFAULT_DATE_RANGE;
+    case "percentage":
+      return DEFAULT_PERCENTAGE_RANGE;
+    case "date":
+      return DEFAULT_DATE_RANGE;
     case "checkbox":
-    case "checkboxSearch": return [];
-    case "number": return { condition: "", value: ["", ""] };
-    default: return "";
+    case "checkboxSearch":
+      return [];
+    case "number":
+      return { condition: "", value: ["", ""] };
+    default:
+      return "";
   }
 }
 
@@ -60,10 +65,13 @@ function isFilterActive(type: FilterType, value: FilterValues): boolean {
   }
   if (type === "percentage") {
     const [min, max] = value as PercentageRangeFilter;
-    return min !== DEFAULT_PERCENTAGE_RANGE[0] || max !== DEFAULT_PERCENTAGE_RANGE[1];
+    return (
+      min !== DEFAULT_PERCENTAGE_RANGE[0] || max !== DEFAULT_PERCENTAGE_RANGE[1]
+    );
   }
   if (typeof value === "string") return value !== "";
-  if (typeof value === "object" && "condition" in value) return (value as ConditionFilter).condition !== "";
+  if (typeof value === "object" && "condition" in value)
+    return (value as ConditionFilter).condition !== "";
   if (Array.isArray(value)) return value.length > 0;
   return false;
 }
@@ -98,7 +106,13 @@ function formatDateRange(filter: DateRangeFilter): string {
   return "";
 }
 
-type FilterType = "select" | "checkbox" | "checkboxSearch" | "number" | "percentage" | "date";
+type FilterType =
+  | "select"
+  | "checkbox"
+  | "checkboxSearch"
+  | "number"
+  | "percentage"
+  | "date";
 
 function getNumberConditions(locale: DataTableLocale) {
   return [
@@ -469,7 +483,9 @@ export function DataTableFilter<TData, TValue>({
                 </p>
               )}
               {filteredOptions?.map((option) => {
-                const isChecked = (selectedValues as string[])?.includes(option.value);
+                const isChecked = (selectedValues as string[])?.includes(
+                  option.value,
+                );
                 if (multiple) {
                   return (
                     <div key={option.value} className="flex items-center gap-2">
@@ -479,14 +495,21 @@ export function DataTableFilter<TData, TValue>({
                         onCheckedChange={(checked) => {
                           setSelectedValues((prev) => {
                             if (checked) {
-                              return prev ? [...(prev as string[]), option.value] : [option.value];
+                              return prev
+                                ? [...(prev as string[]), option.value]
+                                : [option.value];
                             } else {
-                              return (prev as string[]).filter((v) => v !== option.value);
+                              return (prev as string[]).filter(
+                                (v) => v !== option.value,
+                              );
                             }
                           });
                         }}
                       />
-                      <Label htmlFor={`cs-${option.value}`} className="text-base sm:text-sm">
+                      <Label
+                        htmlFor={`cs-${option.value}`}
+                        className="text-base sm:text-sm"
+                      >
                         {option.label}
                       </Label>
                     </div>
@@ -503,7 +526,7 @@ export function DataTableFilter<TData, TValue>({
                         }}
                         className={cn(
                           "flex size-4 shrink-0 items-center justify-center rounded-full border border-border transition-colors",
-                          isChecked && "border-[var(--dt-accent)]",
+                          isChecked && "border-(--dt-accent)",
                         )}
                       >
                         {isChecked && (
@@ -515,7 +538,9 @@ export function DataTableFilter<TData, TValue>({
                       </button>
                       <Label
                         className="text-base sm:text-sm cursor-pointer"
-                        onClick={() => setSelectedValues(isChecked ? [] : [option.value])}
+                        onClick={() =>
+                          setSelectedValues(isChecked ? [] : [option.value])
+                        }
                       >
                         {option.label}
                       </Label>
@@ -533,7 +558,9 @@ export function DataTableFilter<TData, TValue>({
         const [min, max] = range;
         return (
           <div className="mt-3 space-y-4">
-            <div style={{ "--primary": "var(--dt-accent)" } as React.CSSProperties}>
+            <div
+              style={{ "--primary": "var(--dt-accent)" } as React.CSSProperties}
+            >
               <Slider
                 min={0}
                 max={100}
@@ -616,7 +643,9 @@ export function DataTableFilter<TData, TValue>({
                     type="number"
                     placeholder={locale.numberInputPlaceholder}
                     className="h-8 text-xs"
-                    value={(selectedValues as ConditionFilter)?.value?.[1] ?? ""}
+                    value={
+                      (selectedValues as ConditionFilter)?.value?.[1] ?? ""
+                    }
                     onChange={(e) => {
                       setSelectedValues((prev) => {
                         return {
@@ -709,7 +738,9 @@ export function DataTableFilter<TData, TValue>({
             : "sm:min-w-56 sm:max-w-56",
         )}
         style={
-          { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
+          {
+            "--dt-accent": resolveAccentColor(accentColor),
+          } as React.CSSProperties
         }
         onInteractOutside={() => {
           setSearchQuery("");
