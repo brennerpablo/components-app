@@ -45,7 +45,8 @@ function getEmptyValue(type: FilterType): FilterValues {
   switch (type) {
     case "percentage": return DEFAULT_PERCENTAGE_RANGE;
     case "date": return DEFAULT_DATE_RANGE;
-    case "checkbox": return [];
+    case "checkbox":
+    case "checkboxSearch": return [];
     case "number": return { condition: "", value: ["", ""] };
     default: return "";
   }
@@ -97,7 +98,7 @@ function formatDateRange(filter: DateRangeFilter): string {
   return "";
 }
 
-type FilterType = "select" | "checkbox" | "number" | "percentage" | "date";
+type FilterType = "select" | "checkbox" | "checkboxSearch" | "number" | "percentage" | "date";
 
 function getNumberConditions(locale: DataTableLocale) {
   return [
@@ -258,6 +259,7 @@ interface DataTableFilterProps<TData, TValue> {
     value: string;
   }[];
   type?: FilterType;
+  multiple?: boolean;
   formatter?: (value: string | number) => string;
   accentColor?: string;
 }
@@ -305,6 +307,7 @@ export function DataTableFilter<TData, TValue>({
   title,
   options: optionsProp,
   type = "select",
+  multiple = true,
   formatter = (value) => value.toString(),
   accentColor,
 }: DataTableFilterProps<TData, TValue>) {
@@ -317,6 +320,8 @@ export function DataTableFilter<TData, TValue>({
 
   const [selectedValues, setSelectedValues] =
     React.useState<FilterValues>(columnFilters);
+
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const columnFilterLabels = React.useMemo(() => {
     if (!selectedValues) return undefined;
@@ -444,6 +449,84 @@ export function DataTableFilter<TData, TValue>({
             })}
           </div>
         );
+      case "checkboxSearch": {
+        const filteredOptions = options?.filter((opt) =>
+          opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+        return (
+          <div className="mt-2 space-y-2">
+            <Input
+              type="search"
+              placeholder={locale.searchOptionsPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-7 text-xs"
+            />
+            <div className="space-y-2 overflow-y-auto sm:max-h-36">
+              {filteredOptions?.length === 0 && (
+                <p className="py-1 text-center text-xs text-muted-foreground">
+                  {locale.noResults}
+                </p>
+              )}
+              {filteredOptions?.map((option) => {
+                const isChecked = (selectedValues as string[])?.includes(option.value);
+                if (multiple) {
+                  return (
+                    <div key={option.value} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`cs-${option.value}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          setSelectedValues((prev) => {
+                            if (checked) {
+                              return prev ? [...(prev as string[]), option.value] : [option.value];
+                            } else {
+                              return (prev as string[]).filter((v) => v !== option.value);
+                            }
+                          });
+                        }}
+                      />
+                      <Label htmlFor={`cs-${option.value}`} className="text-base sm:text-sm">
+                        {option.label}
+                      </Label>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={option.value} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={isChecked}
+                        onClick={() => {
+                          setSelectedValues(isChecked ? [] : [option.value]);
+                        }}
+                        className={cn(
+                          "flex size-4 shrink-0 items-center justify-center rounded-full border border-border transition-colors",
+                          isChecked && "border-[var(--dt-accent)]",
+                        )}
+                      >
+                        {isChecked && (
+                          <span
+                            className="size-2 rounded-full"
+                            style={{ backgroundColor: "var(--dt-accent)" }}
+                          />
+                        )}
+                      </button>
+                      <Label
+                        className="text-base sm:text-sm cursor-pointer"
+                        onClick={() => setSelectedValues(isChecked ? [] : [option.value])}
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          </div>
+        );
+      }
       case "percentage": {
         const range =
           (selectedValues as PercentageRangeFilter) ?? DEFAULT_PERCENTAGE_RANGE;
@@ -509,7 +592,7 @@ export function DataTableFilter<TData, TValue>({
                 type="number"
                 placeholder={locale.numberInputPlaceholder}
                 className="h-8 text-xs"
-                value={(selectedValues as ConditionFilter)?.value?.[0]}
+                value={(selectedValues as ConditionFilter)?.value?.[0] ?? ""}
                 onChange={(e) => {
                   setSelectedValues((prev) => {
                     return {
@@ -533,7 +616,7 @@ export function DataTableFilter<TData, TValue>({
                     type="number"
                     placeholder={locale.numberInputPlaceholder}
                     className="h-8 text-xs"
-                    value={(selectedValues as ConditionFilter)?.value?.[1]}
+                    value={(selectedValues as ConditionFilter)?.value?.[1] ?? ""}
                     onChange={(e) => {
                       setSelectedValues((prev) => {
                         return {
@@ -629,6 +712,7 @@ export function DataTableFilter<TData, TValue>({
           { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
         }
         onInteractOutside={() => {
+          setSearchQuery("");
           if (!isFilterActive(type, columnFilters)) {
             column?.setFilterValue(undefined);
             setSelectedValues(getEmptyValue(type));
@@ -673,6 +757,7 @@ export function DataTableFilter<TData, TValue>({
                   const emptyValue = getEmptyValue(type);
                   column?.setFilterValue(emptyValue);
                   setSelectedValues(emptyValue);
+                  setSearchQuery("");
                 }}
               >
                 {locale.reset}

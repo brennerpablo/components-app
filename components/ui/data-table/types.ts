@@ -19,12 +19,13 @@ export type OptionItem = {
 }
 
 export type FilterConfig = {
-  text?: boolean        // debounced text search input
-  select?: boolean      // single-value dropdown filter
-  checkbox?: boolean    // multi-value checkbox filter (arrIncludesSome)
-  number?: boolean      // condition + value filter (only for type "number")
-  percentage?: boolean  // min/max range slider filter (0–100)
-  date?: boolean        // date range calendar filter (start/end dates)
+  text?: boolean                                     // debounced text search input
+  select?: boolean                                   // single-value dropdown filter
+  checkbox?: boolean                                 // multi-value checkbox filter (arrIncludesSome)
+  checkboxSearch?: boolean | { multiple?: boolean }  // checkbox list with search; multiple defaults to true
+  number?: boolean                                   // condition + value filter (only for type "number")
+  percentage?: boolean                               // min/max range slider filter (0–100)
+  date?: boolean                                     // date range calendar filter (start/end dates)
 }
 
 export type ColumnType = "text" | "number" | "date"

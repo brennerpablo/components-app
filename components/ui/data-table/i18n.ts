@@ -20,6 +20,7 @@ export type DataTableLocale = {
   filterBy: (title: string) => string
   apply: string
   reset: string
+  searchOptionsPlaceholder: string
 
   // Date filter
   dateFrom: string
@@ -79,6 +80,7 @@ const en: DataTableLocale = {
   filterBy: (title) => `Filter by ${title}`,
   apply: "Apply",
   reset: "Reset",
+  searchOptionsPlaceholder: "Search...",
 
   dateFrom: "From",
   dateTo: "To",
@@ -129,6 +131,7 @@ const pt: DataTableLocale = {
   filterBy: (title) => `Filtrar por ${title}`,
   apply: "Aplicar",
   reset: "Redefinir",
+  searchOptionsPlaceholder: "Buscar...",
 
   dateFrom: "De",
   dateTo: "Até",

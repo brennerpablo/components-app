@@ -11,7 +11,7 @@ type Row = { name: string; status: string; cost: number }
 
 const columnsMetadata = [
   { columnId: "name", title: "Name", type: "text", sortable: true, filters: { text: true } },
-  { columnId: "status", title: "Status", type: "text", inferOptions: true, filters: { checkbox: true } },
+  { columnId: "status", title: "Status", type: "text", inferOptions: true, filters: { checkboxSearch: { multiple: false } } },
   { columnId: "cost", title: "Cost", type: "number", sortable: true, filters: { number: true } },
 ] as const satisfies ColumnMetadata<Row>[]
 
@@ -257,6 +257,12 @@ const columnsMetadata = [
               type: "boolean",
               description:
                 "Multi-select checkbox filter (arrIncludesSome). Requires options or inferOptions: true.",
+            },
+            {
+              name: "checkboxSearch",
+              type: 'boolean | { multiple?: boolean }',
+              description:
+                "Checkbox list with a search box. Set multiple: false for single-select (radio-style). Requires options or inferOptions: true.",
             },
             {
               name: "select",

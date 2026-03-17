@@ -425,10 +425,11 @@ export default function Page() {
 | `type`                 | `"text" \| "number"`                  | Data type — controls available filter types               |
 | `sortable`             | `boolean`                             | Enable column sorting. Default `false`                    |
 | `hideable`             | `boolean`                             | Show in view options toggle. Default `true`               |
-| `options`              | `OptionItem[]`                        | Options array for `select` / `checkbox` filters           |
+| `options`              | `OptionItem[]`                        | Options array for `select` / `checkbox` / `checkboxSearch` filters |
 | `filters.text`         | `boolean`                             | Debounced text search input                               |
 | `filters.select`       | `boolean`                             | Single-value dropdown filter                              |
 | `filters.checkbox`     | `boolean`                             | Multi-value checkbox filter (`arrIncludesSome`)           |
+| `filters.checkboxSearch` | `boolean \| { multiple?: boolean }` | Checkbox list with search box. `multiple: false` for single-select (radio-style). Default: `true` |
 | `filters.number`       | `boolean`                             | Condition + value filter (only for `type: "number"`)      |
 | `aligned`              | `"left" \| "center" \| "right"`       | Cell text alignment                                       |
 | `formatter`            | `(value: unknown) => ReactNode`                  | Simple cell renderer — receives the column's value only   |

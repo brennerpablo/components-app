@@ -55,7 +55,7 @@ const columnsMetadata = [
     type: "text",
     sortable: true,
     inferOptions: true,
-    filters: { select: true },
+    filters: { checkboxSearch: { multiple: false } },
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
@@ -70,7 +70,7 @@ const columnsMetadata = [
     type: "text",
     sortable: true,
     inferOptions: true, // no need to pass options manually
-    filters: { checkbox: true },
+    filters: { checkboxSearch: true },
   },
   {
     columnId: "costs",

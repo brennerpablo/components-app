@@ -105,6 +105,20 @@ export function Filterbar<TData>({
                   accentColor={accentColor}
                 />
               )}
+              {col.filters.checkboxSearch && (
+                <DataTableFilter
+                  column={column}
+                  title={col.title}
+                  options={col.options}
+                  type="checkboxSearch"
+                  multiple={
+                    typeof col.filters.checkboxSearch === "object"
+                      ? (col.filters.checkboxSearch.multiple ?? true)
+                      : true
+                  }
+                  accentColor={accentColor}
+                />
+              )}
               {col.filters.number && (
                 <DataTableFilter
                   column={column}

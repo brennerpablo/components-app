@@ -100,7 +100,7 @@ export function buildColumnsFromMetadata<TData>(
 
     if (col.filters?.number) {
       colDef.filterFn = numberConditionFilterFn as FilterFn<TData>
-    } else if (col.filters?.checkbox) {
+    } else if (col.filters?.checkbox || col.filters?.checkboxSearch) {
       colDef.filterFn = "arrIncludesSome"
     } else if (col.filters?.percentage) {
       colDef.filterFn = percentageRangeFilterFn as FilterFn<TData>
