@@ -112,6 +112,7 @@ interface DataTableProps<TData> {
   tableStyle?: "default" | "ghost";
   accentColor?: string;
   enableFullscreen?: boolean;
+  enableDownload?: boolean;
   compact?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
@@ -134,6 +135,7 @@ export function DataTable<TData>({
   tableStyle = "default",
   accentColor,
   enableFullscreen = false,
+  enableDownload = true,
   compact = false,
   onRowAction,
   onBulkAction,
@@ -246,6 +248,7 @@ export function DataTable<TData>({
           accentColor={accentColor}
           isFullscreen={isFullscreen}
           onToggleFullscreen={enableFullscreen ? toggleFullscreen : undefined}
+          enableDownload={enableDownload}
         />
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />

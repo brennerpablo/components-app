@@ -59,6 +59,7 @@ interface DataTableToolbarProps<TData> {
   accentColor?: string;
   isFullscreen: boolean;
   onToggleFullscreen?: () => void;
+  enableDownload?: boolean;
 }
 
 export function Filterbar<TData>({
@@ -69,6 +70,7 @@ export function Filterbar<TData>({
   accentColor,
   isFullscreen,
   onToggleFullscreen,
+  enableDownload = true,
 }: DataTableToolbarProps<TData>) {
   const locale = useDataTableLocale();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -176,30 +178,32 @@ export function Filterbar<TData>({
         )}
       </div>
       <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
-              size="sm"
-            >
-              <Download className="size-4 shrink-0" aria-hidden="true" />
-              {locale.export}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => exportTableToCSV(table, tableName ?? "export")}
-            >
-              {locale.exportCsv}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => exportTableToXLSX(table, tableName ?? "export")}
-            >
-              {locale.exportXlsx}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {enableDownload && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+                size="sm"
+              >
+                <Download className="size-4 shrink-0" aria-hidden="true" />
+                {locale.export}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => exportTableToCSV(table, tableName ?? "export")}
+              >
+                {locale.exportCsv}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => exportTableToXLSX(table, tableName ?? "export")}
+              >
+                {locale.exportXlsx}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <ViewOptions table={table} persistColumnOrder={persistColumnOrder} />
         {onToggleFullscreen && (
           <Button
