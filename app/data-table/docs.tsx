@@ -253,6 +253,12 @@ const columnsMetadata = [
                 'Debounced free-text search input. Works with type: "text".',
             },
             {
+              name: "textColumns",
+              type: "string[]",
+              description:
+                "Additional column IDs to search alongside the primary text column. When set, a single input matches any of the listed columns. The placeholder updates automatically to list all searchable column titles.",
+            },
+            {
               name: "checkbox",
               type: "boolean",
               description:

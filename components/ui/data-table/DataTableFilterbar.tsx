@@ -24,9 +24,11 @@ import { ColumnMetadata } from "./types";
 function TextFilterInput<TData>({
   column,
   title,
+  extraTitles = [],
 }: {
   column: Column<TData, unknown>;
   title: string;
+  extraTitles?: string[];
 }) {
   const locale = useDataTableLocale();
   const [value, setValue] = useState("");
@@ -38,7 +40,7 @@ function TextFilterInput<TData>({
   return (
     <Input
       type="search"
-      placeholder={locale.searchBy(title)}
+      placeholder={locale.searchBy([title, ...extraTitles].join(", "))}
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -153,6 +155,9 @@ export function Filterbar<TData>({
                   key={`${col.columnId}-${clearKey}`}
                   column={column}
                   title={col.title}
+                  extraTitles={col.filters.textColumns?.map(
+                    (id) => columnsMetadata?.find((m) => m.columnId === id)?.title ?? id
+                  )}
                 />
               )}
             </div>

@@ -41,7 +41,7 @@ const columnsMetadata = [
     sortable: true,
     hideable: false,
     aligned: "left",
-    filters: { text: true },
+    filters: { text: true, textColumns: ["region"] },
     header: ({ column }) => (
       <div className="flex items-center gap-1.5">
         <User className="h-3.5 w-3.5 text-muted-foreground" />

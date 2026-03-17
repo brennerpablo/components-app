@@ -20,6 +20,7 @@ export type OptionItem = {
 
 export type FilterConfig = {
   text?: boolean                                     // debounced text search input
+  textColumns?: string[]                             // additional column IDs searched alongside the primary text column
   select?: boolean                                   // single-value dropdown filter
   checkbox?: boolean                                 // multi-value checkbox filter (arrIncludesSome)
   checkboxSearch?: boolean | { multiple?: boolean }  // checkbox list with search; multiple defaults to true

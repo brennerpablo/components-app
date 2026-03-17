@@ -67,6 +67,18 @@ export const dateRangeFilterFn: FilterFn<unknown> = (
   return true
 }
 
+export function createMultiColumnTextFilterFn<TData>(extraColumnIds: string[]): FilterFn<TData> {
+  const filterFn: FilterFn<TData> = (row: Row<TData>, columnId: string, filterValue: string) => {
+    if (!filterValue) return true
+    const needle = filterValue.toLowerCase()
+    return [columnId, ...extraColumnIds].some((id) =>
+      String(row.getValue(id) ?? "").toLowerCase().includes(needle)
+    )
+  }
+  filterFn.autoRemove = (val) => !val
+  return filterFn
+}
+
 export function buildColumnsFromMetadata<TData>(
   metadata: readonly ColumnMetadata<TData>[],
 ): ColumnDef<TData>[] {
@@ -106,6 +118,8 @@ export function buildColumnsFromMetadata<TData>(
       colDef.filterFn = percentageRangeFilterFn as FilterFn<TData>
     } else if (col.filters?.date) {
       colDef.filterFn = dateRangeFilterFn as FilterFn<TData>
+    } else if (col.filters?.text && col.filters.textColumns?.length) {
+      colDef.filterFn = createMultiColumnTextFilterFn<TData>(col.filters.textColumns)
     }
 
     return colDef

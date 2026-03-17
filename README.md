@@ -427,6 +427,7 @@ export default function Page() {
 | `hideable`             | `boolean`                             | Show in view options toggle. Default `true`               |
 | `options`              | `OptionItem[]`                        | Options array for `select` / `checkbox` / `checkboxSearch` filters |
 | `filters.text`         | `boolean`                             | Debounced text search input                               |
+| `filters.textColumns`  | `string[]`                            | Additional column IDs searched alongside the primary text column. Placeholder auto-updates to list all column titles. |
 | `filters.select`       | `boolean`                             | Single-value dropdown filter                              |
 | `filters.checkbox`     | `boolean`                             | Multi-value checkbox filter (`arrIncludesSome`)           |
 | `filters.checkboxSearch` | `boolean \| { multiple?: boolean }` | Checkbox list with search box. `multiple: false` for single-select (radio-style). Default: `true` |
