@@ -151,13 +151,45 @@ export function DataTable<TData>({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreen]);
 
+  // Stabilize the data reference: if the array is a new object but contains
+  // the same row references as last render, reuse the previous reference so
+  // that downstream memos (enrichedMetadata, allColumns, TanStack) don't
+  // re-run unnecessarily. This guards against the common pattern of parents
+  // passing `data={someArray.filter(...)}` or `data={state.rows ?? []}` which
+  // produces a new array identity on every render even when contents are unchanged.
+  const dataRef = React.useRef<TData[]>(data);
+  if (data !== dataRef.current) {
+    const prev = dataRef.current;
+    const isShallowEqual =
+      data.length === prev.length && data.every((row, i) => row === prev[i]);
+    if (!isShallowEqual) dataRef.current = data;
+  }
+  const stableData = dataRef.current;
+
+  // Stabilize onRowAction: inline object literals get a new reference on every
+  // parent render, which would cause allColumns to rebuild even when nothing
+  // meaningful changed. Use a ref to always call the latest callbacks without
+  // including them in the memo dependency array.
+  const onRowActionRef = React.useRef(onRowAction);
+  React.useEffect(() => { onRowActionRef.current = onRowAction; });
+  const stableOnRowAction = React.useMemo(
+    () => ({
+      onAdd: onRowAction?.onAdd ? (row: TData) => onRowActionRef.current?.onAdd?.(row) : undefined,
+      onEdit: onRowAction?.onEdit ? (row: TData) => onRowActionRef.current?.onEdit?.(row) : undefined,
+      onDelete: onRowAction?.onDelete ? (row: TData) => onRowActionRef.current?.onDelete?.(row) : undefined,
+    }),
+    // Re-create only when the presence of a callback changes, not its identity
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [!!onRowAction?.onAdd, !!onRowAction?.onEdit, !!onRowAction?.onDelete],
+  );
+
   const enrichedMetadata = React.useMemo(() => {
     if (!columnsMetadata?.length) return columnsMetadata;
     return columnsMetadata.map((col) => {
       if (!col.inferOptions) return col;
       const seen = new Set<string>();
       const options: { value: string; label: string }[] = [];
-      for (const row of data) {
+      for (const row of stableData) {
         const raw = (row as Record<string, unknown>)[col.columnId];
         const val = raw == null ? "" : String(raw);
         if (!seen.has(val)) {
@@ -168,16 +200,16 @@ export function DataTable<TData>({
       options.sort((a, b) => a.label.localeCompare(b.label));
       return { ...col, options };
     });
-  }, [columnsMetadata, data]);
+  }, [columnsMetadata, stableData]);
 
   const allColumns = React.useMemo(() => {
     const builtCols = enrichedMetadata?.length
       ? buildColumnsFromMetadata(enrichedMetadata)
       : [];
     const selectCol = enableRowSelection ? [createSelectColumn<TData>()] : [];
-    const actionsCol = enableRowActions ? [createActionsColumn<TData>(onRowAction ?? {})] : [];
+    const actionsCol = enableRowActions ? [createActionsColumn<TData>(stableOnRowAction)] : [];
     return [...selectCol, ...builtCols, ...actionsCol];
-  }, [enrichedMetadata, enableRowSelection, enableRowActions, onRowAction]);
+  }, [enrichedMetadata, enableRowSelection, enableRowActions, stableOnRowAction]);
 
   const table = useReactTable({
     data,
