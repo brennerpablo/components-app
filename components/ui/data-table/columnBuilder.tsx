@@ -71,8 +71,9 @@ export function createMultiColumnTextFilterFn<TData>(extraColumnIds: string[]): 
   const filterFn: FilterFn<TData> = (row: Row<TData>, columnId: string, filterValue: string) => {
     if (!filterValue) return true
     const needle = filterValue.toLowerCase()
+    const data = row.original as Record<string, unknown>
     return [columnId, ...extraColumnIds].some((id) =>
-      String(row.getValue(id) ?? "").toLowerCase().includes(needle)
+      String(data[id] ?? "").toLowerCase().includes(needle)
     )
   }
   filterFn.autoRemove = (val) => !val

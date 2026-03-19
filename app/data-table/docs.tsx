@@ -112,6 +112,13 @@ const columnsMetadata = [
                 "Adds a fullscreen toggle button to the toolbar. Opens the table in a fixed overlay covering the entire viewport via a React portal. Press Escape or click the button again to exit.",
             },
             {
+              name: "enableDownload",
+              type: "boolean",
+              default: "true",
+              description:
+                "Shows or hides the Export dropdown button in the toolbar. When false, the CSV/XLSX download options are not rendered.",
+            },
+            {
               name: "bordered",
               type: "boolean",
               default: "false",
