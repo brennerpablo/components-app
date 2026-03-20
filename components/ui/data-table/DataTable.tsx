@@ -113,6 +113,8 @@ interface DataTableProps<TData> {
   accentColor?: string;
   enableFullscreen?: boolean;
   enableDownload?: boolean;
+  enableColumnOptions?: boolean;
+  toolbarIconsOnly?: boolean;
   compact?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
@@ -136,6 +138,8 @@ export function DataTable<TData>({
   accentColor,
   enableFullscreen = false,
   enableDownload = true,
+  enableColumnOptions = true,
+  toolbarIconsOnly = false,
   compact = false,
   onRowAction,
   onBulkAction,
@@ -249,6 +253,8 @@ export function DataTable<TData>({
           isFullscreen={isFullscreen}
           onToggleFullscreen={enableFullscreen ? toggleFullscreen : undefined}
           enableDownload={enableDownload}
+          enableColumnOptions={enableColumnOptions}
+          toolbarIconsOnly={toolbarIconsOnly}
         />
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />

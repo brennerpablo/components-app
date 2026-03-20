@@ -60,6 +60,8 @@ interface DataTableToolbarProps<TData> {
   isFullscreen: boolean;
   onToggleFullscreen?: () => void;
   enableDownload?: boolean;
+  enableColumnOptions?: boolean;
+  toolbarIconsOnly?: boolean;
 }
 
 export function Filterbar<TData>({
@@ -71,6 +73,8 @@ export function Filterbar<TData>({
   isFullscreen,
   onToggleFullscreen,
   enableDownload = true,
+  enableColumnOptions = true,
+  toolbarIconsOnly = false,
 }: DataTableToolbarProps<TData>) {
   const locale = useDataTableLocale();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -185,9 +189,10 @@ export function Filterbar<TData>({
                 variant="outline"
                 className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
                 size="sm"
+                aria-label={locale.export}
               >
                 <Download className="size-4 shrink-0" aria-hidden="true" />
-                {locale.export}
+                {!toolbarIconsOnly && locale.export}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -204,7 +209,9 @@ export function Filterbar<TData>({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <ViewOptions table={table} persistColumnOrder={persistColumnOrder} />
+        {enableColumnOptions && (
+          <ViewOptions table={table} persistColumnOrder={persistColumnOrder} iconsOnly={toolbarIconsOnly} />
+        )}
         {onToggleFullscreen && (
           <Button
             variant="outline"
@@ -218,7 +225,7 @@ export function Filterbar<TData>({
             ) : (
               <Maximize2 className="size-4 shrink-0" aria-hidden="true" />
             )}
-            {isFullscreen ? locale.exitFullscreen : locale.fullscreen}
+            {!toolbarIconsOnly && (isFullscreen ? locale.exitFullscreen : locale.fullscreen)}
           </Button>
         )}
       </div>

@@ -298,11 +298,13 @@ type ListState = {
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
   persistColumnOrder?: boolean
+  iconsOnly?: boolean
 }
 
 function ViewOptions<TData>({
   table,
   persistColumnOrder = false,
+  iconsOnly = false,
 }: DataTableViewOptionsProps<TData>) {
   const locale = useDataTableLocale()
   const tableColumns: Item[] = table.getAllColumns().map((column) => ({
@@ -456,9 +458,10 @@ function ViewOptions<TData>({
           variant="outline"
           size="sm"
           className="ml-auto hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+          aria-label={locale.view}
         >
           <SlidersHorizontal className="size-4" aria-hidden="true" />
-          {locale.view}
+          {!iconsOnly && locale.view}
         </Button>
       </PopoverTrigger>
       <PopoverContent
