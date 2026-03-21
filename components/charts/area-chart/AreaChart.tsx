@@ -737,7 +737,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-80 w-full **:outline-none", className)}
+        className={cn("h-80 w-full **:outline-hidden", className)}
         {...other}
       >
         <ResponsiveContainer>

@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -58,7 +58,7 @@ function MultiSelectItem({ value, className, children }: MultiSelectItemProps) {
           "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary",
           isSelected
             ? "bg-primary text-primary-foreground"
-            : "opacity-50 [&_svg]:invisible"
+            : "opacity-50 [&_svg]:invisible",
         )}
       >
         <Check className="h-3.5 w-3.5" />
@@ -96,7 +96,10 @@ function MultiSelect({
   const labelMap = React.useMemo(() => {
     const map: Record<string, React.ReactNode> = {};
     React.Children.forEach(children, (child) => {
-      if (React.isValidElement<MultiSelectItemProps>(child) && child.props.value != null) {
+      if (
+        React.isValidElement<MultiSelectItemProps>(child) &&
+        child.props.value != null
+      ) {
         map[child.props.value] = child.props.children;
       }
     });
@@ -129,7 +132,7 @@ function MultiSelect({
             disabled={disabled}
             className={cn(
               "w-full justify-between h-auto min-h-9 font-normal px-3 py-1.5",
-              className
+              className,
             )}
           >
             {selected.length === 0 ? (
@@ -154,7 +157,7 @@ function MultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0"
+          className="w-(--radix-popover-trigger-width) p-0"
           align="start"
         >
           <Command>
@@ -171,4 +174,4 @@ function MultiSelect({
 }
 
 export { MultiSelect, MultiSelectItem };
-export type { MultiSelectProps, MultiSelectItemProps };
+export type { MultiSelectItemProps, MultiSelectProps };

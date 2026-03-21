@@ -45,7 +45,7 @@ export function TopNav() {
               id="topnav-popover"
               align="start"
               sideOffset={6}
-              className="z-50 w-64 rounded-md border border-border bg-popover shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+              className="z-50 w-64 rounded-md border border-border bg-popover shadow-md outline-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
             >
               {COMPONENT_SECTIONS.map((section, gi) => (
                 <div key={section.title}>

@@ -20,20 +20,86 @@ import { SelectDocs } from "./docs";
 
 const CARS = [
   // SUVs
-  { value: "rav4", label: "Toyota RAV4", drivetrain: "AWD", hp: 203, category: "suv" },
-  { value: "cr-v", label: "Honda CR-V", drivetrain: "AWD", hp: 190, category: "suv" },
-  { value: "wrangler", label: "Jeep Wrangler", drivetrain: "4WD", hp: 285, category: "suv" },
-  { value: "4runner", label: "Toyota 4Runner", drivetrain: "4WD", hp: 270, category: "suv" },
+  {
+    value: "rav4",
+    label: "Toyota RAV4",
+    drivetrain: "AWD",
+    hp: 203,
+    category: "suv",
+  },
+  {
+    value: "cr-v",
+    label: "Honda CR-V",
+    drivetrain: "AWD",
+    hp: 190,
+    category: "suv",
+  },
+  {
+    value: "wrangler",
+    label: "Jeep Wrangler",
+    drivetrain: "4WD",
+    hp: 285,
+    category: "suv",
+  },
+  {
+    value: "4runner",
+    label: "Toyota 4Runner",
+    drivetrain: "4WD",
+    hp: 270,
+    category: "suv",
+  },
   { value: "x5", label: "BMW X5", drivetrain: "AWD", hp: 375, category: "suv" },
   // Sedans
-  { value: "camry", label: "Toyota Camry", drivetrain: "FWD", hp: 203, category: "sedan" },
-  { value: "accord", label: "Honda Accord", drivetrain: "FWD", hp: 192, category: "sedan" },
-  { value: "m3", label: "BMW M3", drivetrain: "RWD", hp: 473, category: "sedan" },
-  { value: "model3", label: "Tesla Model 3", drivetrain: "AWD", hp: 346, category: "sedan" },
+  {
+    value: "camry",
+    label: "Toyota Camry",
+    drivetrain: "FWD",
+    hp: 203,
+    category: "sedan",
+  },
+  {
+    value: "accord",
+    label: "Honda Accord",
+    drivetrain: "FWD",
+    hp: 192,
+    category: "sedan",
+  },
+  {
+    value: "m3",
+    label: "BMW M3",
+    drivetrain: "RWD",
+    hp: 473,
+    category: "sedan",
+  },
+  {
+    value: "model3",
+    label: "Tesla Model 3",
+    drivetrain: "AWD",
+    hp: 346,
+    category: "sedan",
+  },
   // Sports
-  { value: "supra", label: "Toyota Supra", drivetrain: "RWD", hp: 382, category: "sports" },
-  { value: "911", label: "Porsche 911", drivetrain: "AWD", hp: 443, category: "sports" },
-  { value: "corvette", label: "Chevrolet Corvette", drivetrain: "RWD", hp: 495, category: "sports" },
+  {
+    value: "supra",
+    label: "Toyota Supra",
+    drivetrain: "RWD",
+    hp: 382,
+    category: "sports",
+  },
+  {
+    value: "911",
+    label: "Porsche 911",
+    drivetrain: "AWD",
+    hp: 443,
+    category: "sports",
+  },
+  {
+    value: "corvette",
+    label: "Chevrolet Corvette",
+    drivetrain: "RWD",
+    hp: 495,
+    category: "sports",
+  },
 ] as const;
 
 export default function SelectPage() {
@@ -52,7 +118,7 @@ export default function SelectPage() {
             Basic
           </h2>
           <Select value={fruit} onValueChange={setFruit}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Select a fruit" />
             </SelectTrigger>
             <SelectContent>
@@ -65,7 +131,8 @@ export default function SelectPage() {
           </Select>
           {fruit && (
             <p className="text-sm text-muted-foreground">
-              Selected: <span className="text-foreground font-medium">{fruit}</span>
+              Selected:{" "}
+              <span className="text-foreground font-medium">{fruit}</span>
             </p>
           )}
         </section>
@@ -76,7 +143,7 @@ export default function SelectPage() {
             Grouped
           </h2>
           <Select value={timezone} onValueChange={setTimezone}>
-            <SelectTrigger className="w-[280px]">
+            <SelectTrigger className="w-70">
               <SelectValue placeholder="Select a timezone" />
             </SelectTrigger>
             <SelectContent>
@@ -84,7 +151,9 @@ export default function SelectPage() {
                 <SelectLabel>North America</SelectLabel>
                 <SelectItem value="est">Eastern Standard Time (EST)</SelectItem>
                 <SelectItem value="cst">Central Standard Time (CST)</SelectItem>
-                <SelectItem value="mst">Mountain Standard Time (MST)</SelectItem>
+                <SelectItem value="mst">
+                  Mountain Standard Time (MST)
+                </SelectItem>
                 <SelectItem value="pst">Pacific Standard Time (PST)</SelectItem>
               </SelectGroup>
               <SelectSeparator />
@@ -110,7 +179,7 @@ export default function SelectPage() {
             Small
           </h2>
           <Select>
-            <SelectTrigger className="w-[200px]" size="sm">
+            <SelectTrigger className="w-50" size="sm">
               <SelectValue placeholder="Small trigger" />
             </SelectTrigger>
             <SelectContent>
@@ -127,7 +196,7 @@ export default function SelectPage() {
             Searchable
           </h2>
           <Select>
-            <SelectTrigger className="w-[280px]">
+            <SelectTrigger className="w-70">
               <SelectValue placeholder="Select a country" />
             </SelectTrigger>
             <SelectContent searchable searchPlaceholder="Search countries...">
@@ -210,7 +279,11 @@ export default function SelectPage() {
             Custom Items
           </h2>
           <p className="text-sm text-muted-foreground">
-            Uses <code className="text-xs bg-muted px-1 py-0.5 rounded">renderItem</code> to add colored dots.
+            Uses{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">
+              renderItem
+            </code>{" "}
+            to add colored dots.
           </p>
           <Select
             renderItem={({ value, label }) => {
@@ -224,13 +297,15 @@ export default function SelectPage() {
               };
               return (
                 <span className="flex items-center gap-2">
-                  <span className={`size-2.5 rounded-full ${colors[value] ?? "bg-muted-foreground"}`} />
+                  <span
+                    className={`size-2.5 rounded-full ${colors[value] ?? "bg-muted-foreground"}`}
+                  />
                   {label}
                 </span>
               );
             }}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Pick a color" />
             </SelectTrigger>
             <SelectContent>
@@ -250,7 +325,8 @@ export default function SelectPage() {
             Rich Items (Cars)
           </h2>
           <p className="text-sm text-muted-foreground">
-            Each row shows drivetrain and horsepower. The trigger displays only the car name.
+            Each row shows drivetrain and horsepower. The trigger displays only
+            the car name.
           </p>
           <Select
             renderItem={({ value }) => {
@@ -269,7 +345,7 @@ export default function SelectPage() {
               );
             }}
           >
-            <SelectTrigger className="w-[260px]">
+            <SelectTrigger className="w-65">
               <SelectValue placeholder="Select a car" />
             </SelectTrigger>
             <SelectContent>
@@ -309,10 +385,11 @@ export default function SelectPage() {
             Last Selected
           </h2>
           <p className="text-sm text-muted-foreground">
-            Select a value, close, then reopen — the last pick is shown at the bottom.
+            Select a value, close, then reopen — the last pick is shown at the
+            bottom.
           </p>
           <Select selectId="demo-color" enableLastSelected>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Pick a color" />
             </SelectTrigger>
             <SelectContent>
@@ -334,7 +411,11 @@ export default function SelectPage() {
             Last Selected (Custom)
           </h2>
           <p className="text-sm text-muted-foreground">
-            Same feature with a custom footer via <code className="text-xs bg-muted px-1 py-0.5 rounded">renderLastSelected</code>.
+            Same feature with a custom footer via{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">
+              renderLastSelected
+            </code>
+            .
           </p>
           <Select
             selectId="demo-fruit-custom"
@@ -343,12 +424,15 @@ export default function SelectPage() {
               <>
                 <RotateCcw className="size-3 shrink-0" />
                 <span className="truncate">
-                  Reuse <span className="font-semibold text-foreground">&quot;{entry.label}&quot;</span>
+                  Reuse{" "}
+                  <span className="font-semibold text-foreground">
+                    &quot;{entry.label}&quot;
+                  </span>
                 </span>
               </>
             )}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Pick a fruit" />
             </SelectTrigger>
             <SelectContent>
@@ -367,7 +451,7 @@ export default function SelectPage() {
             Disabled
           </h2>
           <Select disabled>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Disabled" />
             </SelectTrigger>
             <SelectContent>

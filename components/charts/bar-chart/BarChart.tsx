@@ -782,7 +782,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       <div
         ref={ref}
         className={cn(
-          "w-full **:outline-none",
+          "w-full **:outline-hidden",
           !dynamicHeight && "h-80",
           scrollable && "overflow-y-auto",
           className,

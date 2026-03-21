@@ -17,7 +17,7 @@ export function SelectDocs() {
 } from "@/components/ui/select"
 
 <Select value={value} onValueChange={setValue}>
-  <SelectTrigger className="w-[200px]">
+  <SelectTrigger className="w-50">
     <SelectValue placeholder="Pick one" />
   </SelectTrigger>
   <SelectContent>

@@ -378,7 +378,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
       return (
         <div
           ref={forwardedRef}
-          className={cn("h-40 w-40 **:outline-none", className)}
+          className={cn("h-40 w-40 **:outline-hidden", className)}
           {...other}
         >
           {pieChart}
@@ -401,7 +401,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
       <div
         ref={forwardedRef}
         className={cn(
-          "flex **:outline-none",
+          "flex **:outline-hidden",
           isHorizontalLegend
             ? "flex-col items-center gap-4"
             : "flex-row items-center gap-6",

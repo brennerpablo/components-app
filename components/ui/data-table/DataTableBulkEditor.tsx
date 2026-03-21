@@ -139,7 +139,7 @@ const CommandBarCommand = React.forwardRef<HTMLButtonElement, CommandProps>(
     return (
       <span
         className={cn(
-          "flex items-center gap-x-2 rounded-lg bg-foreground p-1 text-base font-medium text-background outline-none transition focus:z-10 sm:text-sm",
+          "flex items-center gap-x-2 rounded-lg bg-foreground p-1 text-base font-medium text-background outline-hidden transition focus:z-10 sm:text-sm",
           "sm:last-of-type:-mr-1",
           className,
         )}
@@ -151,7 +151,7 @@ const CommandBarCommand = React.forwardRef<HTMLButtonElement, CommandProps>(
           disabled={disabled}
           className={cn(
             "flex items-center gap-x-2 rounded-md px-1 py-1 hover:bg-background/10",
-            "focus-visible:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/30",
+            "focus-visible:bg-background/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-background/30",
             "disabled:text-background/40",
           )}
           {...props}
