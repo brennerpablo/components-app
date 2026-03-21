@@ -97,6 +97,13 @@ export function SelectDocs() {
               description: "Trigger height. sm = 32px, default = 36px.",
             },
             {
+              name: "loading",
+              type: "boolean",
+              default: "false",
+              description:
+                "Shows a skeleton shimmer overlay and disables the trigger. Useful while data is being fetched.",
+            },
+            {
               name: "className",
               type: "string",
               description: "Additional CSS classes.",

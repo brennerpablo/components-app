@@ -1147,7 +1147,7 @@ import { DonutChart } from "@/components/charts/donut-chart"
 | `onValueChange`   | `(value: DonutChartEventProps) => void` | —                   | Fired when a segment is clicked. Returns `{ eventType: "sector", categoryClicked, ...dataRow }` or `null` on deselect. |
 | `tooltipCallback` | `(content: TooltipProps) => void`       | —                   | Side-effect callback fired when tooltip active state or hovered category changes. |
 | `customTooltip`   | `React.ComponentType<TooltipProps>`     | —                   | Custom component rendered in place of the default tooltip. Receives `active` and `payload`. |
-| `className`       | `string`                                | —                   | Additional classes on the outer wrapper. Default size is `h-40 w-40`. |
+| `className`       | `string`                                | —                   | Additional classes on the outer wrapper. The chart has `min-h-40` and `aspect-square` by default — it fills the parent height while staying circular. |
 
 #### Notes
 
@@ -1222,3 +1222,115 @@ import { Card } from "@/components/ui/card"
 - Default styles: `rounded-lg border border-border bg-card p-6 shadow-xs`.
 - Override padding with `className="p-4"` or any Tailwind spacing class.
 - `asChild` uses Radix UI's `Slot.Root` from the `radix-ui` unified package.
+
+### Select
+
+A props-driven select dropdown built on Radix UI Select. Supports groups, labels, separators, searchable filtering, custom item rendering, a "last selected" cookie-based memory feature, loading skeleton state, and i18n (en/pt).
+
+**Demo:** `localhost:3000/ui/select`
+
+#### Files to copy
+
+```
+components/ui/select/select.tsx
+components/ui/select/index.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+None (`radix-ui` unified package and `lucide-react` already required by other components).
+
+#### Internal dependencies
+
+| File           | Purpose        |
+| -------------- | -------------- |
+| `lib/utils.ts` | `cn()` utility |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+<Select value={value} onValueChange={setValue}>
+  <SelectTrigger className="w-50">
+    <SelectValue placeholder="Pick one" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="apple">Apple</SelectItem>
+    <SelectItem value="banana">Banana</SelectItem>
+  </SelectContent>
+</Select>
+
+{/* Loading state */}
+<Select>
+  <SelectTrigger className="w-50" loading>
+    <SelectValue placeholder="Loading..." />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="x">Option</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+#### Props
+
+**Select (root)**
+
+| Prop                 | Type                                                    | Default | Description                                                                                       |
+| -------------------- | ------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `value`              | `string`                                                | —       | Controlled selected value.                                                                        |
+| `defaultValue`       | `string`                                                | —       | Uncontrolled default value.                                                                       |
+| `onValueChange`      | `(value: string) => void`                               | —       | Callback when the selected value changes.                                                         |
+| `disabled`           | `boolean`                                               | `false` | Disables the entire select.                                                                       |
+| `open`               | `boolean`                                               | —       | Controlled open state of the dropdown.                                                            |
+| `onOpenChange`       | `(open: boolean) => void`                               | —       | Callback when the open state changes.                                                             |
+| `renderItem`         | `(entry: { value: string; label: string }) => ReactNode`| —       | Custom render for each SelectItem's content.                                                      |
+| `language`           | `"en" \| "pt"`                                          | `"en"`  | UI language for built-in strings.                                                                 |
+| `selectId`           | `string`                                                | —       | Unique ID used as the cookie key for last-selected persistence.                                   |
+| `enableLastSelected` | `boolean`                                               | `false` | Persists last selection in a cookie and shows a footer suggestion (requires `selectId`).           |
+| `renderLastSelected` | `(entry: { value: string; label: string }) => ReactNode`| —       | Custom render for the last-selected footer content.                                               |
+
+**SelectTrigger**
+
+| Prop        | Type                   | Default     | Description                                                                      |
+| ----------- | ---------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `size`      | `"sm" \| "default"`    | `"default"` | Trigger height. sm = 32 px, default = 36 px.                                     |
+| `loading`   | `boolean`              | `false`     | Shows a pulsing skeleton bar inside the trigger and disables it.                  |
+| `className` | `string`               | —           | Additional CSS classes.                                                           |
+
+**SelectContent**
+
+| Prop                | Type                              | Default          | Description                                                        |
+| ------------------- | --------------------------------- | ---------------- | ------------------------------------------------------------------ |
+| `searchable`        | `boolean`                         | `false`          | Renders a search input to filter items. Forces popper positioning. |
+| `searchPlaceholder` | `string`                          | `"Search..."`    | Placeholder for the search input.                                  |
+| `position`          | `"item-aligned" \| "popper"`      | `"item-aligned"` | Positioning strategy. Forced to popper when searchable.            |
+| `align`             | `"start" \| "center" \| "end"`    | `"center"`       | Alignment relative to the trigger.                                 |
+
+**SelectItem**
+
+| Prop          | Type      | Default | Description                                              |
+| ------------- | --------- | ------- | -------------------------------------------------------- |
+| `value`       | `string`  | —       | **Required.** The value for this option.                 |
+| `searchValue` | `string`  | —       | Custom string to match against when filtering.           |
+| `disabled`    | `boolean` | `false` | Disables this individual item.                           |
+
+#### Notes
+
+- The `loading` prop on `SelectTrigger` replaces children with a pulsing skeleton bar and disables the trigger. Requires the `skeleton-pulse` keyframe in your global CSS.
+- `enableLastSelected` stores a 90-day cookie keyed by `selectId`.
+- When `searchable` is true, the position is forced to `"popper"` because item-aligned mode doesn't work well with the search input.

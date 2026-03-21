@@ -1,4 +1,4 @@
-export type { LastSelectedEntry } from "./select"
+export type { LastSelectedEntry, SelectLanguage } from "./select"
 
 export {
   Select,

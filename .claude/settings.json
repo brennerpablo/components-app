@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//^## Components$/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/components/components-app/charts/donut-chart",
+      "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/app/(app)"
+    ]
+  }
+}

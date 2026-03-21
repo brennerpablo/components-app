@@ -11,6 +11,11 @@
   animation: terminal-blink 1s step-end infinite;
 }
 
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

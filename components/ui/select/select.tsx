@@ -6,6 +6,17 @@ import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+// --- i18n ---
+
+type SelectLanguage = "en" | "pt"
+
+const translations = {
+  en: { search: "Search...", lastSelected: "Last:" },
+  pt: { search: "Buscar...", lastSelected: "Último:" },
+} as const
+
+const LanguageContext = React.createContext<SelectLanguage>("en")
+
 const SearchContext = React.createContext("")
 
 // --- Last-selected cookie helpers ---
@@ -59,6 +70,22 @@ const LastSelectedContext = React.createContext<LastSelectedContextValue>({
   onSelect: () => {},
 })
 
+// --- Skeleton keyframes (self-contained, no external CSS needed) ---
+
+const skeletonStyleId = "select-skeleton-pulse"
+
+function InjectSkeletonStyle() {
+  React.useEffect(() => {
+    if (typeof document === "undefined") return
+    if (document.getElementById(skeletonStyleId)) return
+    const style = document.createElement("style")
+    style.id = skeletonStyleId
+    style.textContent = `@keyframes skeleton-pulse{0%,100%{opacity:.3}50%{opacity:.8}}`
+    document.head.appendChild(style)
+  }, [])
+  return null
+}
+
 // --- Components ---
 
 function Select({
@@ -66,6 +93,7 @@ function Select({
   enableLastSelected = false,
   renderLastSelected,
   renderItem,
+  language = "en",
   onValueChange,
   value: valueProp,
   defaultValue,
@@ -77,6 +105,7 @@ function Select({
   enableLastSelected?: boolean
   renderLastSelected?: (entry: LastSelectedEntry) => React.ReactNode
   renderItem?: RenderItemFn
+  language?: SelectLanguage
 }) {
   const enabled = enableLastSelected && !!selectId
   const [lastSelected, setLastSelectedState] = React.useState<{ value: string; label: string } | null>(null)
@@ -148,11 +177,13 @@ function Select({
     : { value: valueProp, defaultValue, onValueChange: handleValueChange, open: openProp, onOpenChange }
 
   return (
-    <RenderItemContext.Provider value={renderItem}>
-      <LastSelectedContext.Provider value={ctx}>
-        <SelectPrimitive.Root data-slot="select" {...rootProps} {...props} />
-      </LastSelectedContext.Provider>
-    </RenderItemContext.Provider>
+    <LanguageContext.Provider value={language}>
+      <RenderItemContext.Provider value={renderItem}>
+        <LastSelectedContext.Provider value={ctx}>
+          <SelectPrimitive.Root data-slot="select" {...rootProps} {...props} />
+        </LastSelectedContext.Provider>
+      </RenderItemContext.Provider>
+    </LanguageContext.Provider>
   )
 }
 
@@ -171,22 +202,33 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  loading = false,
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
+  loading?: boolean
 }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
+      disabled={loading || props.disabled}
       className={cn(
         "flex w-fit items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className
       )}
       {...props}
     >
-      {children}
+      {loading ? (
+        <>
+          <InjectSkeletonStyle />
+          <span
+            className="h-4 w-24 rounded bg-muted-foreground/30"
+            style={{ animation: "skeleton-pulse 1.5s ease-in-out infinite" }}
+          />
+        </>
+      ) : children}
       <SelectPrimitive.Icon asChild>
         <ChevronDownIcon className="size-4 opacity-50" />
       </SelectPrimitive.Icon>
@@ -200,12 +242,14 @@ function SelectContent({
   position: positionProp,
   align = "center",
   searchable = false,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
   searchable?: boolean
   searchPlaceholder?: string
 }) {
+  const lang = React.useContext(LanguageContext)
+  const resolvedSearchPlaceholder = searchPlaceholder ?? translations[lang].search
   const [search, setSearch] = React.useState("")
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -235,7 +279,7 @@ function SelectContent({
                   ref={inputRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   className="h-7 w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
                   // Prevent Radix from capturing these keys so the input works normally
                   onKeyDown={(e) => {
@@ -265,6 +309,7 @@ function SelectContent({
 
 function LastSelectedFooter() {
   const { enabled, lastSelected, renderLastSelected, onSelect } = React.useContext(LastSelectedContext)
+  const lang = React.useContext(LanguageContext)
 
   if (!enabled || !lastSelected) return null
 
@@ -282,7 +327,7 @@ function LastSelectedFooter() {
           <>
             <HistoryIcon className="size-3 shrink-0" />
             <span className="truncate">
-              Last selected: <span className="font-medium text-foreground">{lastSelected.label}</span>
+              {translations[lang].lastSelected} <span className="font-medium text-foreground">{lastSelected.label}</span>
             </span>
           </>
         )}
@@ -409,7 +454,7 @@ function SelectScrollDownButton({
   )
 }
 
-export type { LastSelectedEntry }
+export type { LastSelectedEntry, SelectLanguage }
 
 export {
   Select,

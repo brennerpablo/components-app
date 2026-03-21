@@ -127,7 +127,7 @@ export function DonutChartDocs() {
             {
               name: "className",
               type: "string",
-              description: "Additional CSS classes. Without a legend, applied to the outer wrapper (default size h-40 w-40). With a legend, applied to the chart portion only.",
+              description: "Additional CSS classes. The chart has min-h-40 and aspect-square by default — it fills the parent height while staying circular. Without a legend, applied to the outer wrapper. With a legend, applied to the chart portion only.",
             },
           ],
         },

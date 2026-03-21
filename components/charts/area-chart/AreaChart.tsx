@@ -30,7 +30,7 @@ import {
   getColorClass,
   isHexColor,
 } from "../utils/chartColors"
-import { getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+import { type CompactScale, computeNiceTicks, computeYDomainWithPadding, detectCompactScale, formatCompactNumber, getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
 import { useOnWindowResize } from "../utils/useOnWindowResize"
 
 type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
@@ -523,9 +523,13 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   showTooltip?: boolean
   showLegend?: boolean
   autoMinValue?: boolean
+  autoYPadding?: number
+  softYAxis?: boolean | number
+  softYAxisScale?: CompactScale
   minValue?: number
   maxValue?: number
   allowDecimals?: boolean
+  allowNegativeY?: boolean
   onValueChange?: (value: AreaChartEventProps) => void
   enableLegendSlider?: boolean
   tickGap?: number
@@ -536,11 +540,14 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   legendPosition?: "left" | "center" | "right"
   fill?: "gradient" | "solid" | "none"
   axisTextSize?: ChartTextSize
+  xAxisTextSize?: ChartTextSize
+  yAxisTextSize?: ChartTextSize
   legendTextSize?: ChartTextSize
   showDataPointLabels?: boolean
   showDataPointLabelBackground?: boolean
   dataPointTextSize?: ChartTextSize
   dataPointLabelFormatter?: (value: number) => string
+  tooltipValueFormatter?: (value: number) => string
   tooltipShowTotal?: boolean
   showTotalDataPointLabels?: boolean
   totalDataPointLabelPosition?: "top" | "bottom" | "line"
@@ -565,6 +572,10 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       showTooltip = true,
       showLegend = true,
       autoMinValue = false,
+      autoYPadding,
+      softYAxis,
+      softYAxisScale,
+      allowNegativeY = false,
       minValue,
       maxValue,
       allowDecimals = true,
@@ -579,11 +590,14 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       legendPosition = "right",
       fill = "gradient",
       axisTextSize = "xs",
+      xAxisTextSize,
+      yAxisTextSize,
       legendTextSize = "sm",
       showDataPointLabels = false,
       showDataPointLabelBackground = false,
       dataPointTextSize = "xs",
       dataPointLabelFormatter,
+      tooltipValueFormatter,
       tooltipShowTotal = false,
       showTotalDataPointLabels = false,
       totalDataPointLabelPosition = "line",
@@ -603,8 +617,33 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     )
     const categoryColors = constructCategoryColors(categories, colors)
 
-    const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
-    const resolvedAxisTextSize = resolveTextSize(axisTextSize)
+    const rawYAxisDomain = autoYPadding != null && data.length > 0
+      ? computeYDomainWithPadding(data, categories, autoYPadding, type === "stacked")
+      : getYAxisDomain(autoMinValue, minValue, maxValue)
+    const yAxisDomain: [number | string, number | string] = !allowNegativeY && typeof rawYAxisDomain[0] === "number" && rawYAxisDomain[0] < 0
+      ? [0, rawYAxisDomain[1]]
+      : rawYAxisDomain
+
+    const { softTicks, softDomain, softResolvedScale, softAxisFormatter } = React.useMemo(() => {
+      if (!softYAxis || type === "percent" || data.length === 0) {
+        return { softTicks: undefined, softDomain: undefined, softResolvedScale: undefined, softAxisFormatter: undefined }
+      }
+      const [domMin, domMax] = yAxisDomain
+      const numMin = type === "stacked" ? 0 : typeof domMin === "string" ? 0 : domMin
+      const numMax = typeof domMax === "string" ? 0 : domMax
+      const targetCount = typeof softYAxis === "number" ? softYAxis : 5
+      const ticks = computeNiceTicks(numMin, numMax, targetCount, allowNegativeY)
+      const scale = softYAxisScale ?? detectCompactScale(ticks)
+      return {
+        softTicks: ticks,
+        softDomain: [ticks[0], ticks[ticks.length - 1]] as [number, number],
+        softResolvedScale: scale,
+        softAxisFormatter: (v: number) => formatCompactNumber(v, scale),
+      }
+    }, [softYAxis, softYAxisScale, allowNegativeY, type, data.length, yAxisDomain])
+
+    const resolvedXAxisTextSize = resolveTextSize(xAxisTextSize ?? axisTextSize)
+    const resolvedYAxisTextSize = resolveTextSize(yAxisTextSize ?? axisTextSize)
     const resolvedLegendTextSize = resolveTextSize(legendTextSize)
     const resolvedDataPointTextSize = resolveTextSize(dataPointTextSize)
     const hasOnValueChange = !!onValueChange
@@ -639,8 +678,15 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
         // so ticks are always 0%–100%. Measure against that range, not raw data values.
         return inferYAxisWidth([{ v: 0 }, { v: 0.5 }, { v: 1 }], ["v"], (v) => `${(v * 100).toFixed(0)}%`)
       }
+      if (softTicks) {
+        const longest = softTicks.reduce((acc, t) => {
+          const f = formatCompactNumber(t, softResolvedScale)
+          return f.length > acc.length ? f : acc
+        }, "")
+        return Math.ceil(measureTextWidth(longest) * 1.15) + 20
+      }
       return inferYAxisWidth(data, categories, valueFormatter)
-    }, [yAxisWidth, data, categories, type, valueFormatter])
+    }, [yAxisWidth, data, categories, type, valueFormatter, softTicks, softResolvedScale])
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
@@ -737,7 +783,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-80 w-full **:outline-hidden", className)}
+        className={cn("h-72 max-h-full w-full **:outline-hidden", className)}
         {...other}
       >
         <ResponsiveContainer>
@@ -780,7 +826,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 transform: (showTotalDataPointLabels && totalDataPointLabelPosition === "bottom")
                   ? "translate(0, 28)"
                   : "translate(0, 6)",
-                fontSize: resolvedAxisTextSize,
+                fontSize: resolvedXAxisTextSize,
               }}
               ticks={
                 startEndOnly
@@ -815,8 +861,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               axisLine={false}
               tickLine={false}
               type="number"
-              domain={yAxisDomain as AxisDomain}
-              tick={{ transform: "translate(-3, 0)", fontSize: resolvedAxisTextSize }}
+              domain={(softDomain ?? yAxisDomain) as AxisDomain}
+              ticks={softTicks}
+              tick={{ transform: "translate(-3, 0)", fontSize: resolvedYAxisTextSize }}
               fill=""
               stroke=""
               className={cn(
@@ -826,7 +873,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 "fill-gray-500 dark:fill-gray-500",
               )}
               tickFormatter={
-                type === "percent" ? valueToPercent : valueFormatter
+                type === "percent" ? valueToPercent : (softAxisFormatter ?? valueFormatter)
               }
               allowDecimals={allowDecimals}
             >
@@ -889,7 +936,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                       active={active}
                       payload={cleanPayload}
                       label={labelStr}
-                      valueFormatter={valueFormatter}
+                      valueFormatter={tooltipValueFormatter ?? valueFormatter}
                       showTotal={tooltipShowTotal}
                     />
                   )

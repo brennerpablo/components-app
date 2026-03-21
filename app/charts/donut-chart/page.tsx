@@ -34,13 +34,14 @@ export default function DonutChartPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Basic donut chart with a value formatter.
             </p>
-            <DonutChart
-              data={browserData}
-              category="browser"
-              value="share"
-              valueFormatter={(v) => `${v}%`}
-              className="h-48 w-48"
-            />
+            <div className="h-48">
+              <DonutChart
+                data={browserData}
+                category="browser"
+                value="share"
+                valueFormatter={(v) => `${v}%`}
+              />
+            </div>
           </section>
 
           {/* Section 2: With Center Label */}
@@ -58,7 +59,7 @@ export default function DonutChartPage() {
               to override it.
             </p>
             <div className="flex items-center gap-8 flex-wrap">
-              <div>
+              <div className="h-48">
                 <p className="text-xs text-muted-foreground mb-2">Auto total</p>
                 <DonutChart
                   data={browserData}
@@ -66,10 +67,9 @@ export default function DonutChartPage() {
                   value="share"
                   showLabel
                   valueFormatter={(v) => `${v}%`}
-                  className="h-48 w-48"
                 />
               </div>
-              <div>
+              <div className="h-48">
                 <p className="text-xs text-muted-foreground mb-2">
                   Custom label
                 </p>
@@ -80,7 +80,6 @@ export default function DonutChartPage() {
                   showLabel
                   label="Revenue"
                   valueFormatter={(v) => `$${v.toLocaleString()}`}
-                  className="h-48 w-48"
                 />
               </div>
             </div>
@@ -98,7 +97,7 @@ export default function DonutChartPage() {
             </p>
             <div className="flex items-center gap-8 flex-wrap">
               {([10, 25, 50, 100] as const).map((t) => (
-                <div key={t}>
+                <div key={t} className="h-40">
                   <p className="text-xs text-muted-foreground mb-2">{t}</p>
                   <DonutChart
                     data={browserData}
@@ -106,7 +105,6 @@ export default function DonutChartPage() {
                     value="share"
                     thickness={t}
                     valueFormatter={(v) => `${v}%`}
-                    className="h-40 w-40"
                   />
                 </div>
               ))}
@@ -123,14 +121,15 @@ export default function DonutChartPage() {
               </code>
               .
             </p>
-            <DonutChart
-              data={revenueData}
-              category="region"
-              value="revenue"
-              colors={["violet", "amber", "rose", "teal"]}
-              valueFormatter={(v) => `$${v.toLocaleString()}`}
-              className="h-48 w-48"
-            />
+            <div className="h-48">
+              <DonutChart
+                data={revenueData}
+                category="region"
+                value="revenue"
+                colors={["violet", "amber", "rose", "teal"]}
+                valueFormatter={(v) => `$${v.toLocaleString()}`}
+              />
+            </div>
           </section>
 
           {/* Section 5: Legend */}
@@ -160,7 +159,7 @@ export default function DonutChartPage() {
                   valueFormatter={(v) => `${v}%`}
                   showLegend
                   legendPosition="right"
-                  className="h-48 w-48"
+                  className="h-48"
                 />
               </div>
               <div>
@@ -172,7 +171,7 @@ export default function DonutChartPage() {
                   valueFormatter={(v) => `${v}%`}
                   showLegend
                   legendPosition="left"
-                  className="h-48 w-48"
+                  className="h-48"
                 />
               </div>
               <div>
@@ -184,7 +183,7 @@ export default function DonutChartPage() {
                   valueFormatter={(v) => `$${v.toLocaleString()}`}
                   showLegend
                   legendPosition="bottom"
-                  className="h-48 w-48"
+                  className="h-48"
                 />
               </div>
               <div>
@@ -196,7 +195,7 @@ export default function DonutChartPage() {
                   valueFormatter={(v) => `$${v.toLocaleString()}`}
                   showLegend
                   legendPosition="top"
-                  className="h-48 w-48"
+                  className="h-48"
                 />
               </div>
             </div>
@@ -212,14 +211,15 @@ export default function DonutChartPage() {
               </code>
               .
             </p>
-            <DonutChart
-              data={browserData}
-              category="browser"
-              value="share"
-              showTooltip={false}
-              valueFormatter={(v) => `${v}%`}
-              className="h-48 w-48"
-            />
+            <div className="h-48">
+              <DonutChart
+                data={browserData}
+                category="browser"
+                value="share"
+                showTooltip={false}
+                valueFormatter={(v) => `${v}%`}
+              />
+            </div>
           </section>
 
           {/* Section 6: Interactive */}
@@ -229,14 +229,15 @@ export default function DonutChartPage() {
               Click a segment to select it — others dim to 30% opacity. Click
               again or the background to deselect.
             </p>
-            <DonutChart
-              data={browserData}
-              category="browser"
-              value="share"
-              valueFormatter={(v) => `${v}%`}
-              onValueChange={(v) => setEvent(v)}
-              className="h-48 w-48"
-            />
+            <div className="h-48">
+              <DonutChart
+                data={browserData}
+                category="browser"
+                value="share"
+                valueFormatter={(v) => `${v}%`}
+                onValueChange={(v) => setEvent(v)}
+              />
+            </div>
             <p className="mt-4 text-sm font-mono text-muted-foreground">
               onValueChange:{" "}
               <span className="text-foreground">

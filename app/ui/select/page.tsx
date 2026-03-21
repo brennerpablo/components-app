@@ -445,6 +445,31 @@ export default function SelectPage() {
           </Select>
         </section>
 
+        {/* Loading */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Loading
+          </h2>
+          <div className="flex items-center gap-4">
+            <Select>
+              <SelectTrigger className="w-50" loading>
+                <SelectValue placeholder="Loading..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="x">Option</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger className="w-50" size="sm" loading>
+                <SelectValue placeholder="Small loading" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="x">Option</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </section>
+
         {/* Disabled */}
         <section className="space-y-3">
           <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
