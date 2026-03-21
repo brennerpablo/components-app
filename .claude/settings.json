@@ -1,11 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Read(//^## Components$/**)"
+      "Read(//^## Components$/**)",
+      "Bash(grep -r searchable /Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src --include=*.tsx --include=*.ts)",
+      "Bash(node -e \"const pkg = require\\(''react-day-picker/package.json''\\); console.log\\(pkg.version\\)\")"
     ],
     "additionalDirectories": [
       "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/components/components-app/charts/donut-chart",
-      "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/app/(app)"
+      "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/app/(app)",
+      "/Users/pablobrenner/Documents/repos/fundsys/fundsys-app/src/components/components-app/ui/select"
     ]
   }
 }

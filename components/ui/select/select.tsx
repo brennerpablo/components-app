@@ -17,7 +17,10 @@ const translations = {
 
 const LanguageContext = React.createContext<SelectLanguage>("en")
 
-const SearchContext = React.createContext("")
+const SearchContext = React.createContext<{
+  search: string
+  setSearch: React.Dispatch<React.SetStateAction<string>>
+}>({ search: "", setSearch: () => {} })
 
 // --- Last-selected cookie helpers ---
 
@@ -110,6 +113,7 @@ function Select({
   const enabled = enableLastSelected && !!selectId
   const [lastSelected, setLastSelectedState] = React.useState<{ value: string; label: string } | null>(null)
   const itemMapRef = React.useRef<Map<string, string>>(new Map())
+  const [search, setSearch] = React.useState("")
 
   // When last-selected is enabled, we need internal control over value & open
   // so the footer button can programmatically set the value and close the dropdown
@@ -145,6 +149,7 @@ function Select({
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
+      if (!open) setSearch("")
       setInternalOpen(open)
       onOpenChange?.(open)
     },
@@ -174,15 +179,19 @@ function Select({
   // When last-selected is enabled, always use controlled mode so we can set value programmatically
   const rootProps = enabled
     ? { value: currentValue, onValueChange: handleValueChange, open: currentOpen, onOpenChange: handleOpenChange }
-    : { value: valueProp, defaultValue, onValueChange: handleValueChange, open: openProp, onOpenChange }
+    : { value: valueProp, defaultValue, onValueChange: handleValueChange, open: openProp, onOpenChange: handleOpenChange }
+
+  const searchCtx = React.useMemo(() => ({ search, setSearch }), [search])
 
   return (
     <LanguageContext.Provider value={language}>
-      <RenderItemContext.Provider value={renderItem}>
-        <LastSelectedContext.Provider value={ctx}>
-          <SelectPrimitive.Root data-slot="select" {...rootProps} {...props} />
-        </LastSelectedContext.Provider>
-      </RenderItemContext.Provider>
+      <SearchContext.Provider value={searchCtx}>
+        <RenderItemContext.Provider value={renderItem}>
+          <LastSelectedContext.Provider value={ctx}>
+            <SelectPrimitive.Root data-slot="select" {...rootProps} {...props} />
+          </LastSelectedContext.Provider>
+        </RenderItemContext.Provider>
+      </SearchContext.Provider>
     </LanguageContext.Provider>
   )
 }
@@ -250,14 +259,13 @@ function SelectContent({
 }) {
   const lang = React.useContext(LanguageContext)
   const resolvedSearchPlaceholder = searchPlaceholder ?? translations[lang].search
-  const [search, setSearch] = React.useState("")
+  const { search, setSearch } = React.useContext(SearchContext)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   // Force popper position when searchable (item-aligned doesn't work well with the search input)
   const position = searchable ? "popper" : (positionProp ?? "item-aligned")
 
   return (
-    <SearchContext.Provider value={searchable ? search : ""}>
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
           data-slot="select-content"
@@ -276,7 +284,12 @@ function SelectContent({
               <div className="flex items-center gap-2 px-2">
                 <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
                 <input
-                  ref={inputRef}
+                  ref={(node) => {
+                    inputRef.current = node
+                    if (node) {
+                      requestAnimationFrame(() => node.focus())
+                    }
+                  }}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={resolvedSearchPlaceholder}
@@ -303,7 +316,6 @@ function SelectContent({
           <LastSelectedFooter />
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
-    </SearchContext.Provider>
   )
 }
 
@@ -357,7 +369,7 @@ function SelectItem({
 }: React.ComponentProps<typeof SelectPrimitive.Item> & {
   searchValue?: string
 }) {
-  const search = React.useContext(SearchContext)
+  const { search } = React.useContext(SearchContext)
   const { registerItem } = React.useContext(LastSelectedContext)
   const renderItem = React.useContext(RenderItemContext)
 

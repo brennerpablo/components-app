@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, ChevronDown, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, ChevronDown, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -113,6 +113,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Dropdown select input",
         icon: ChevronDown,
         tags: ["Radix UI", "Form", "Dropdown"],
+      },
+      {
+        title: "DatePicker",
+        href: "/date-picker",
+        description:
+          "A date picker input with popover calendar. Supports single date, date range, and date + time selection modes with i18n.",
+        shortDescription: "Date & time picker input",
+        icon: CalendarDays,
+        tags: ["react-day-picker", "date-fns", "Popover"],
       },
       {
         title: "Card",

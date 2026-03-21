@@ -1223,6 +1223,96 @@ import { Card } from "@/components/ui/card"
 - Override padding with `className="p-4"` or any Tailwind spacing class.
 - `asChild` uses Radix UI's `Slot.Root` from the `radix-ui` unified package.
 
+### DatePicker
+
+A date picker input that opens a popover calendar. Supports single date, date range, and date + time selection modes with i18n (en/pt).
+
+**Demo:** `localhost:3000/date-picker`
+
+#### Files to copy
+
+```
+components/ui/date-picker/date-picker.tsx
+components/ui/date-picker/index.ts
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add button popover calendar
+```
+
+#### npm dependencies
+
+```bash
+npm install date-fns react-day-picker
+```
+
+#### Internal dependencies
+
+| File | Purpose |
+| --- | --- |
+| `lib/utils.ts` | `cn()` utility |
+
+#### Usage
+
+```tsx
+import { DatePicker } from "@/components/ui/date-picker"
+
+// Single date
+<DatePicker value={date} onChange={setDate} />
+
+// Date range
+<DatePicker mode="range" value={range} onChange={setRange} />
+
+// Date + time
+<DatePicker mode="datetime" value={dateTime} onChange={setDateTime} />
+
+// With constraints and i18n
+<DatePicker
+  value={date}
+  onChange={setDate}
+  minDate={new Date()}
+  maxDate={addDays(new Date(), 30)}
+  language="pt"
+/>
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `mode` | `"single" \| "range" \| "datetime"` | `"single"` | Selection mode |
+| `value` | `Date \| DateRange \| undefined` | — | Selected value (type depends on mode) |
+| `onChange` | `(value) => void` | — | Called when selection changes |
+| `displayFormat` | `"long" \| "short"` | `"long"` | `"long"` = full date (March 21, 2026), `"short"` = dd/MM/yyyy |
+| `enableDayNavigation` | `boolean` | `false` | Single mode only. Adds chevron buttons to step one day forward/backward |
+| `placeholder` | `string` | Localized default | Custom placeholder text |
+| `disabled` | `boolean` | `false` | Disables the trigger |
+| `language` | `"en" \| "pt"` | `"en"` | Locale for labels and formatting |
+| `format` | `string` | Per-mode default | Custom date-fns format string |
+| `minDate` | `Date` | — | Earliest selectable date |
+| `maxDate` | `Date` | — | Latest selectable date |
+| `triggerClassName` | `string` | — | Additional classes for the trigger button |
+| `className` | `string` | — | Additional classes for the popover content |
+
+#### Features
+
+- **Three modes** — single date, date range (from/to), date + time (24h)
+- **Auto-close** — popover closes on single select, stays open for datetime
+- **i18n** — English and Portuguese labels, month names, and date formatting
+- **Min/max constraints** — disable dates outside a range
+- **Controlled** — fully controlled via `value`/`onChange`
+
+#### Notes
+
+- Uses `react-day-picker` v9 and `date-fns` v4 (both already in this repo).
+- Time input uses 24-hour format.
+- The `DateRange` type is `{ from?: Date; to?: Date }` from `react-day-picker`.
+- The discriminated union on `mode` makes `value` and `onChange` type-safe per mode.
+
+---
+
 ### Select
 
 A props-driven select dropdown built on Radix UI Select. Supports groups, labels, separators, searchable filtering, custom item rendering, a "last selected" cookie-based memory feature, loading skeleton state, and i18n (en/pt).
