@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, ChevronDown, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -104,6 +104,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Semantic status label",
         icon: Tag,
         tags: ["Status", "Semantic", "Dark Mode"],
+      },
+      {
+        title: "Select",
+        href: "/ui/select",
+        description:
+          "A dropdown select component built on Radix UI Select. Supports groups, labels, separators, disabled states, and multiple sizes.",
+        shortDescription: "Dropdown select input",
+        icon: ChevronDown,
+        tags: ["Radix UI", "Form", "Dropdown"],
       },
       {
         title: "Card",
