@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { addDays, parseISO } from "date-fns"
+import { addDays, isWeekend, isSameDay, parseISO } from "date-fns"
 import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
@@ -170,10 +170,23 @@ function DatePicker(props: DatePickerProps) {
   const placeholder = getPlaceholder(props, language)
   const t = translations[language]
 
+  function isDateDisabled(date: Date): boolean {
+    if (disableWeekends && isWeekend(date)) return true
+    if (disabledDates?.some((d) => isSameDay(parseISO(d), date))) return true
+    return false
+  }
+
   function navigateDay(offset: number) {
     const p = props as DatePickerSingleProps
     const base = p.value ?? new Date()
-    const next = addDays(base, offset)
+    const direction = offset > 0 ? 1 : -1
+    let next = addDays(base, direction)
+    // Skip disabled dates (cap at 365 to avoid infinite loops)
+    let safety = 0
+    while (isDateDisabled(next) && safety < 365) {
+      next = addDays(next, direction)
+      safety++
+    }
     if (minDate && next < minDate) return
     if (maxDate && next > maxDate) return
     p.onChange?.(next)
