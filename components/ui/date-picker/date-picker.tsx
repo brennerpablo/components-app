@@ -52,15 +52,25 @@ const formatsByDisplay = {
 
 // --- Types ---
 
+type DatePickerSize = "default" | "sm"
+
+const sizeStyles = {
+  default: { button: "h-9 px-3", icon: "h-9 w-9", width: "w-70" },
+  sm: { button: "h-8 px-2.5 text-xs", icon: "h-8 w-8", width: "w-60" },
+} as const
+
 interface DatePickerBaseProps {
   placeholder?: string
   disabled?: boolean
   language?: DatePickerLanguage
   displayFormat?: DatePickerDisplayFormat
   format?: string
+  size?: DatePickerSize
+  shadow?: "none" | "xs" | "sm"
   minDate?: Date
   maxDate?: Date
   triggerClassName?: string
+  wrapperClassName?: string
   className?: string
 }
 
@@ -134,11 +144,16 @@ function DatePicker(props: DatePickerProps) {
   const {
     disabled = false,
     language = "en",
+    size = "default",
+    shadow = "xs",
     minDate,
     maxDate,
     triggerClassName,
+    wrapperClassName,
     className,
   } = props
+
+  const s = sizeStyles[size]
 
   const mode = props.mode ?? "single"
   const enableDayNavigation =
@@ -217,8 +232,9 @@ function DatePicker(props: DatePickerProps) {
       variant="outline"
       disabled={disabled}
       className={cn(
-        "justify-start text-left font-normal",
-        enableDayNavigation ? "flex-1 rounded-none border-x-0" : "w-70",
+        s.button,
+        "justify-start text-left font-normal rounded-md",
+        enableDayNavigation ? "flex-1 rounded-none border-x-0 shadow-none" : cn(s.width, shadow === "xs" && "shadow-xs", shadow === "sm" && "shadow-sm"),
         triggerClassName
       )}
     >
@@ -228,13 +244,12 @@ function DatePicker(props: DatePickerProps) {
   )
 
   return (
-    <div className={cn("flex items-center", enableDayNavigation ? "w-70" : "w-fit")}>
+    <div className={cn("flex items-center", enableDayNavigation ? cn(s.width, "rounded-md", shadow === "xs" && "shadow-xs", shadow === "sm" && "shadow-sm") : "w-fit", wrapperClassName)}>
       {enableDayNavigation && (
         <Button
           variant="outline"
-          size="icon"
           disabled={disabled}
-          className="rounded-r-none"
+          className={cn(s.icon, "rounded-r-none shadow-none p-0")}
           onClick={() => navigateDay(-1)}
         >
           <ChevronLeftIcon className="size-4" />
@@ -353,9 +368,8 @@ function DatePicker(props: DatePickerProps) {
       {enableDayNavigation && (
         <Button
           variant="outline"
-          size="icon"
           disabled={disabled}
-          className="rounded-l-none"
+          className={cn(s.icon, "rounded-l-none shadow-none p-0")}
           onClick={() => navigateDay(1)}
         >
           <ChevronRightIcon className="size-4" />
