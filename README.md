@@ -1289,6 +1289,8 @@ import { DatePicker } from "@/components/ui/date-picker"
 | `enableDayNavigation` | `boolean` | `false` | Single mode only. Adds chevron buttons to step one day forward/backward |
 | `placeholder` | `string` | Localized default | Custom placeholder text |
 | `disabled` | `boolean` | `false` | Disables the trigger |
+| `disableWeekends` | `boolean` | `false` | Prevents selection of Saturdays and Sundays |
+| `disabledDates` | `string[]` | — | Array of dates in `"yyyy-MM-dd"` format to disable |
 | `language` | `"en" \| "pt"` | `"en"` | Locale for labels and formatting |
 | `format` | `string` | Per-mode default | Custom date-fns format string |
 | `minDate` | `Date` | — | Earliest selectable date |

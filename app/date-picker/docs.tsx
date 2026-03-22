@@ -73,6 +73,19 @@ export function DatePickerDocs() {
           description: "Disables the trigger button.",
         },
         {
+          name: "disableWeekends",
+          type: "boolean",
+          default: "false",
+          description:
+            "Prevents selection of Saturdays and Sundays.",
+        },
+        {
+          name: "disabledDates",
+          type: "string[]",
+          description:
+            'Array of dates in "yyyy-MM-dd" format to disable. Can be combined with disableWeekends.',
+        },
+        {
           name: "language",
           type: '"en" | "pt"',
           default: '"en"',

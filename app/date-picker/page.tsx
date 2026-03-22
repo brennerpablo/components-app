@@ -153,6 +153,40 @@ export default function DatePickerPage() {
         />
       </section>
 
+      {/* Disable weekends */}
+      <section className="mb-10">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          Disable Weekends
+        </h2>
+        <p className="text-sm text-muted-foreground mb-2">
+          Saturdays and Sundays cannot be selected.
+        </p>
+        <DatePicker
+          value={singleDate}
+          onChange={setSingleDate}
+          disableWeekends
+          language={lang}
+        />
+      </section>
+
+      {/* Disabled specific dates */}
+      <section className="mb-10">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          Disabled Specific Dates
+        </h2>
+        <p className="text-sm text-muted-foreground mb-2">
+          Holidays (2026-11-15, 2026-11-20, 2026-12-25) are disabled. Combined
+          with disableWeekends.
+        </p>
+        <DatePicker
+          value={singleDate}
+          onChange={setSingleDate}
+          disableWeekends
+          disabledDates={["2026-11-15", "2026-11-20", "2026-12-25"]}
+          language={lang}
+        />
+      </section>
+
       {/* Disabled */}
       <section className="mb-10">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">

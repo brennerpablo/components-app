@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { addDays } from "date-fns"
+import { addDays, parseISO } from "date-fns"
 import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
-import type { DateRange } from "react-day-picker"
+import type { DateRange, Matcher } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -24,17 +24,17 @@ const localeMap = { en: enUS, pt: ptBR } as const
 
 const translations = {
   en: {
-    placeholder: "Pick a date",
-    placeholderRange: "Pick a date range",
-    placeholderDateTime: "Pick date & time",
+    placeholder: "Pick",
+    placeholderRange: "Pick",
+    placeholderDateTime: "Pick",
     hours: "Hours",
     minutes: "Minutes",
     clear: "Clear",
   },
   pt: {
-    placeholder: "Selecione uma data",
-    placeholderRange: "Selecione um intervalo",
-    placeholderDateTime: "Selecione data e hora",
+    placeholder: "Selecione",
+    placeholderRange: "Selecione",
+    placeholderDateTime: "Selecione",
     hours: "Horas",
     minutes: "Minutos",
     clear: "Limpar",
@@ -62,6 +62,8 @@ const sizeStyles = {
 interface DatePickerBaseProps {
   placeholder?: string
   disabled?: boolean
+  disableWeekends?: boolean
+  disabledDates?: string[]
   language?: DatePickerLanguage
   displayFormat?: DatePickerDisplayFormat
   format?: string
@@ -143,6 +145,8 @@ function getPlaceholder(
 function DatePicker(props: DatePickerProps) {
   const {
     disabled = false,
+    disableWeekends = false,
+    disabledDates,
     language = "en",
     size = "default",
     shadow = "xs",
@@ -221,10 +225,16 @@ function DatePicker(props: DatePickerProps) {
 
   // --- Calendar props per mode ---
 
+  const disabledMatchers: Matcher[] = [
+    ...(disableWeekends ? [{ dayOfWeek: [0, 6] }] : []),
+    ...(disabledDates?.map((d) => parseISO(d)) ?? []),
+  ]
+
   const calendarSharedProps = {
     locale,
     ...(minDate ? { fromDate: minDate } : {}),
     ...(maxDate ? { toDate: maxDate } : {}),
+    ...(disabledMatchers.length > 0 ? { disabled: disabledMatchers } : {}),
   }
 
   const triggerButton = (
