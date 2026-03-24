@@ -1426,3 +1426,84 @@ import {
 - The `loading` prop on `SelectTrigger` replaces children with a pulsing skeleton bar and disables the trigger. Requires the `skeleton-pulse` keyframe in your global CSS.
 - `enableLastSelected` stores a 90-day cookie keyed by `selectId`.
 - When `searchable` is true, the position is forced to `"popper"` because item-aligned mode doesn't work well with the search input.
+
+---
+
+### FormulaBuilder
+
+A drag-and-drop formula builder that lets users compose expressions from variable blocks and math operators. Supports controlled value, click-to-add, canvas reordering, token removal, and optional formula validation.
+
+**Demo:** `localhost:3000/formula-builder`
+
+#### Files to copy
+
+```
+components/ui/formula-builder/formula-builder.tsx
+components/ui/formula-builder/types.ts
+components/ui/formula-builder/index.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install --legacy-peer-deps @atlaskit/pragmatic-drag-and-drop @atlaskit/pragmatic-drag-and-drop-flourish @atlaskit/pragmatic-drag-and-drop-hitbox @atlaskit/pragmatic-drag-and-drop-react-drop-indicator tiny-invariant lucide-react
+```
+
+#### Internal dependencies
+
+| File           | Purpose              |
+| -------------- | -------------------- |
+| `lib/utils.ts` | `cn()` class utility |
+
+#### Usage
+
+```tsx
+import { FormulaBuilder } from "@/components/ui/formula-builder"
+
+const variables = {
+  height: "Person height",
+  weight: "Person weight",
+  age: "Person age",
+}
+
+<FormulaBuilder
+  variables={variables}
+  value={formula}
+  onChange={setFormula}
+/>
+```
+
+#### Props
+
+| Prop             | Type                          | Default                               | Description                                                        |
+| ---------------- | ----------------------------- | ------------------------------------- | ------------------------------------------------------------------ |
+| `variables`      | `Record<string, string>`      | —                                     | **Required.** Dictionary of variable keys to display labels.       |
+| `value`          | `string`                      | —                                     | Controlled formula string, space-separated.                        |
+| `onChange`        | `(formula: string) => void`   | —                                     | Callback fired when the formula changes.                           |
+| `operators`      | `string[]`                    | `["+", "-", "*", "/", "(", ")"]`      | Operators available in the palette.                                |
+| `placeholder`    | `string`                      | `"Drag variables and operators here…"` | Placeholder text for the empty canvas.                             |
+| `disabled`       | `boolean`                     | `false`                               | Disables all interaction.                                          |
+| `showValidation` | `boolean`                     | `false`                               | Shows validation errors for malformed expressions.                 |
+| `className`      | `string`                      | —                                     | Additional className on the root container.                        |
+
+#### Features
+
+- Drag variables and operators from palette to canvas
+- Click palette items to append (alternative to drag)
+- Reorder tokens by dragging within the canvas
+- Remove tokens with X button
+- Visual drop indicators for insertion position
+- Optional validation (consecutive operators, unbalanced parentheses)
+- Controlled `value`/`onChange` API
+- Custom drag previews
+- Instance isolation (multiple builders on one page)
+
+#### Notes
+
+- Atlaskit DnD packages require `--legacy-peer-deps` due to React 19 peer dep conflict.
+- The formula is stored as a space-separated string of variable keys and operators.
+- Unknown tokens in the `value` string are treated as variables with the raw key as the label.

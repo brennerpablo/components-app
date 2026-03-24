@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, ChevronDown, GaugeCircle, PanelTop, PieChart, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, ChevronDown, GaugeCircle, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -29,6 +29,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Sortable, filterable data grid",
         icon: TableProperties,
         tags: ["TanStack Table", "Drag & Drop", "Filters"],
+      },
+      {
+        title: "Formula Builder",
+        href: "/formula-builder",
+        description:
+          "A drag-and-drop formula builder for composing expressions from variable blocks and math operators. Supports validation and controlled value.",
+        shortDescription: "Drag & drop equation composer",
+        icon: Sigma,
+        tags: ["Drag & Drop", "Formula", "Interactive"],
       },
     ],
   },

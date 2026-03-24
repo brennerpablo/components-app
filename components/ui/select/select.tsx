@@ -1,8 +1,8 @@
 "use client"
 
-import * as React from "react"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, HistoryIcon, SearchIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -72,22 +72,6 @@ const LastSelectedContext = React.createContext<LastSelectedContextValue>({
   registerItem: () => {},
   onSelect: () => {},
 })
-
-// --- Skeleton keyframes (self-contained, no external CSS needed) ---
-
-const skeletonStyleId = "select-skeleton-pulse"
-
-function InjectSkeletonStyle() {
-  React.useEffect(() => {
-    if (typeof document === "undefined") return
-    if (document.getElementById(skeletonStyleId)) return
-    const style = document.createElement("style")
-    style.id = skeletonStyleId
-    style.textContent = `@keyframes skeleton-pulse{0%,100%{opacity:.3}50%{opacity:.8}}`
-    document.head.appendChild(style)
-  }, [])
-  return null
-}
 
 // --- Components ---
 
@@ -234,13 +218,7 @@ function SelectTrigger({
       {...props}
     >
       {loading ? (
-        <>
-          <InjectSkeletonStyle />
-          <span
-            className="h-4 w-24 rounded bg-muted-foreground/30"
-            style={{ animation: "skeleton-pulse 1.5s ease-in-out infinite" }}
-          />
-        </>
+        <span className="h-4 w-24 animate-pulse rounded bg-muted" />
       ) : children}
       <SelectPrimitive.Icon asChild>
         <ChevronDownIcon className="size-4 opacity-50" />

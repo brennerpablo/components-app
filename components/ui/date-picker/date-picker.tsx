@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
-import { addDays, isWeekend, isSameDay, parseISO } from "date-fns"
-import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { addDays, isSameDay, isWeekend, parseISO } from "date-fns"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
+import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import * as React from "react"
 import type { DateRange, Matcher } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
@@ -62,6 +62,7 @@ const sizeStyles = {
 interface DatePickerBaseProps {
   placeholder?: string
   disabled?: boolean
+  loading?: boolean
   disableWeekends?: boolean
   disabledDates?: string[]
   language?: DatePickerLanguage
@@ -145,6 +146,7 @@ function getPlaceholder(
 function DatePicker(props: DatePickerProps) {
   const {
     disabled = false,
+    loading = false,
     disableWeekends = false,
     disabledDates,
     language = "en",
@@ -156,6 +158,8 @@ function DatePicker(props: DatePickerProps) {
     wrapperClassName,
     className,
   } = props
+
+  const isDisabled = disabled || loading
 
   const s = sizeStyles[size]
 
@@ -244,7 +248,7 @@ function DatePicker(props: DatePickerProps) {
   ]
 
   const calendarSharedProps = {
-    locale,
+    locale: locale as any,
     ...(minDate ? { fromDate: minDate } : {}),
     ...(maxDate ? { toDate: maxDate } : {}),
     ...(disabledMatchers.length > 0 ? { disabled: disabledMatchers } : {}),
@@ -253,7 +257,7 @@ function DatePicker(props: DatePickerProps) {
   const triggerButton = (
     <Button
       variant="outline"
-      disabled={disabled}
+      disabled={isDisabled}
       className={cn(
         s.button,
         "justify-start text-left font-normal rounded-md",
@@ -262,7 +266,9 @@ function DatePicker(props: DatePickerProps) {
       )}
     >
       <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
-      {label ?? placeholder}
+      {loading ? (
+        <span className="h-4 w-24 animate-pulse rounded bg-muted" />
+      ) : (label ?? placeholder)}
     </Button>
   )
 
@@ -271,7 +277,7 @@ function DatePicker(props: DatePickerProps) {
       {enableDayNavigation && (
         <Button
           variant="outline"
-          disabled={disabled}
+          disabled={isDisabled}
           className={cn(s.icon, "rounded-r-none shadow-none p-0")}
           onClick={() => navigateDay(-1)}
         >
@@ -289,6 +295,7 @@ function DatePicker(props: DatePickerProps) {
         {mode === "single" && (
           <Calendar
             mode="single"
+            required={false}
             selected={(props as DatePickerSingleProps).value}
             onSelect={handleSingleSelect}
             {...calendarSharedProps}
@@ -391,7 +398,7 @@ function DatePicker(props: DatePickerProps) {
       {enableDayNavigation && (
         <Button
           variant="outline"
-          disabled={disabled}
+          disabled={isDisabled}
           className={cn(s.icon, "rounded-l-none shadow-none p-0")}
           onClick={() => navigateDay(1)}
         >
@@ -403,4 +410,4 @@ function DatePicker(props: DatePickerProps) {
 }
 
 export { DatePicker }
-export type { DatePickerProps, DatePickerLanguage }
+export type { DatePickerLanguage,DatePickerProps }
