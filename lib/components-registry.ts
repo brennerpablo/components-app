@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, ChevronDown, GaugeCircle, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -131,6 +131,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Date & time picker input",
         icon: CalendarDays,
         tags: ["react-day-picker", "date-fns", "Popover"],
+      },
+      {
+        title: "MonthPicker",
+        href: "/month-picker",
+        description:
+          "A year/month picker with popover. Select a year from a dropdown and a month from a button grid. Supports navigation arrows and i18n.",
+        shortDescription: "Year & month picker input",
+        icon: CalendarRange,
+        tags: ["date-fns", "Popover", "Form"],
       },
       {
         title: "Card",

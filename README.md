@@ -1291,6 +1291,7 @@ import { DatePicker } from "@/components/ui/date-picker"
 | `disabled` | `boolean` | `false` | Disables the trigger |
 | `disableWeekends` | `boolean` | `false` | Prevents selection of Saturdays and Sundays |
 | `disabledDates` | `string[]` | — | Array of dates in `"yyyy-MM-dd"` format to disable |
+| `enableYearMonthSelect` | `boolean` | `false` | Shows dropdown selects for year and month in the calendar header |
 | `language` | `"en" \| "pt"` | `"en"` | Locale for labels and formatting |
 | `format` | `string` | Per-mode default | Custom date-fns format string |
 | `minDate` | `Date` | — | Earliest selectable date |
@@ -1312,6 +1313,70 @@ import { DatePicker } from "@/components/ui/date-picker"
 - Time input uses 24-hour format.
 - The `DateRange` type is `{ from?: Date; to?: Date }` from `react-day-picker`.
 - The discriminated union on `mode` makes `value` and `onChange` type-safe per mode.
+
+---
+
+### MonthPicker
+
+A year/month picker with popover. The user selects a year from a dropdown and a month from a 3-column button grid.
+
+**Demo:** `localhost:3000/month-picker`
+
+#### Files to copy
+
+- `components/ui/month-picker/month-picker.tsx`
+- `components/ui/month-picker/index.ts`
+
+#### Dependencies
+
+**shadcn:** `button`, `popover`
+**npm:** `date-fns`, `lucide-react`
+
+#### Usage
+
+```tsx
+import { MonthPicker } from "@/components/ui/month-picker"
+
+const [value, setValue] = useState<{ year: number; month: number }>()
+
+<MonthPicker value={value} onChange={setValue} />
+
+// With month navigation arrows
+<MonthPicker value={value} onChange={setValue} enableMonthNavigation />
+
+// Constrained range
+<MonthPicker
+  value={value}
+  onChange={setValue}
+  minDate={{ year: 2020, month: 0 }}
+  maxDate={{ year: 2030, month: 11 }}
+/>
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `{ year: number; month: number } \| undefined` | — | Selected value. `month` is 0-indexed (0 = Jan, 11 = Dec) |
+| `onChange` | `(value) => void` | — | Called when a month is selected |
+| `enableMonthNavigation` | `boolean` | `false` | Adds < > buttons to step one month forward/backward |
+| `placeholder` | `string` | Localized default | Custom placeholder text |
+| `disabled` | `boolean` | `false` | Disables the trigger |
+| `language` | `"en" \| "pt"` | `"en"` | Locale for labels and month names |
+| `size` | `"default" \| "sm"` | `"default"` | Trigger size variant |
+| `shadow` | `"none" \| "xs" \| "sm"` | `"xs"` | Trigger shadow |
+| `minDate` | `{ year: number; month: number }` | — | Earliest selectable year/month (defaults to 100 years back) |
+| `maxDate` | `{ year: number; month: number }` | — | Latest selectable year/month (defaults to 10 years forward) |
+| `triggerClassName` | `string` | — | Additional classes for the trigger button |
+| `className` | `string` | — | Additional classes for the popover content |
+
+#### Features
+
+- **Year dropdown + month grid** — select year from dropdown, then pick month from a 3-column button grid
+- **Month navigation** — optional < > arrows to step month-by-month
+- **Constrained range** — `minDate`/`maxDate` limit selectable months and filter the grid
+- **i18n** — English and Portuguese month names and labels
+- **Consistent styling** — matches DatePicker trigger appearance (size, shadow, icons)
 
 ---
 

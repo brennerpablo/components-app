@@ -86,6 +86,13 @@ export function DatePickerDocs() {
             'Array of dates in "yyyy-MM-dd" format to disable. Can be combined with disableWeekends.',
         },
         {
+          name: "enableYearMonthSelect",
+          type: "boolean",
+          default: "false",
+          description:
+            "Shows dropdown selects for year and month in the calendar header for quick navigation. Range defaults to 100 years back / 10 years forward, or uses minDate/maxDate.",
+        },
+        {
           name: "language",
           type: '"en" | "pt"',
           default: '"en"',

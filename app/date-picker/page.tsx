@@ -187,6 +187,22 @@ export default function DatePickerPage() {
         />
       </section>
 
+      {/* Year / Month select */}
+      <section className="mb-10">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          Year &amp; Month Select
+        </h2>
+        <p className="text-sm text-muted-foreground mb-2">
+          Dropdown selects for year and month navigation.
+        </p>
+        <DatePicker
+          value={singleDate}
+          onChange={setSingleDate}
+          enableYearMonthSelect
+          language={lang}
+        />
+      </section>
+
       {/* Disabled */}
       <section className="mb-10">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">

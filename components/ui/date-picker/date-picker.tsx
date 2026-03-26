@@ -65,6 +65,7 @@ interface DatePickerBaseProps {
   loading?: boolean
   disableWeekends?: boolean
   disabledDates?: string[]
+  enableYearMonthSelect?: boolean
   language?: DatePickerLanguage
   displayFormat?: DatePickerDisplayFormat
   format?: string
@@ -149,6 +150,7 @@ function DatePicker(props: DatePickerProps) {
     loading = false,
     disableWeekends = false,
     disabledDates,
+    enableYearMonthSelect = false,
     language = "en",
     size = "default",
     shadow = "xs",
@@ -249,6 +251,13 @@ function DatePicker(props: DatePickerProps) {
 
   const calendarSharedProps = {
     locale: locale as any,
+    ...(enableYearMonthSelect
+      ? {
+          captionLayout: "dropdown" as const,
+          startMonth: minDate ?? new Date(new Date().getFullYear() - 100, 0),
+          endMonth: maxDate ?? new Date(new Date().getFullYear() + 10, 11),
+        }
+      : {}),
     ...(minDate ? { fromDate: minDate } : {}),
     ...(maxDate ? { toDate: maxDate } : {}),
     ...(disabledMatchers.length > 0 ? { disabled: disabledMatchers } : {}),
