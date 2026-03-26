@@ -479,7 +479,7 @@ function FormulaBuilder({
 
   // Use a ref so the monitor always reads fresh tokens
   const tokensRef = React.useRef(tokens)
-  tokensRef.current = tokens
+  tokensRef.current = tokens // eslint-disable-line react-hooks/refs -- only read in event handlers (onDrop, rAF), never during render
 
   // Canvas drop target (for appending to empty area)
   React.useEffect(() => {
