@@ -95,6 +95,26 @@ export function HeroSection() {
             </a>
           </p>
 
+          <div className="mt-6 flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <svg viewBox="-11.5 -10.232 23 20.463" className="size-9 fill-muted-foreground/70" aria-label="React">
+                <circle r="2.05" />
+                <g fill="none" stroke="currentColor" className="stroke-muted-foreground/70" strokeWidth="1">
+                  <ellipse rx="11" ry="4.2" />
+                  <ellipse rx="11" ry="4.2" transform="rotate(60)" />
+                  <ellipse rx="11" ry="4.2" transform="rotate(120)" />
+                </g>
+              </svg>
+              <span className="text-sm text-muted-foreground/80">React 19</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" className="size-9 fill-muted-foreground/70" aria-label="Tailwind CSS">
+                <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z" />
+              </svg>
+              <span className="text-sm text-muted-foreground/80">Tailwind v4</span>
+            </div>
+          </div>
+
           <a
             href="https://github.com/brennerpablo/components-app"
             target="_blank"
