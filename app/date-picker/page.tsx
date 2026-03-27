@@ -19,6 +19,11 @@ export default function DatePickerPage() {
   const today = new Date()
   const [constrainedDate, setConstrainedDate] = useState<Date | undefined>()
 
+  // Handlers that narrow the union back to Date (demo never uses valueFormat)
+  const onSingleChange = (d: Date | string | undefined) => setSingleDate(d as Date | undefined)
+  const onDateTimeChange = (d: Date | string | undefined) => setDateTime(d as Date | undefined)
+  const onConstrainedChange = (d: Date | string | undefined) => setConstrainedDate(d as Date | undefined)
+
   return (
     <main className="p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
@@ -61,7 +66,7 @@ export default function DatePickerPage() {
         </h2>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           language={lang}
         />
         {singleDate && (
@@ -78,7 +83,7 @@ export default function DatePickerPage() {
         </h2>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           language={lang}
           displayFormat="short"
         />
@@ -91,7 +96,7 @@ export default function DatePickerPage() {
         </h2>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           language={lang}
           enableDayNavigation
         />
@@ -124,7 +129,7 @@ export default function DatePickerPage() {
         <DatePicker
           mode="datetime"
           value={dateTime}
-          onChange={setDateTime}
+          onChange={onDateTimeChange}
           language={lang}
         />
         {dateTime && (
@@ -144,7 +149,7 @@ export default function DatePickerPage() {
         </p>
         <DatePicker
           value={constrainedDate}
-          onChange={setConstrainedDate}
+          onChange={onConstrainedChange}
           minDate={today}
           maxDate={addDays(today, 30)}
           language={lang}
@@ -161,7 +166,7 @@ export default function DatePickerPage() {
         </p>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           disableWeekends
           language={lang}
         />
@@ -178,7 +183,7 @@ export default function DatePickerPage() {
         </p>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           disableWeekends
           disabledDates={["2026-11-15", "2026-11-20", "2026-12-25"]}
           language={lang}
@@ -195,7 +200,7 @@ export default function DatePickerPage() {
         </p>
         <DatePicker
           value={singleDate}
-          onChange={setSingleDate}
+          onChange={onSingleChange}
           enableYearMonthSelect
           language={lang}
         />
