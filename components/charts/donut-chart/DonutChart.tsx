@@ -1,5 +1,4 @@
 // DonutChart — adapted from Tremor DonutChart v1.0.0
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use client"
 
@@ -308,7 +307,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
           )}
           <Pie
             className={cn(
-              "stroke-white dark:stroke-gray-950 [&_.recharts-pie-sector]:outline-hidden",
+              "stroke-white dark:stroke-gray-950 [&_.recharts-pie-sector]:outline-none",
               onValueChange ? "cursor-pointer" : "cursor-default",
             )}
             data={parseData(data, categoryColors, category)}
@@ -378,7 +377,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
       return (
         <div
           ref={forwardedRef}
-          className={cn("min-h-40 h-full aspect-square **:outline-hidden", className)}
+          className={cn("min-h-40 h-full aspect-square **:outline-none", className)}
           {...other}
         >
           {pieChart}
@@ -401,7 +400,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
       <div
         ref={forwardedRef}
         className={cn(
-          "flex overflow-hidden **:outline-hidden",
+          "flex overflow-hidden **:outline-none",
           isHorizontalLegend
             ? "flex-col items-center gap-4"
             : "flex-row items-center gap-6",

@@ -51,6 +51,8 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   inferOptions?: boolean
   filters?: FilterConfig
   aligned?: "left" | "center" | "right"
+  /** Classes aplicadas ao `<th>` e `<td>` desta coluna (ex.: `max-w-*`, `whitespace-normal`). */
+  columnClassName?: string
   formatter?: (value: unknown) => ReactNode
   filterValueFormatter?: (value: number) => string
   cell?: (props: CellContext<TData, unknown>) => ReactNode

@@ -49,10 +49,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     }, [isFullscreen]);
 
     const accentSideClass: Record<AccentSide, string> = {
-      top: "border-t-[3px]",
-      right: "border-r-[3px]",
-      bottom: "border-b-[3px]",
-      left: "border-l-[3px]",
+      top: "border-t-3",
+      right: "border-r-3",
+      bottom: "border-b-3",
+      left: "border-l-3",
     };
 
     const accentStyle: React.CSSProperties = accentColor

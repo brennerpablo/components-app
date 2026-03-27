@@ -116,6 +116,7 @@ interface DataTableProps<TData> {
   enableColumnOptions?: boolean;
   toolbarIconsOnly?: boolean;
   compact?: boolean;
+  fetching?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
 }
@@ -141,6 +142,7 @@ export function DataTable<TData>({
   enableColumnOptions = true,
   toolbarIconsOnly = false,
   compact = false,
+  fetching = false,
   onRowAction,
   onBulkAction,
 }: DataTableProps<TData>) {
@@ -239,7 +241,7 @@ export function DataTable<TData>({
   const tableContent = (
     <DataTableLocaleContext.Provider value={locale}>
       <div
-        className="space-y-3"
+        className={cn("space-y-3 transition-opacity duration-300", fetching && "opacity-50 pointer-events-none")}
         style={
           { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
         }

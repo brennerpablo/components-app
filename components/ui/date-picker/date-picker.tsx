@@ -1,6 +1,6 @@
 "use client"
 
-import { addDays, isSameDay, isWeekend, parseISO } from "date-fns"
+import { addDays, isSameDay, isWeekend, parse, parseISO } from "date-fns"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
 import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
@@ -69,6 +69,8 @@ interface DatePickerBaseProps {
   language?: DatePickerLanguage
   displayFormat?: DatePickerDisplayFormat
   format?: string
+  /** When set, `value` accepts a formatted string and `onChange` emits a formatted string (e.g. "yyyyMMdd", "yyyy-MM-dd"). */
+  valueFormat?: string
   size?: DatePickerSize
   shadow?: "none" | "xs" | "sm"
   minDate?: Date
@@ -80,8 +82,8 @@ interface DatePickerBaseProps {
 
 interface DatePickerSingleProps extends DatePickerBaseProps {
   mode?: "single"
-  value?: Date
-  onChange?: (date: Date | undefined) => void
+  value?: Date | string
+  onChange?: (date: Date | string | undefined) => void
   enableDayNavigation?: boolean
 }
 
@@ -93,8 +95,8 @@ interface DatePickerRangeProps extends DatePickerBaseProps {
 
 interface DatePickerDateTimeProps extends DatePickerBaseProps {
   mode: "datetime"
-  value?: Date
-  onChange?: (date: Date | undefined) => void
+  value?: Date | string
+  onChange?: (date: Date | string | undefined) => void
 }
 
 type DatePickerProps =
@@ -112,6 +114,7 @@ function getDisplayLabel(
   const mode = props.mode ?? "single"
   const display = props.displayFormat ?? "long"
   const defaults = formatsByDisplay[display]
+  const vf = props.valueFormat
 
   if (mode === "range") {
     const rangeProps = props as DatePickerRangeProps
@@ -126,8 +129,10 @@ function getDisplayLabel(
 
   const dateProps = props as DatePickerSingleProps | DatePickerDateTimeProps
   if (!dateProps.value) return null
+  const date = parseValueToDate(dateProps.value, vf)
+  if (!date) return null
   const fmt = dateProps.format ?? defaults[mode as "single" | "datetime"]
-  return format(dateProps.value, fmt, { locale })
+  return format(date, fmt, { locale })
 }
 
 function getPlaceholder(
@@ -144,6 +149,24 @@ function getPlaceholder(
 
 // --- Component ---
 
+// --- Value format helpers ---
+
+function parseValueToDate(value: Date | string | undefined, valueFormat?: string): Date | undefined {
+  if (!value) return undefined
+  if (value instanceof Date) return value
+  if (valueFormat) return parse(value, valueFormat, new Date())
+  // Fallback: try ISO parse
+  const [year, month, day] = value.split("-").map(Number)
+  if (year && month && day) return new Date(year, month - 1, day)
+  return undefined
+}
+
+function formatDateToValue(date: Date | undefined, valueFormat?: string): Date | string | undefined {
+  if (!date) return undefined
+  if (valueFormat) return format(date, valueFormat)
+  return date
+}
+
 function DatePicker(props: DatePickerProps) {
   const {
     disabled = false,
@@ -152,6 +175,7 @@ function DatePicker(props: DatePickerProps) {
     disabledDates,
     enableYearMonthSelect = false,
     language = "en",
+    valueFormat,
     size = "default",
     shadow = "xs",
     minDate,
@@ -184,7 +208,7 @@ function DatePicker(props: DatePickerProps) {
 
   function navigateDay(offset: number) {
     const p = props as DatePickerSingleProps
-    const base = p.value ?? new Date()
+    const base = parseValueToDate(p.value, valueFormat) ?? new Date()
     const direction = offset > 0 ? 1 : -1
     let next = addDays(base, direction)
     // Skip disabled dates (cap at 365 to avoid infinite loops)
@@ -195,14 +219,14 @@ function DatePicker(props: DatePickerProps) {
     }
     if (minDate && next < minDate) return
     if (maxDate && next > maxDate) return
-    p.onChange?.(next)
+    p.onChange?.(formatDateToValue(next, valueFormat))
   }
 
   // --- Calendar handlers per mode ---
 
   function handleSingleSelect(date: Date | undefined) {
     const p = props as DatePickerSingleProps
-    p.onChange?.(date)
+    p.onChange?.(formatDateToValue(date, valueFormat))
     if (date) setOpen(false)
   }
 
@@ -225,21 +249,22 @@ function DatePicker(props: DatePickerProps) {
       return
     }
     // Preserve existing time when selecting a new date
-    const existing = p.value
+    const existing = parseValueToDate(p.value, valueFormat)
     if (existing) {
       date.setHours(existing.getHours())
       date.setMinutes(existing.getMinutes())
     }
-    p.onChange?.(date)
+    p.onChange?.(formatDateToValue(date, valueFormat))
   }
 
   function handleTimeChange(hours: number, minutes: number) {
     const p = props as DatePickerDateTimeProps
-    if (!p.value) return
-    const updated = new Date(p.value)
+    const current = parseValueToDate(p.value, valueFormat)
+    if (!current) return
+    const updated = new Date(current)
     updated.setHours(hours)
     updated.setMinutes(minutes)
-    p.onChange?.(updated)
+    p.onChange?.(formatDateToValue(updated, valueFormat))
   }
 
   // --- Calendar props per mode ---
@@ -305,7 +330,7 @@ function DatePicker(props: DatePickerProps) {
           <Calendar
             mode="single"
             required={false}
-            selected={(props as DatePickerSingleProps).value}
+            selected={parseValueToDate((props as DatePickerSingleProps).value, valueFormat)}
             onSelect={handleSingleSelect}
             {...calendarSharedProps}
           />
@@ -340,7 +365,7 @@ function DatePicker(props: DatePickerProps) {
           <>
             <Calendar
               mode="single"
-              selected={(props as DatePickerDateTimeProps).value}
+              selected={parseValueToDate((props as DatePickerDateTimeProps).value, valueFormat)}
               onSelect={handleDateTimeSelect}
               {...calendarSharedProps}
             />
@@ -357,14 +382,14 @@ function DatePicker(props: DatePickerProps) {
                     value={
                       (props as DatePickerDateTimeProps).value
                         ? String(
-                            (props as DatePickerDateTimeProps).value!.getHours()
+                            parseValueToDate((props as DatePickerDateTimeProps).value, valueFormat)!.getHours()
                           ).padStart(2, "0")
                         : "00"
                     }
                     onChange={(e) => {
                       const h = Math.min(23, Math.max(0, Number(e.target.value)))
                       const m =
-                        (props as DatePickerDateTimeProps).value?.getMinutes() ??
+                        parseValueToDate((props as DatePickerDateTimeProps).value, valueFormat)?.getMinutes() ??
                         0
                       handleTimeChange(h, m)
                     }}
@@ -385,14 +410,14 @@ function DatePicker(props: DatePickerProps) {
                     value={
                       (props as DatePickerDateTimeProps).value
                         ? String(
-                            (props as DatePickerDateTimeProps).value!.getMinutes()
+                            parseValueToDate((props as DatePickerDateTimeProps).value, valueFormat)!.getMinutes()
                           ).padStart(2, "0")
                         : "00"
                     }
                     onChange={(e) => {
                       const m = Math.min(59, Math.max(0, Number(e.target.value)))
                       const h =
-                        (props as DatePickerDateTimeProps).value?.getHours() ?? 0
+                        parseValueToDate((props as DatePickerDateTimeProps).value, valueFormat)?.getHours() ?? 0
                       handleTimeChange(h, m)
                     }}
                     className="h-9 w-16 rounded-md border border-input bg-transparent px-2 text-center text-sm shadow-xs outline-hidden focus:border-ring focus:ring-[3px] focus:ring-ring/50"

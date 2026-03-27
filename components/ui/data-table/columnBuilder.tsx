@@ -95,6 +95,7 @@ export function buildColumnsFromMetadata<TData>(
           col.aligned === "right" && "text-right",
           col.aligned === "center" && "text-center",
           col.aligned === "left" && "text-left",
+          col.columnClassName,
         ),
       },
       header: col.header

@@ -1,5 +1,4 @@
 // BarChart — adapted from Tremor BarChart v1.0.0
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use client"
 
@@ -782,7 +781,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       <div
         ref={ref}
         className={cn(
-          "w-full **:outline-hidden",
+          "w-full **:outline-none",
           !dynamicHeight && "h-80",
           scrollable && "overflow-y-auto",
           className,

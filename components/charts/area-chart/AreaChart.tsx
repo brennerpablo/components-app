@@ -1,5 +1,4 @@
 // AreaChart — adapted from Tremor AreaChart v1.0.0
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use client"
 
@@ -783,7 +782,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-72 max-h-full w-full **:outline-hidden", className)}
+        className={cn("h-72 max-h-full w-full **:outline-none", className)}
         {...other}
       >
         <ResponsiveContainer>
