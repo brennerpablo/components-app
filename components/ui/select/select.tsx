@@ -448,7 +448,7 @@ function SelectScrollDownButton({
   )
 }
 
-export type { LastSelectedEntry, SelectLanguage }
+export type { LastSelectedEntry, RenderItemFn, SelectLanguage }
 
 export {
   Select,

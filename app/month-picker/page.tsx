@@ -14,13 +14,12 @@ export default function MonthPickerPage() {
   const [lang, setLang] = useState<"en" | "pt">("en")
 
   return (
-    <main className="p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <DemoBreadcrumb />
-
-      <h1 className="text-2xl font-bold mb-1">MonthPicker</h1>
-      <p className="text-muted-foreground mb-8">
-        A year/month picker with a year dropdown and month button grid.
-      </p>
+    <main className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <DemoBreadcrumb />
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">
+          MonthPicker
+        </h1>
 
       {/* Language toggle */}
       <div className="flex items-center gap-2 mb-8">
@@ -114,6 +113,7 @@ export default function MonthPickerPage() {
       </section>
 
       <MonthPickerDocs />
+      </div>
     </main>
   )
 }

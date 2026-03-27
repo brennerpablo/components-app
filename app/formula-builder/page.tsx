@@ -21,14 +21,12 @@ export default function FormulaBuilderPage() {
   )
 
   return (
-    <main className="max-w-4xl p-4 sm:p-6 lg:p-8">
-      <DemoBreadcrumb />
-
-      <h1 className="mb-1 text-2xl font-bold">FormulaBuilder</h1>
-      <p className="mb-8 text-muted-foreground">
-        Drag-and-drop formula builder for composing expressions from variable
-        blocks and math operators.
-      </p>
+    <main className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <DemoBreadcrumb />
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">
+          FormulaBuilder
+        </h1>
 
       {/* Basic usage */}
       <section className="mb-10">
@@ -90,6 +88,7 @@ export default function FormulaBuilderPage() {
 
       {/* Docs */}
       <FormulaBuilderDocs />
+      </div>
     </main>
   )
 }

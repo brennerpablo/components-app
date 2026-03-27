@@ -1,32 +1,61 @@
 "use client"
 
-import { CheckIcon } from "lucide-react"
+// Tremor-inspired Checkbox [v1.0.0]
+
 import { Checkbox as CheckboxPrimitive } from "radix-ui"
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Checkbox({
-  className,
-  ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
-  return (
-    <CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-lg border shadow-xs transition-shadow outline-hidden focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, checked, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    checked={checked}
+    className={cn(
+      // base
+      "relative inline-flex size-4 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-[3px] border outline-none transition-colors",
+      // unchecked
+      "border-slate-300 bg-white",
+      // checked
+      "data-[state=checked]:border-slate-400 data-[state=checked]:bg-slate-400",
+      // indeterminate
+      "data-[state=indeterminate]:border-slate-400 data-[state=indeterminate]:bg-slate-400",
+      // disabled
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      // focus
+      "focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1",
+      className,
+    )}
+    {...props}
+  >
+    <CheckboxPrimitive.Indicator className="flex size-full items-center justify-center text-white">
+      {checked === "indeterminate" ? (
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <line
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2.5"
+            x1="3" y1="8" x2="13" y2="8"
+          />
+        </svg>
+      ) : (
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M11.2 5.6L6.8 10L4.8 8"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          />
+        </svg>
       )}
-      {...props}
-    >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none"
-      >
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
-  )
-}
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+))
+
+Checkbox.displayName = "Checkbox"
 
 export { Checkbox }

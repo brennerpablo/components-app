@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, ListChecks, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -122,6 +122,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Dropdown select input",
         icon: ChevronDown,
         tags: ["Radix UI", "Form", "Dropdown"],
+      },
+      {
+        title: "MultiSelect",
+        href: "/multi-select",
+        description:
+          "A multi-item select with checkboxes, search input, and chip display for selected values. Consumers render MultiSelectItem children; the component manages selection state internally.",
+        shortDescription: "Multi-item select with chips",
+        icon: ListChecks,
+        tags: ["Command", "Popover", "Form"],
       },
       {
         title: "DatePicker",

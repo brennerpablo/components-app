@@ -20,14 +20,12 @@ export default function DatePickerPage() {
   const [constrainedDate, setConstrainedDate] = useState<Date | undefined>()
 
   return (
-    <main className="p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <DemoBreadcrumb />
-
-      <h1 className="text-2xl font-bold mb-1">DatePicker</h1>
-      <p className="text-muted-foreground mb-8">
-        A date picker input with popover calendar supporting single date, date
-        range, and date + time modes.
-      </p>
+    <main className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <DemoBreadcrumb />
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">
+          DatePicker
+        </h1>
 
       {/* Language toggle */}
       <div className="flex items-center gap-2 mb-8">
@@ -212,6 +210,7 @@ export default function DatePickerPage() {
       </section>
 
       <DatePickerDocs />
+      </div>
     </main>
   )
 }

@@ -1494,6 +1494,85 @@ import {
 
 ---
 
+### MultiSelect
+
+A multi-item select with checkboxes, search input, and chip display for selected values. Consumers render `MultiSelectItem` children; the component manages selection state internally and reports changes via `onValueChange`.
+
+**Demo:** `localhost:3000/multi-select`
+
+#### Files to copy
+
+```
+components/ui/multi-select/MultiSelect.tsx
+components/ui/multi-select/index.ts
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add button command popover
+```
+
+#### npm dependencies
+
+None.
+
+#### Internal dependencies
+
+| File           | Purpose              |
+| -------------- | -------------------- |
+| `lib/utils.ts` | `cn()` class utility |
+
+#### Usage
+
+```tsx
+import { MultiSelect, MultiSelectItem } from "@/components/ui/multi-select"
+
+const options = [
+  { value: "a", label: "Option A" },
+  { value: "b", label: "Option B" },
+]
+
+<MultiSelect
+  placeholder="Select..."
+  placeholderSearch="Search..."
+  onValueChange={(values) => console.log(values)}
+>
+  {options.map((o) => (
+    <MultiSelectItem key={o.value} value={o.value}>
+      {o.label}
+    </MultiSelectItem>
+  ))}
+</MultiSelect>
+```
+
+#### Props — `MultiSelect`
+
+| Prop                | Type                          | Default        | Description                                                  |
+| ------------------- | ----------------------------- | -------------- | ------------------------------------------------------------ |
+| `onValueChange`     | `(value: string[]) => void`   | —              | Called with the updated selected values array on each change.|
+| `placeholder`       | `string`                      | `"Select..."`  | Trigger button text when nothing is selected.                |
+| `placeholderSearch` | `string`                      | `"Search..."`  | Search input placeholder inside the popover.                 |
+| `disabled`          | `boolean`                     | `false`        | Disables the trigger and prevents the popover from opening.  |
+| `className`         | `string`                      | —              | Extra classes applied to the trigger button.                 |
+| `children`          | `React.ReactNode`             | —              | `MultiSelectItem` elements to render as options.             |
+
+#### Props — `MultiSelectItem`
+
+| Prop        | Type              | Default | Description                                                |
+| ----------- | ----------------- | ------- | ---------------------------------------------------------- |
+| `value`     | `string`          | —       | Unique identifier returned in the `onValueChange` array.   |
+| `children`  | `React.ReactNode` | —       | Label shown in the list and in the selected chip.          |
+| `className` | `string`          | —       | Extra classes applied to the command item.                 |
+
+#### Notes
+
+- Selected values are displayed as removable chips inside the trigger button.
+- The popover width matches the trigger width via `w-(--radix-popover-trigger-width)`.
+- Relies on `cmdk` (bundled with the shadcn `command` primitive) for filtering — no additional search logic needed.
+
+---
+
 ### FormulaBuilder
 
 A drag-and-drop formula builder that lets users compose expressions from variable blocks and math operators. Supports controlled value, click-to-add, canvas reordering, token removal, and optional formula validation.

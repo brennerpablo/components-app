@@ -45,48 +45,112 @@ export function TopNav() {
               id="topnav-popover"
               align="start"
               sideOffset={6}
-              className="z-50 w-64 rounded-md border border-border bg-popover shadow-md outline-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+              className="z-50 rounded-md border border-border bg-popover shadow-md outline-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 w-64 md:w-auto"
             >
-              {COMPONENT_SECTIONS.map((section, gi) => (
-                <div key={section.title}>
-                  {gi > 0 && <div className="mx-2 border-t border-border" />}
-                  <div className="px-3 pt-3 pb-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {/* Mobile: stacked list */}
+              <div className="md:hidden">
+                {COMPONENT_SECTIONS.map((section, gi) => (
+                  <div key={section.title}>
+                    {gi > 0 && <div className="mx-2 border-t border-border" />}
+                    <div className="px-3 pt-3 pb-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        {section.title}
+                      </p>
+                    </div>
+                    <div className="px-1.5 pb-1.5 space-y-px">
+                      {section.components.map(
+                        ({ href, title, shortDescription }) => {
+                          const isActive = pathname.startsWith(href);
+                          return (
+                            <Link
+                              key={href}
+                              href={href}
+                              onClick={() => setOpen(false)}
+                              className={cn(
+                                "flex flex-col rounded-sm px-2.5 py-2 transition-colors",
+                                isActive ? "bg-muted" : "hover:bg-muted/60",
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "text-sm font-medium",
+                                  isActive
+                                    ? "text-foreground"
+                                    : "text-foreground/80",
+                                )}
+                              >
+                                {title}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {shortDescription}
+                              </span>
+                            </Link>
+                          );
+                        },
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: mega menu with sections side by side */}
+              <div className="hidden md:flex gap-0 p-2">
+                {COMPONENT_SECTIONS.map((section, gi) => (
+                  <div
+                    key={section.title}
+                    className={cn(
+                      "min-w-48 px-2",
+                      gi > 0 && "border-l border-border",
+                    )}
+                  >
+                    <p className="px-2.5 pt-2 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {section.title}
                     </p>
+                    <div className="space-y-px">
+                      {section.components.map(
+                        ({ href, title, shortDescription, icon: Icon }) => {
+                          const isActive = pathname.startsWith(href);
+                          return (
+                            <Link
+                              key={href}
+                              href={href}
+                              onClick={() => setOpen(false)}
+                              className={cn(
+                                "flex items-start gap-3 rounded-md px-2.5 py-2 transition-colors",
+                                isActive ? "bg-muted" : "hover:bg-muted/60",
+                              )}
+                            >
+                              <Icon
+                                className={cn(
+                                  "size-4 mt-0.5 shrink-0",
+                                  isActive
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span
+                                  className={cn(
+                                    "text-sm font-medium leading-tight",
+                                    isActive
+                                      ? "text-foreground"
+                                      : "text-foreground/80",
+                                  )}
+                                >
+                                  {title}
+                                </span>
+                                <span className="text-xs text-muted-foreground leading-snug">
+                                  {shortDescription}
+                                </span>
+                              </div>
+                            </Link>
+                          );
+                        },
+                      )}
+                    </div>
                   </div>
-                  <div className="px-1.5 pb-1.5 space-y-px">
-                    {section.components.map(({ href, title, shortDescription }) => {
-                      const isActive = pathname.startsWith(href);
-                      return (
-                        <Link
-                          key={href}
-                          href={href}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "flex flex-col rounded-sm px-2.5 py-2 transition-colors",
-                            isActive ? "bg-muted" : "hover:bg-muted/60",
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "text-sm font-medium",
-                              isActive
-                                ? "text-foreground"
-                                : "text-foreground/80",
-                            )}
-                          >
-                            {title}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {shortDescription}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </Popover.Content>
           </Popover.Portal>
         </Popover.Root>
