@@ -8,7 +8,9 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  Updater,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 import * as React from "react";
 import ReactDOM from "react-dom";
@@ -221,11 +223,49 @@ export function DataTable<TData>({
     return [...selectCol, ...builtCols, ...actionsCol];
   }, [enrichedMetadata, enableRowSelection, enableRowActions, stableOnRowAction]);
 
+  const filterOnlyColumnIds = React.useMemo(
+    () => (columnsMetadata ?? []).filter((c) => c.filterOnly).map((c) => c.columnId),
+    [columnsMetadata],
+  );
+  const hasFilterOnly = filterOnlyColumnIds.length > 0;
+
+  const [userColumnVisibility, setUserColumnVisibility] = React.useState<VisibilityState>({});
+
+  const columnVisibilityForTable = React.useMemo(() => {
+    if (!hasFilterOnly) return undefined;
+    const merged: VisibilityState = { ...userColumnVisibility };
+    for (const id of filterOnlyColumnIds) {
+      merged[id] = false;
+    }
+    return merged;
+  }, [userColumnVisibility, filterOnlyColumnIds, hasFilterOnly]);
+
+  const handleColumnVisibilityChange = React.useCallback(
+    (updater: Updater<VisibilityState>) => {
+      setUserColumnVisibility((prev) => {
+        const full: VisibilityState = { ...prev };
+        for (const id of filterOnlyColumnIds) {
+          full[id] = false;
+        }
+        const updated = typeof updater === "function" ? updater(full) : updater;
+        const next: VisibilityState = { ...prev };
+        for (const [k, val] of Object.entries(updated)) {
+          if (!(filterOnlyColumnIds as string[]).includes(k)) {
+            next[k] = val;
+          }
+        }
+        return next;
+      });
+    },
+    [filterOnlyColumnIds],
+  );
+
   const table = useReactTable({
     data,
     columns: allColumns,
     state: {
       rowSelection,
+      ...(columnVisibilityForTable && { columnVisibility: columnVisibilityForTable }),
     },
     ...(enablePagination && {
       initialState: { pagination: { pageIndex: 0, pageSize } },
@@ -234,6 +274,7 @@ export function DataTable<TData>({
     enableRowSelection,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
+    ...(hasFilterOnly && { onColumnVisibilityChange: handleColumnVisibilityChange }),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });

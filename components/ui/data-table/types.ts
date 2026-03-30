@@ -50,6 +50,8 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   options?: OptionItem[]
   inferOptions?: boolean
   filters?: FilterConfig
+  /** Filter-only column: hidden from table and column options menu, but filter still shows in toolbar. */
+  filterOnly?: boolean
   aligned?: "left" | "center" | "right"
   /** Classes aplicadas ao `<th>` e `<td>` desta coluna (ex.: `max-w-*`, `whitespace-normal`). */
   columnClassName?: string

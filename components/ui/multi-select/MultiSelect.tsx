@@ -66,7 +66,7 @@ function MultiSelectItem({ value, className, children }: MultiSelectItemProps) {
 
   return (
     <CommandItem
-      value={value}
+      value={label}
       onSelect={() => onSelect(value)}
       className={cn("flex items-center gap-2 cursor-pointer", className)}
     >
@@ -210,12 +210,12 @@ function MultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-(--radix-popover-trigger-width) p-0"
+          className="w-(--radix-popover-trigger-width) min-w-0 p-0"
           align="start"
         >
           <Command>
             <CommandInput placeholder={placeholderSearch} />
-            <CommandList>
+            <CommandList onWheel={(e) => e.stopPropagation()}>
               <CommandEmpty>Nenhum resultado.</CommandEmpty>
               <CommandGroup>{children}</CommandGroup>
             </CommandList>

@@ -91,7 +91,8 @@ export function Filterbar<TData>({
         {columnsMetadata?.map((col) => {
           if (!col.filters) return null;
           const column = table.getColumn(col.columnId);
-          if (!column?.getIsVisible()) return null;
+          if (!column) return null;
+          if (!col.filterOnly && !column.getIsVisible()) return null;
 
           return (
             <div key={col.columnId} className="contents">

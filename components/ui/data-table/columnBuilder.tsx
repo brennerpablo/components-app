@@ -88,9 +88,10 @@ export function buildColumnsFromMetadata<TData>(
       id: col.columnId,
       accessorKey: col.columnId,
       enableSorting: col.sortable ?? false,
-      enableHiding: col.hideable ?? true,
+      enableHiding: col.filterOnly ? false : (col.hideable ?? true),
       meta: {
         displayName: col.title,
+        filterOnly: col.filterOnly,
         className: cn(
           col.aligned === "right" && "text-right",
           col.aligned === "center" && "text-center",
