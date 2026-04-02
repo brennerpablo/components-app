@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, ListChecks, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -29,6 +29,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Sortable, filterable data grid",
         icon: TableProperties,
         tags: ["TanStack Table", "Drag & Drop", "Filters"],
+      },
+      {
+        title: "Editable Grid",
+        href: "/editable-grid",
+        description:
+          "An Excel-like spreadsheet component for editing structured datasets. Supports typed cells (text, number, date, select, checkbox), readonly columns, keyboard navigation, and per-cell validation.",
+        shortDescription: "Excel-like editable spreadsheet",
+        icon: Grid3X3,
+        tags: ["Spreadsheet", "Inline Edit", "Validation"],
       },
       {
         title: "Formula Builder",

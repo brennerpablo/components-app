@@ -461,6 +461,129 @@ export default function Page() {
 
 ---
 
+### EditableGrid
+
+An Excel-like spreadsheet component for editing structured datasets. Supports typed cells (text, number, date, select, checkbox, textarea), readonly columns for fixed identifiers, keyboard navigation (Tab, Enter, Escape), per-cell validation, row selection, and add/delete row operations. Built on TanStack Table with existing Select, DatePicker, and Checkbox primitives as cell editors.
+
+**Demo:** `localhost:3000/editable-grid`
+
+#### Files to copy
+
+```
+components/ui/editable-grid/EditableGrid.tsx
+components/ui/editable-grid/EditableCell.tsx
+components/ui/editable-grid/useGridNavigation.ts
+components/ui/editable-grid/validation.ts
+components/ui/editable-grid/types.ts
+components/ui/editable-grid/i18n.ts
+components/ui/editable-grid/index.ts
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add table button checkbox tooltip
+```
+
+#### npm dependencies
+
+```bash
+npm install @tanstack/react-table lucide-react
+```
+
+#### Internal dependencies
+
+| File                                | Purpose                         |
+| ----------------------------------- | ------------------------------- |
+| `lib/utils.ts`                      | `cn()` class utility            |
+| `components/ui/select/`             | Select dropdown for cell editor |
+| `components/ui/date-picker/`        | DatePicker for date cells       |
+| `components/ui/checkbox.tsx`        | Checkbox for boolean cells      |
+| `components/ui/tooltip.tsx`         | Tooltip for validation errors   |
+
+#### Usage
+
+```tsx
+import { EditableGrid } from "@/components/ui/editable-grid"
+import type { EditableColumnDef } from "@/components/ui/editable-grid"
+
+type Row = { id: string; name: string; dept: string; salary: number; active: boolean }
+
+const columns: EditableColumnDef<Row>[] = [
+  { columnId: "id", title: "ID", type: "text", readonly: true },
+  { columnId: "name", title: "Name", type: "text", validation: { required: true } },
+  { columnId: "dept", title: "Dept", type: "select", options: [{ value: "eng", label: "Engineering" }] },
+  { columnId: "salary", title: "Salary", type: "number", aligned: "right" },
+  { columnId: "active", title: "Active", type: "checkbox", aligned: "center" },
+]
+
+<EditableGrid<Row>
+  columns={columns}
+  data={data}
+  rowIdKey="id"
+  onCellChange={(rowId, columnId, value) => updateData(rowId, columnId, value)}
+  onAddRow={() => addEmptyRow()}
+  onDeleteRows={(ids) => removeRows(ids)}
+  enableAddRow
+  enableDeleteRow
+  enableRowSelection
+  bordered
+/>
+```
+
+#### Props — EditableGrid
+
+| Prop                 | Type                                          | Default   | Description                                              |
+| -------------------- | --------------------------------------------- | --------- | -------------------------------------------------------- |
+| `columns`            | `EditableColumnDef<TData>[]`                  | —         | Column definitions array.                                |
+| `data`               | `TData[]`                                     | —         | Row data. Component is controlled — parent owns state.   |
+| `rowIdKey`           | `keyof TData & string`                        | —         | Property used as unique row identifier.                  |
+| `onCellChange`       | `(rowId, columnId, newValue) => void`         | —         | Fired when a cell value is committed.                    |
+| `onRowChange`        | `(rowId, updatedRow) => void`                 | —         | Fired with the full updated row after commit.            |
+| `onAddRow`           | `() => void`                                  | —         | Fired when add-row button is clicked.                    |
+| `onDeleteRows`       | `(rowIds) => void`                            | —         | Fired when rows are deleted.                             |
+| `enableAddRow`       | `boolean`                                     | `false`   | Show add-row button.                                     |
+| `enableDeleteRow`    | `boolean`                                     | `false`   | Show delete buttons.                                     |
+| `enableRowSelection` | `boolean`                                     | `false`   | Show row selection checkboxes.                            |
+| `language`           | `"en" \| "pt"`                                | `"en"`    | UI language.                                             |
+| `bordered`           | `boolean`                                     | `false`   | Add borders to all cells.                                |
+| `compact`            | `boolean`                                     | `false`   | Reduce padding and font size.                            |
+| `accentColor`        | `string`                                      | —         | Accent color for checkboxes.                             |
+
+#### Props — EditableColumnDef
+
+| Prop          | Type                              | Default   | Description                                              |
+| ------------- | --------------------------------- | --------- | -------------------------------------------------------- |
+| `columnId`    | `keyof TData & string`            | —         | Data property key.                                       |
+| `title`       | `string`                          | —         | Column header label.                                     |
+| `type`        | `CellType`                        | —         | `"text" \| "number" \| "date" \| "select" \| "checkbox" \| "textarea"` |
+| `width`       | `number \| string`                | —         | Fixed column width.                                      |
+| `readonly`    | `boolean`                         | `false`   | Visible but not editable.                                |
+| `options`     | `OptionItem[]`                    | —         | Dropdown options (required for `"select"`).               |
+| `validation`  | `ValidationRule`                  | —         | Per-cell validation rules.                               |
+| `placeholder` | `string`                          | —         | Placeholder text for empty cells.                        |
+| `formatter`   | `(value, row) => ReactNode`       | —         | Display formatter (non-edit mode only).                  |
+| `aligned`     | `"left" \| "center" \| "right"`   | `"left"`  | Text alignment.                                          |
+
+#### Features
+
+- **Typed cell editors**: text, number, date (DatePicker), select (dropdown), checkbox, textarea
+- **Readonly columns**: fixed identifier columns (e.g., SSN, employee ID)
+- **Keyboard navigation**: Tab/Shift+Tab between cells, Enter to move down, Escape to cancel
+- **Per-cell validation**: required, min/max, pattern, custom functions with error tooltips
+- **Row operations**: add new rows, delete single or bulk-selected rows
+- **i18n**: English and Portuguese
+- **Controlled component**: parent owns data, grid fires callbacks on changes
+
+#### Notes
+
+- The component is controlled — pass `data` and handle `onCellChange` to update state.
+- Checkbox cells are always interactive (no click-to-edit toggle needed).
+- Select and Date cells auto-commit when a value is selected.
+- Validation runs on commit. Errors show as red ring + tooltip. Values are still sent to parent even when invalid.
+
+---
+
 ### StatusMap
 
 A grid-based status heatmap that renders rows × dates cells, each colored by a status key. Useful for operational dashboards (machine status, service health, etc.). Fully driven by props — pass data, a label config, and display options.
