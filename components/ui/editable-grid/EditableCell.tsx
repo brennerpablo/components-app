@@ -106,7 +106,7 @@ function EditableCellInner<TData extends Record<string, unknown>>({
     const cellContent = (
       <div
         className={cn(
-          "cursor-pointer truncate rounded px-1 -mx-1 min-h-[1.5rem] hover:bg-muted/60 transition-colors",
+          "cursor-pointer truncate min-h-6",
           alignment,
           error && "ring-1 ring-destructive/50"
         )}
@@ -196,37 +196,83 @@ function EditableCellInner<TData extends Record<string, unknown>>({
 
     case "select":
       return (
-        <Select
-          value={String(draftValue ?? "")}
-          onValueChange={(val) => {
-            onDraftChange(val)
-            // Auto-commit on selection
-            setTimeout(() => onCommit(), 0)
-          }}
-          open
-          onOpenChange={(open) => {
-            if (!open) onCommit()
-          }}
-        >
-          <SelectTrigger
-            size="sm"
-            shadow="none"
-            className="h-7 -mx-1 border-0 shadow-none text-xs"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {column.options?.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="relative h-0 overflow-visible">
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0">
+            <Select
+              value={String(draftValue ?? "")}
+              onValueChange={(val) => {
+                onDraftChange(val)
+                setTimeout(() => onCommit(), 0)
+              }}
+              open
+              onOpenChange={(open) => {
+                if (!open) onCommit()
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                shadow="none"
+                className="h-7 border-0 shadow-none text-xs opacity-0 pointer-events-none"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {column.options?.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       )
 
-    case "date":
+    case "date": {
+      const dateDisplay = column.formatter
+        ? column.formatter(draftValue, row)
+        : String(draftValue ?? "")
       return (
+        <>
+          <div className={cn("truncate min-h-6", alignment)}>
+            {dateDisplay || (
+              <span className="text-muted-foreground/50">
+                {column.placeholder ?? "—"}
+              </span>
+            )}
+          </div>
+          <DateCellEditor draftValue={draftValue} onDraftChange={onDraftChange} onCommit={onCommit} language={language} />
+        </>
+      )
+    }
+
+    default:
+      return <span>{String(value ?? "")}</span>
+  }
+}
+
+function DateCellEditor({
+  draftValue,
+  onDraftChange,
+  onCommit,
+  language,
+}: {
+  draftValue: unknown
+  onDraftChange: (v: unknown) => void
+  onCommit: () => void
+  language: EditableGridLanguage
+}) {
+  const triggerRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    // Auto-click the trigger to open the popover on mount
+    const btn = triggerRef.current?.querySelector("button")
+    if (btn) btn.click()
+  }, [])
+
+  return (
+    <div ref={triggerRef} className="relative h-0 overflow-visible">
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0">
         <DatePicker
           mode="single"
           value={(draftValue as string | Date) ?? undefined}
@@ -238,13 +284,11 @@ function EditableCellInner<TData extends Record<string, unknown>>({
           size="sm"
           shadow="none"
           displayFormat="short"
-          triggerClassName="h-7 -mx-1 border-0 shadow-none text-xs"
+          triggerClassName="h-7 border-0 shadow-none text-xs opacity-0"
         />
-      )
-
-    default:
-      return <span>{String(value ?? "")}</span>
-  }
+      </div>
+    </div>
+  )
 }
 
 export const EditableCell = React.memo(EditableCellInner) as typeof EditableCellInner

@@ -150,9 +150,13 @@ function EditableGridInner<TData extends Record<string, unknown>>({
 
   // --- Commit / Cancel ---
 
+  const activeCellRef = React.useRef(activeCell)
+  activeCellRef.current = activeCell
+
   const commitActiveCell = React.useCallback(() => {
-    if (!activeCell) return
-    const { rowId, columnId, draftValue, originalValue } = activeCell
+    const cell = activeCellRef.current
+    if (!cell) return
+    const { rowId, columnId, draftValue, originalValue } = cell
     const col = columns.find((c) => c.columnId === columnId)
     const row = data.find((r) => r[rowIdKey] === rowId)
     if (!col || !row) {
@@ -176,7 +180,7 @@ function EditableGridInner<TData extends Record<string, unknown>>({
     }
 
     setActiveCell(null)
-  }, [activeCell, columns, data, rowIdKey, locale, onCellChange, onRowChange])
+  }, [columns, data, rowIdKey, locale, onCellChange, onRowChange])
 
   const cancelActiveCell = React.useCallback(() => {
     setActiveCell(null)
@@ -303,7 +307,7 @@ function EditableGridInner<TData extends Record<string, unknown>>({
                 {col.sortable ? (
                   <button
                     type="button"
-                    className="-mx-2 inline-flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
+                    className="-mx-2 inline-flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 group-hover:bg-muted"
                     onClick={() => toggleSort(col.columnId)}
                   >
                     <span className="text-[13px] font-medium leading-none">{col.title}</span>
@@ -378,7 +382,7 @@ function EditableGridInner<TData extends Record<string, unknown>>({
                       "text-muted-foreground",
                       checkboxSticky
                         ? cn("sticky left-0 z-5", STICKY_BG, "group-hover:bg-muted")
-                        : "bg-background group-hover:bg-muted/30",
+                        : "bg-background group-group-hover:bg-muted/30",
                       isSelected && "bg-muted/70",
                       checkboxSticky && scrolledLeft && SHADOW_RIGHT
                     )}
@@ -407,10 +411,11 @@ function EditableGridInner<TData extends Record<string, unknown>>({
                         "text-muted-foreground",
                         isSticky
                           ? cn("sticky z-5", STICKY_BG, "group-hover:bg-muted")
-                          : "bg-background group-hover:bg-muted/30",
+                          : "bg-background group-group-hover:bg-muted/30",
                         isSelected && "bg-muted/70",
                         isSticky && scrolledLeft && SHADOW_RIGHT,
                         bordered && "first:pl-4 last:pr-4",
+                        !isEditing && "hover:bg-[oklch(0.985_0_0)] dark:hover:bg-[oklch(0.205_0_0)]",
                         isEditing && "outline-2 outline-primary -outline-offset-1 z-10 bg-background"
                       )}
                       style={{
@@ -448,7 +453,7 @@ function EditableGridInner<TData extends Record<string, unknown>>({
                     className={cn(
                       "w-10",
                       cellPy,
-                      "text-muted-foreground bg-background group-hover:bg-muted/30",
+                      "text-muted-foreground bg-background group-group-hover:bg-muted/30",
                       isSelected && "bg-muted/70"
                     )}
                   >
