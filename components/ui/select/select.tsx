@@ -299,7 +299,13 @@ function SelectContent({
   onCreate,
   createLabel,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+}: Omit<React.ComponentProps<typeof SelectPrimitive.Content>, "align"> & {
+  /**
+   * Horizontal alignment of the dropdown relative to the trigger.
+   * Wraps Radix's `align` (`start | center | end`) with the more intuitive
+   * `left | center | right` names. LTR-only — these don't flip in RTL.
+   */
+  align?: "left" | "center" | "right"
   searchable?: boolean
   searchPlaceholder?: string
   /**
@@ -318,6 +324,8 @@ function SelectContent({
   const closeSelect = React.useContext(CloseSelectContext)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
+  const radixAlign = align === "left" ? "start" : align === "right" ? "end" : "center"
+
   // Force popper position when searchable or onCreate is set — both render a
   // sticky header which doesn't play well with item-aligned positioning.
   const position = searchable || onCreate ? "popper" : (positionProp ?? "item-aligned")
@@ -333,7 +341,7 @@ function SelectContent({
             className
           )}
           position={position}
-          align={align}
+          align={radixAlign}
           {...props}
         >
           {(searchable || onCreate) && (
