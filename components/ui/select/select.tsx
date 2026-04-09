@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, HistoryIcon, SearchIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, HistoryIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 import * as React from "react"
 
@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils"
 type SelectLanguage = "en" | "pt"
 
 const translations = {
-  en: { search: "Search...", lastSelected: "Last:" },
-  pt: { search: "Buscar...", lastSelected: "Último:" },
+  en: { search: "Search...", lastSelected: "Last:", create: "New item" },
+  pt: { search: "Buscar...", lastSelected: "Último:", create: "Novo item" },
 } as const
 
 const LanguageContext = React.createContext<SelectLanguage>("en")
@@ -44,6 +44,22 @@ function setLastSelected(selectId: string, value: string, label: string) {
   const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString()
   document.cookie = `${COOKIE_PREFIX}${selectId}=${payload}; path=/; expires=${expires}; SameSite=Lax`
 }
+
+// --- Clearable context ---
+
+const ClearableContext = React.createContext<{
+  clearable: boolean
+  hasValue: boolean
+  onClear: () => void
+}>({ clearable: false, hasValue: false, onClear: () => {} })
+
+// --- Close-select context ---
+//
+// Lets inner components (e.g. the create button in SelectContent) close the
+// dropdown programmatically. Provided by the root <Select> so it can hook into
+// the existing open-state machinery without exposing it as a prop.
+
+const CloseSelectContext = React.createContext<() => void>(() => {})
 
 // --- Render-item context ---
 
@@ -81,6 +97,8 @@ function Select({
   renderLastSelected,
   renderItem,
   language = "en",
+  clearable = false,
+  clearedValue = null,
   onValueChange,
   value: valueProp,
   defaultValue,
@@ -93,14 +111,17 @@ function Select({
   renderLastSelected?: (entry: LastSelectedEntry) => React.ReactNode
   renderItem?: RenderItemFn
   language?: SelectLanguage
+  clearable?: boolean
+  /** Value passed to onValueChange when cleared. Defaults to null. */
+  clearedValue?: unknown
 }) {
   const enabled = enableLastSelected && !!selectId
   const [lastSelected, setLastSelectedState] = React.useState<{ value: string; label: string } | null>(null)
   const itemMapRef = React.useRef<Map<string, string>>(new Map())
   const [search, setSearch] = React.useState("")
 
-  // When last-selected is enabled, we need internal control over value & open
-  // so the footer button can programmatically set the value and close the dropdown
+  // When last-selected or clearable is enabled, we need internal control over value & open
+  // so the footer button / clear button can programmatically set the value
   const isControlled = valueProp !== undefined
   const [internalValue, setInternalValue] = React.useState(defaultValue ?? "")
   const [internalOpen, setInternalOpen] = React.useState(false)
@@ -160,19 +181,39 @@ function Select({
     [selectId, enabled, lastSelected, renderLastSelected, registerItem, handleLastSelectedPick]
   )
 
-  // When last-selected is enabled, always use controlled mode so we can set value programmatically
-  const rootProps = enabled
+  // When last-selected or clearable is enabled, always use controlled mode so we can set value programmatically
+  const needsControl = enabled || clearable
+  const rootProps = needsControl
     ? { value: currentValue, onValueChange: handleValueChange, open: currentOpen, onOpenChange: handleOpenChange }
     : { value: valueProp, defaultValue, onValueChange: handleValueChange, open: openProp, onOpenChange: handleOpenChange }
 
   const searchCtx = React.useMemo(() => ({ search, setSearch }), [search])
+
+  // Clearable: use key to force Radix to remount when value is cleared (Radix doesn't support value="")
+  const [clearKey, setClearKey] = React.useState(0)
+
+  const handleClear = React.useCallback(() => {
+    if (!isControlled) setInternalValue("")
+    setClearKey((k) => k + 1)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onValueChange?.(clearedValue as any)
+  }, [isControlled, onValueChange, clearedValue])
+
+  const clearableCtx = React.useMemo(
+    () => ({ clearable, hasValue: !!currentValue, onClear: handleClear }),
+    [clearable, currentValue, handleClear]
+  )
 
   return (
     <LanguageContext.Provider value={language}>
       <SearchContext.Provider value={searchCtx}>
         <RenderItemContext.Provider value={renderItem}>
           <LastSelectedContext.Provider value={ctx}>
-            <SelectPrimitive.Root data-slot="select" {...rootProps} {...props} />
+            <ClearableContext.Provider value={clearableCtx}>
+              <CloseSelectContext.Provider value={() => handleOpenChange(false)}>
+                <SelectPrimitive.Root key={clearable ? clearKey : undefined} data-slot="select" {...rootProps} {...props} />
+              </CloseSelectContext.Provider>
+            </ClearableContext.Provider>
           </LastSelectedContext.Provider>
         </RenderItemContext.Provider>
       </SearchContext.Provider>
@@ -204,13 +245,15 @@ function SelectTrigger({
   shadow?: "none" | "xs" | "sm"
   loading?: boolean
 }) {
+  const { clearable, hasValue, onClear } = React.useContext(ClearableContext)
+
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       disabled={loading || props.disabled}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+        "flex w-fit items-center justify-between gap-2 overflow-hidden rounded-md border border-input bg-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:truncate *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         shadow === "xs" && "shadow-xs",
         shadow === "sm" && "shadow-sm",
         className
@@ -220,9 +263,28 @@ function SelectTrigger({
       {loading ? (
         <span className="h-4 w-24 animate-pulse rounded bg-muted" />
       ) : children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
-      </SelectPrimitive.Icon>
+      {clearable && hasValue ? (
+        <span
+          role="button"
+          aria-label="Clear selection"
+          className="pointer-events-auto rounded-sm opacity-50 hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onClear()
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+          }}
+        >
+          <XIcon className="size-3.5" />
+        </span>
+      ) : (
+        <SelectPrimitive.Icon asChild>
+          <ChevronDownIcon className="size-4 opacity-50" />
+        </SelectPrimitive.Icon>
+      )}
     </SelectPrimitive.Trigger>
   )
 }
@@ -234,18 +296,31 @@ function SelectContent({
   align = "center",
   searchable = false,
   searchPlaceholder,
+  onCreate,
+  createLabel,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
   searchable?: boolean
   searchPlaceholder?: string
+  /**
+   * v1 of in-dropdown create. When provided, renders a sticky button at the
+   * top of the dropdown that closes the Select and invokes this callback —
+   * the parent typically opens its own create dialog and, on success, sets
+   * the new value via the controlled `value` prop.
+   */
+  onCreate?: () => void
+  createLabel?: string
 }) {
   const lang = React.useContext(LanguageContext)
   const resolvedSearchPlaceholder = searchPlaceholder ?? translations[lang].search
+  const resolvedCreateLabel = createLabel ?? translations[lang].create
   const { search, setSearch } = React.useContext(SearchContext)
+  const closeSelect = React.useContext(CloseSelectContext)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
-  // Force popper position when searchable (item-aligned doesn't work well with the search input)
-  const position = searchable ? "popper" : (positionProp ?? "item-aligned")
+  // Force popper position when searchable or onCreate is set — both render a
+  // sticky header which doesn't play well with item-aligned positioning.
+  const position = searchable || onCreate ? "popper" : (positionProp ?? "item-aligned")
 
   return (
       <SelectPrimitive.Portal>
@@ -261,30 +336,48 @@ function SelectContent({
           align={align}
           {...props}
         >
-          {searchable && (
-            <div className="sticky top-0 z-10 bg-popover p-1.5 border-b">
-              <div className="flex items-center gap-2 px-2">
-                <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                <input
-                  ref={(node) => {
-                    inputRef.current = node
-                    if (node) {
-                      requestAnimationFrame(() => node.focus())
-                    }
+          {(searchable || onCreate) && (
+            <div className="sticky top-0 z-10 bg-popover border-b">
+              {onCreate && (
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    closeSelect()
+                    onCreate()
                   }}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={resolvedSearchPlaceholder}
-                  className="h-7 w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
-                  // Prevent Radix from capturing these keys so the input works normally
-                  onKeyDown={(e) => {
-                    e.stopPropagation()
-                  }}
-                />
-              </div>
+                >
+                  <PlusIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{resolvedCreateLabel}</span>
+                </button>
+              )}
+              {searchable && (
+                <div className={cn("p-1.5", onCreate && "border-t")}>
+                  <div className="flex items-center gap-2 px-2">
+                    <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                    <input
+                      ref={(node) => {
+                        inputRef.current = node
+                        if (node) {
+                          requestAnimationFrame(() => node.focus())
+                        }
+                      }}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder={resolvedSearchPlaceholder}
+                      className="h-7 w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
+                      // Prevent Radix from capturing these keys so the input works normally
+                      onKeyDown={(e) => {
+                        e.stopPropagation()
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          {!searchable && <SelectScrollUpButton />}
+          {!searchable && !onCreate && <SelectScrollUpButton />}
           <SelectPrimitive.Viewport
             className={cn(
               "p-1",
@@ -294,7 +387,7 @@ function SelectContent({
           >
             {children}
           </SelectPrimitive.Viewport>
-          {!searchable && <SelectScrollDownButton />}
+          {!searchable && !onCreate && <SelectScrollDownButton />}
           <LastSelectedFooter />
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
