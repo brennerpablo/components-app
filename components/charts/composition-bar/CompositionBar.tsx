@@ -25,6 +25,13 @@ export interface CompositionBarProps
   /** Floor (in percent) applied to rendered segment widths so tiny slices stay visible. */
   minSegmentPercent?: number
   showLegend?: boolean
+  showTooltip?: boolean
+  /**
+   * When `true`, the component stretches to fill its parent's height and the
+   * legend rows are distributed evenly across the available vertical space.
+   * Use inside fixed-height cards so the chart visually balances with siblings.
+   */
+  fillParent?: boolean
   /** Optional override label rendered when `data` is empty or all values are zero. */
   emptyLabel?: string
 }
@@ -101,6 +108,61 @@ function buildRows(
   return { rows, total }
 }
 
+interface ChartTooltipProps {
+  row: Row
+  valueFormatter: (value: number) => string
+  percentFormatter: (percent: number) => string
+}
+
+const ChartTooltip = ({
+  row,
+  valueFormatter,
+  percentFormatter,
+}: ChartTooltipProps) => {
+  const { key, value, percent, color, hex } = row
+  return (
+    <div
+      className={cn(
+        "rounded-md border text-sm shadow-md",
+        "border-gray-200 dark:border-gray-800",
+        "bg-white dark:bg-gray-950",
+      )}
+    >
+      <div className="border-b border-inherit px-4 py-2">
+        <p className="font-medium text-gray-900 dark:text-gray-50">{key}</p>
+      </div>
+      <div className="space-y-1 px-4 py-2">
+        <div className="flex items-center justify-between space-x-8">
+          <div className="flex items-center space-x-2">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "h-0.75 w-3.5 shrink-0 rounded-full",
+                !hex && getColorClass(color as ChartColor, "bg"),
+              )}
+              style={hex ? { backgroundColor: color as string } : undefined}
+            />
+            <p className="whitespace-nowrap text-right text-gray-700 dark:text-gray-300">
+              Total
+            </p>
+          </div>
+          <p className="whitespace-nowrap text-right font-medium tabular-nums text-gray-900 dark:text-gray-50">
+            {valueFormatter(value)}
+          </p>
+        </div>
+        <div className="flex items-center justify-between space-x-8">
+          <p className="whitespace-nowrap text-right text-gray-700 dark:text-gray-300 pl-[1.375rem]">
+            Participação
+          </p>
+          <p className="whitespace-nowrap text-right font-medium tabular-nums text-gray-900 dark:text-gray-50">
+            {percentFormatter(percent)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const CompositionBar = React.forwardRef<HTMLDivElement, CompositionBarProps>(
   (props, ref) => {
     const {
@@ -114,6 +176,8 @@ const CompositionBar = React.forwardRef<HTMLDivElement, CompositionBarProps>(
       barHeight = 12,
       minSegmentPercent = 0.5,
       showLegend = true,
+      showTooltip = true,
+      fillParent = false,
       emptyLabel,
       className,
       ...rest
@@ -125,9 +189,43 @@ const CompositionBar = React.forwardRef<HTMLDivElement, CompositionBarProps>(
       [data, category, value, colors, sortOrder, minSegmentPercent],
     )
 
+    const barWrapperRef = React.useRef<HTMLDivElement | null>(null)
+    const [hoveredIdx, setHoveredIdx] = React.useState<number | null>(null)
+    const [tooltipPos, setTooltipPos] = React.useState<{
+      left: number
+      top: number
+    }>({ left: 0, top: 0 })
+
+    const handleMove = React.useCallback(
+      (idx: number) => (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!showTooltip) return
+        const wrap = barWrapperRef.current
+        if (!wrap) return
+        const rect = wrap.getBoundingClientRect()
+        setTooltipPos({
+          left: e.clientX - rect.left,
+          top: -8,
+        })
+        setHoveredIdx(idx)
+      },
+      [showTooltip],
+    )
+
+    const handleLeave = React.useCallback(() => {
+      setHoveredIdx(null)
+    }, [])
+
     if (total === 0) {
       return (
-        <div ref={ref} className={cn("w-full", className)} {...rest}>
+        <div
+          ref={ref}
+          className={cn(
+            "w-full",
+            fillParent && "flex h-full flex-col",
+            className,
+          )}
+          {...rest}
+        >
           <div
             className="w-full rounded-md bg-gray-100 dark:bg-gray-800"
             style={{ height: barHeight }}
@@ -141,35 +239,81 @@ const CompositionBar = React.forwardRef<HTMLDivElement, CompositionBarProps>(
       )
     }
 
+    const hovered = hoveredIdx !== null ? rows[hoveredIdx] : null
+
     return (
-      <div ref={ref} className={cn("w-full", className)} {...rest}>
+      <div
+        ref={ref}
+        className={cn(
+          "w-full",
+          fillParent && "flex h-full flex-col",
+          className,
+        )}
+        {...rest}
+      >
         <div
-          className="flex w-full overflow-hidden rounded-md"
-          style={{ height: barHeight }}
-          role="img"
-          aria-label={rows
-            .map((r) => `${r.key}: ${percentFormatter(r.percent)}`)
-            .join(", ")}
+          ref={barWrapperRef}
+          className="relative"
+          onMouseLeave={handleLeave}
         >
-          {rows.map((r) => (
+          <div
+            className="flex w-full overflow-hidden rounded-md"
+            style={{ height: barHeight }}
+            role="img"
+            aria-label={rows
+              .map((r) => `${r.key}: ${percentFormatter(r.percent)}`)
+              .join(", ")}
+          >
+            {rows.map((r, idx) => (
+              <div
+                key={r.key}
+                className={cn(
+                  "transition-opacity duration-150",
+                  !r.hex && getColorClass(r.color as ChartColor, "bg"),
+                  hoveredIdx !== null && hoveredIdx !== idx && "opacity-40",
+                )}
+                style={{
+                  width: `${r.renderedWidth}%`,
+                  backgroundColor: r.hex ? (r.color as string) : undefined,
+                }}
+                onMouseEnter={handleMove(idx)}
+                onMouseMove={handleMove(idx)}
+              />
+            ))}
+          </div>
+
+          {showTooltip && hovered && (
             <div
-              key={r.key}
-              className={cn(!r.hex && getColorClass(r.color as ChartColor, "bg"))}
-              style={{
-                width: `${r.renderedWidth}%`,
-                backgroundColor: r.hex ? (r.color as string) : undefined,
-              }}
-              title={`${r.key}: ${percentFormatter(r.percent)}`}
-            />
-          ))}
+              className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-full"
+              style={{ left: tooltipPos.left, top: tooltipPos.top }}
+            >
+              <ChartTooltip
+                row={hovered}
+                valueFormatter={valueFormatter}
+                percentFormatter={percentFormatter}
+              />
+            </div>
+          )}
         </div>
 
         {showLegend && (
-          <ul className="mt-4 space-y-2">
-            {rows.map((r) => (
+          <ul
+            className={cn(
+              "mt-4",
+              fillParent
+                ? "flex flex-1 flex-col justify-around"
+                : "space-y-2",
+            )}
+          >
+            {rows.map((r, idx) => (
               <li
                 key={r.key}
-                className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3"
+                className={cn(
+                  "grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 transition-opacity duration-150",
+                  hoveredIdx !== null && hoveredIdx !== idx && "opacity-40",
+                )}
+                onMouseEnter={() => showTooltip && setHoveredIdx(idx)}
+                onMouseLeave={handleLeave}
               >
                 <span
                   aria-hidden
