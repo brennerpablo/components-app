@@ -78,6 +78,7 @@ function TabsList({
     <TabsListContext.Provider value={{ variant, color }}>
       <Tabs.List
         className={cn(
+          "max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
           variant === "line" &&
             "flex items-end gap-1 border-b border-border",
           variant === "solid" &&
@@ -100,7 +101,7 @@ function TabsTrigger({
   return (
     <Tabs.Trigger
       className={cn(
-        "inline-flex items-center gap-1.5 text-sm transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
         variant === "line" &&
           cn(
             "px-3 pb-2 font-normal text-muted-foreground hover:text-foreground hover:border-foreground/50 border-b-2 border-transparent -mb-px",

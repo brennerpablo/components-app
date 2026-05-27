@@ -785,7 +785,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
         className={cn("h-72 max-h-full w-full **:outline-none", className)}
         {...other}
       >
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height="100%">
           <RechartsAreaChart
             data={dataWithTotals}
             onClick={
