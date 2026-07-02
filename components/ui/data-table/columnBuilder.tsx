@@ -5,7 +5,7 @@ import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
-import { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
+import type { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
 import { ColumnMetadata } from "./types"
 
 export const percentageRangeFilterFn: FilterFn<unknown> = (
@@ -40,12 +40,16 @@ export const numberConditionFilterFn: FilterFn<unknown> = (
   }
 }
 
-function parseDateValue(raw: unknown): Date | null {
+export function parseDateValue(raw: unknown): Date | null {
   if (raw instanceof Date) return raw
   if (typeof raw !== "string") return null
   // DD/MM/YYYY or DD/MM/YYYY HH:mm
   const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/)
   if (ddmmyyyy) return new Date(+ddmmyyyy[3], +ddmmyyyy[2] - 1, +ddmmyyyy[1])
+  // Date-only ISO (YYYY-MM-DD) as local midnight — new Date(raw) would parse it as
+  // UTC and mismatch the local-midnight bounds coming from the calendar picker
+  const isoDateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (isoDateOnly) return new Date(+isoDateOnly[1], +isoDateOnly[2] - 1, +isoDateOnly[3])
   const d = new Date(raw)
   return isNaN(d.getTime()) ? null : d
 }
@@ -65,6 +69,21 @@ export const dateRangeFilterFn: FilterFn<unknown> = (
     if (date > endOfDay) return false
   }
   return true
+}
+
+export const dateSingleFilterFn: FilterFn<unknown> = (
+  row: Row<unknown>,
+  columnId: string,
+  filterValue: Date | undefined,
+) => {
+  if (!(filterValue instanceof Date)) return true
+  const date = parseDateValue(row.getValue(columnId))
+  if (!date) return true
+  return (
+    date.getFullYear() === filterValue.getFullYear() &&
+    date.getMonth() === filterValue.getMonth() &&
+    date.getDate() === filterValue.getDate()
+  )
 }
 
 export function createMultiColumnTextFilterFn<TData>(extraColumnIds: string[]): FilterFn<TData> {
@@ -121,6 +140,8 @@ export function buildColumnsFromMetadata<TData>(
       colDef.filterFn = percentageRangeFilterFn as FilterFn<TData>
     } else if (col.filters?.date) {
       colDef.filterFn = dateRangeFilterFn as FilterFn<TData>
+    } else if (col.filters?.dateSingle) {
+      colDef.filterFn = dateSingleFilterFn as FilterFn<TData>
     } else if (col.filters?.text && col.filters.textColumns?.length) {
       colDef.filterFn = createMultiColumnTextFilterFn<TData>(col.filters.textColumns)
     }

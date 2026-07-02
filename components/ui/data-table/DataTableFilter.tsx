@@ -25,6 +25,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
+import { parseDateValue } from "./columnBuilder";
 import { useDataTableLocale } from "./DataTableLocaleContext";
 import { DataTableLocale } from "./i18n";
 import { resolveAccentColor } from "./types";
@@ -47,6 +48,8 @@ function getEmptyValue(type: FilterType): FilterValues {
       return DEFAULT_PERCENTAGE_RANGE;
     case "date":
       return DEFAULT_DATE_RANGE;
+    case "dateSingle":
+      return undefined;
     case "checkbox":
     case "checkboxSearch":
       return [];
@@ -59,6 +62,7 @@ function getEmptyValue(type: FilterType): FilterValues {
 
 function isFilterActive(type: FilterType, value: FilterValues): boolean {
   if (value === undefined || value === null) return false;
+  if (type === "dateSingle") return value instanceof Date;
   if (type === "date") {
     const d = value as DateRangeFilter;
     return d.from !== undefined || d.to !== undefined;
@@ -112,7 +116,8 @@ type FilterType =
   | "checkboxSearch"
   | "number"
   | "percentage"
-  | "date";
+  | "date"
+  | "dateSingle";
 
 function getNumberConditions(locale: DataTableLocale) {
   return [
@@ -257,12 +262,99 @@ function DateRangeCalendarPicker({
   );
 }
 
+function SingleDateCalendarPicker({
+  value,
+  onChange,
+  availableDates,
+}: {
+  value: Date | undefined;
+  onChange: (value: Date | undefined) => void;
+  availableDates?: Date[];
+}) {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const years = Array.from({ length: 60 }, (_, i) => currentYear - 50 + i);
+
+  const latestAvailable = React.useMemo(
+    () =>
+      availableDates?.length
+        ? availableDates.reduce((a, b) => (a > b ? a : b))
+        : undefined,
+    [availableDates],
+  );
+  const availableKeys = React.useMemo(
+    () =>
+      availableDates?.length
+        ? new Set(availableDates.map((d) => d.toDateString()))
+        : null,
+    [availableDates],
+  );
+
+  const [month, setMonth] = React.useState<Date>(
+    value ?? latestAvailable ?? today,
+  );
+
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      <div className="flex gap-1">
+        <Select
+          value={String(month.getMonth())}
+          onValueChange={(v) =>
+            setMonth(new Date(month.getFullYear(), Number(v), 1))
+          }
+        >
+          <SelectTrigger className="h-7 flex-1 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MONTHS.map((m, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={String(month.getFullYear())}
+          onValueChange={(v) =>
+            setMonth(new Date(Number(v), month.getMonth(), 1))
+          }
+        >
+          <SelectTrigger className="h-7 w-22 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((y) => (
+              <SelectItem key={y} value={String(y)}>
+                {y}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Calendar
+        mode="single"
+        selected={value}
+        onSelect={(date) => onChange(date ?? undefined)}
+        month={month}
+        onMonthChange={setMonth}
+        disabled={
+          availableKeys
+            ? (date: Date) => !availableKeys.has(date.toDateString())
+            : undefined
+        }
+      />
+    </div>
+  );
+}
+
 type FilterValues =
   | string
   | string[]
   | ConditionFilter
   | PercentageRangeFilter
   | DateRangeFilter
+  | Date
   | undefined;
 
 interface DataTableFilterProps<TData, TValue> {
@@ -337,8 +429,23 @@ export function DataTableFilter<TData, TValue>({
 
   const [searchQuery, setSearchQuery] = React.useState("");
 
+  // For dateSingle: option values (explicit or inferred from the data) define
+  // which calendar days are selectable — anything else is disabled.
+  const availableDates = React.useMemo(() => {
+    if (type !== "dateSingle" || !optionsProp?.length) return undefined;
+    return optionsProp
+      .map((opt) => parseDateValue(opt.value))
+      .filter((d): d is Date => d !== null);
+  }, [type, optionsProp]);
+
   const columnFilterLabels = React.useMemo(() => {
     if (!selectedValues) return undefined;
+
+    if (type === "dateSingle") {
+      return selectedValues instanceof Date
+        ? [DATE_FORMATTER.format(selectedValues)]
+        : undefined;
+    }
 
     if (
       type === "date" &&
@@ -407,6 +514,16 @@ export function DataTableFilter<TData, TValue>({
           />
         );
       }
+      case "dateSingle":
+        return (
+          <SingleDateCalendarPicker
+            value={
+              selectedValues instanceof Date ? selectedValues : undefined
+            }
+            onChange={setSelectedValues}
+            availableDates={availableDates}
+          />
+        );
       case "select":
         return (
           <Select
@@ -733,7 +850,7 @@ export function DataTableFilter<TData, TValue>({
         sideOffset={7}
         className={cn(
           "min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))]",
-          type === "date"
+          type === "date" || type === "dateSingle"
             ? "sm:w-fit sm:min-w-0 sm:max-w-none"
             : "sm:min-w-56 sm:max-w-56",
         )}

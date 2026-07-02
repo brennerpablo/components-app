@@ -157,6 +157,15 @@ export function Filterbar<TData>({
                   accentColor={accentColor}
                 />
               )}
+              {col.filters.dateSingle && (
+                <DataTableFilter
+                  column={column}
+                  title={col.title}
+                  options={col.options}
+                  type="dateSingle"
+                  accentColor={accentColor}
+                />
+              )}
               {col.filters.text && (
                 <TextFilterInput
                   key={`${col.columnId}-${clearKey}`}

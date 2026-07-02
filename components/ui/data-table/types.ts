@@ -27,6 +27,7 @@ export type FilterConfig = {
   number?: boolean                                   // condition + value filter (only for type "number")
   percentage?: boolean                               // min/max range slider filter (0–100)
   date?: boolean                                     // date range calendar filter (start/end dates)
+  dateSingle?: boolean                               // single-date calendar filter; with inferOptions/options only dates present in the data are selectable
 }
 
 export type ColumnType = "text" | "number" | "date"
