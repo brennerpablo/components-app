@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -29,6 +29,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Sortable, filterable data grid",
         icon: TableProperties,
         tags: ["TanStack Table", "Drag & Drop", "Filters"],
+      },
+      {
+        title: "Data Grid",
+        href: "/data-grid",
+        description:
+          "A virtualized, spreadsheet-style grid for very large datasets. Excel-style per-column filters, cell/row/column selection with clipboard copy, drag-to-reorder and resize columns, frozen columns, saved views, CSV/XLSX export, and en/pt chrome.",
+        shortDescription: "Virtualized spreadsheet grid",
+        icon: Sheet,
+        tags: ["Virtualized", "Excel-style", "Frozen columns"],
       },
       {
         title: "Editable Grid",

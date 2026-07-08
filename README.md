@@ -461,6 +461,71 @@ export default function Page() {
 
 ---
 
+### DataGrid
+
+A virtualized, spreadsheet-style data grid for very large datasets. Excel-style per-column filters (checkbox value lists + typed conditions), cell/row/column selection with clipboard copy, drag-to-reorder and drag-to-resize columns, columns frozen to the right edge, saved views, CSV/XLSX export, a fullscreen toggle, and English/Portuguese chrome. Server-oriented by contract (a sparse `getRow` accessor + windowed block fetching), so it scales to millions of rows; `useClientGridSource` drives it from a plain array for local data.
+
+**Demo:** `localhost:3000/data-grid`
+
+#### Files to copy
+
+```
+components/ui/data-grid/       (whole folder — 21 files incl. index.ts, i18n.ts, client-source.ts)
+components/ui/separator.tsx     (if not already present)
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add button input popover select dropdown-menu checkbox separator
+```
+
+#### npm dependencies
+
+```bash
+npm install @tanstack/react-virtual sonner \
+  @atlaskit/pragmatic-drag-and-drop @atlaskit/pragmatic-drag-and-drop-hitbox \
+  @atlaskit/pragmatic-drag-and-drop-react-drop-indicator papaparse xlsx --legacy-peer-deps
+```
+
+#### Internal dependencies
+
+| File                                    | Purpose                                                        |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `lib/utils.ts`                          | `cn()` class-name helper                                       |
+| `app/globals.css`                       | `.grid-scrollbar` styling + `@keyframes grid-copy-flash`       |
+| `app/layout.tsx`                        | Mount `<Toaster />` (sonner) so copy/export toasts appear      |
+
+#### Usage
+
+```tsx
+import {
+  DataGrid,
+  defaultColumnState,
+  useClientGridSource,
+  type GridColumn,
+} from "@/components/ui/data-grid"
+
+const columns: GridColumn<Row>[] = [
+  { id: "name", title: "Name", type: "text", width: 180, sortable: true,
+    filter: { conditions: "text", paramMap: { contains: "q" } } },
+  { id: "amount", title: "Amount", type: "number", width: 120, align: "right", sortable: true,
+    filter: { conditions: "number", paramMap: { range: { min: "min", max: "max" } } } },
+]
+
+const src = useClientGridSource({ rows, columns, sorting, filters, summaryColumn: "amount" })
+// spread src.getRow / rowCount / totalCount / filterOptions / summary / resetToken / fetchRows onto <DataGrid>
+```
+
+#### Notes
+
+- Set a height via `className` (e.g. `h-[560px]`) so the grid can virtualize.
+- Pinned (`pinned: "right"`) columns are display-only — ideal for action/link icon cells.
+- `language="pt"` switches the chrome to Portuguese; defaults to `"en"`.
+- Atlaskit DnD packages require `--legacy-peer-deps` (React 19 peer conflict).
+
+---
+
 ### EditableGrid
 
 An Excel-like spreadsheet component for editing structured datasets. Supports typed cells (text, number, date, select, checkbox, textarea), readonly columns for fixed identifiers, keyboard navigation (Tab, Enter, Escape), per-cell validation, row selection, and add/delete row operations. Built on TanStack Table with existing Select, DatePicker, and Checkbox primitives as cell editors.
