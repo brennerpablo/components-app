@@ -1,10 +1,11 @@
 import { Table } from "@tanstack/react-table"
-import Papa from "papaparse"
 
-export function exportTableToCSV<TData>(
+export async function exportTableToCSV<TData>(
   table: Table<TData>,
   filename: string = "export",
-): void {
+): Promise<void> {
+  const { default: Papa } = await import("papaparse")
+
   const exportableColumns = table
     .getAllLeafColumns()
     .filter((col) => col.getIsVisible() && col.accessorFn !== undefined)

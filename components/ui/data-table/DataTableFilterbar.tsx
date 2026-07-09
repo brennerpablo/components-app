@@ -207,12 +207,12 @@ export function Filterbar<TData>({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => exportTableToCSV(table, tableName ?? "export")}
+                onClick={() => void exportTableToCSV(table, tableName ?? "export")}
               >
                 {locale.exportCsv}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => exportTableToXLSX(table, tableName ?? "export")}
+                onClick={() => void exportTableToXLSX(table, tableName ?? "export")}
               >
                 {locale.exportXlsx}
               </DropdownMenuItem>

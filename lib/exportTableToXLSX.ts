@@ -1,10 +1,11 @@
 import { Table } from "@tanstack/react-table"
-import * as XLSX from "xlsx"
 
-export function exportTableToXLSX<TData>(
+export async function exportTableToXLSX<TData>(
   table: Table<TData>,
   filename: string = "export",
-): void {
+): Promise<void> {
+  const XLSX = await import("xlsx")
+
   const exportableColumns = table
     .getAllLeafColumns()
     .filter((col) => col.getIsVisible() && col.accessorFn !== undefined)
