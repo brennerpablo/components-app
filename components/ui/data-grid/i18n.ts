@@ -123,6 +123,7 @@ const EN: GridStrings = {
   showingCap: (cap) => `Showing ${cap} — type to refine.`,
   apply: "Apply",
   opLabels: {
+    startsWith: "starts with",
     contains: "contains",
     eq: "equals",
     gte: "greater or equal",
@@ -192,6 +193,7 @@ const PT: GridStrings = {
   showingCap: (cap) => `Mostrando ${cap} — digite para refinar.`,
   apply: "Aplicar",
   opLabels: {
+    startsWith: "começa com",
     contains: "contém",
     eq: "igual a",
     gte: "maior ou igual",

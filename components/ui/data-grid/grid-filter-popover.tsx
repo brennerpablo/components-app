@@ -85,6 +85,7 @@ export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
     if (!conf?.conditions) return [];
     const pm = conf.paramMap;
     const list: GridConditionOp[] = [];
+    if (pm.startsWith) list.push("startsWith");
     if (pm.contains) list.push("contains");
     if (pm.equals || (pm.range?.min && pm.range?.max)) list.push("eq");
     if (pm.range?.min) list.push("gte");

@@ -37,6 +37,8 @@ export type GridFilterParamMap = {
   csv?: string;
   /** Text `contains` condition → query param (server requires ≥3 chars). */
   contains?: string;
+  /** Text `starts with` (prefix) condition → query param. */
+  startsWith?: string;
   /** Exact-equality condition → query param. */
   equals?: string;
   /** Range condition → min/max query params (numbers or ISO dates). */
@@ -81,7 +83,13 @@ export type CellCoord = { row: number; col: number };
 /** Inclusive, normalized selection rectangle. */
 export type GridRect = { r0: number; r1: number; c0: number; c1: number };
 
-export type GridConditionOp = "contains" | "eq" | "gte" | "lte" | "between";
+export type GridConditionOp =
+  | "startsWith"
+  | "contains"
+  | "eq"
+  | "gte"
+  | "lte"
+  | "between";
 
 export type GridColumnFilter = {
   /** Checked values of the checkbox section; absent = all values. */
