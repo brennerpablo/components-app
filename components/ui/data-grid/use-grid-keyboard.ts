@@ -36,6 +36,22 @@ export function useGridKeyboard({
 }: KeyboardDeps) {
   return React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // The header's filter menus portal to `document.body` but stay React
+      // children of this subtree, so their keystrokes bubble here through
+      // React's synthetic event tree even though they live outside the grid's
+      // DOM. Never hijack a key — above all Cmd/Ctrl+A and the arrows — that
+      // belongs to a focused form field or an open overlay.
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        target !== e.currentTarget &&
+        (!e.currentTarget.contains(target) ||
+          target.closest(
+            'input, textarea, select, [contenteditable="true"], [role="dialog"], [role="menu"], [role="listbox"], [role="combobox"]',
+          ))
+      ) {
+        return;
+      }
       if (rowCount === 0 || colCount === 0) return;
       const ctrl = e.metaKey || e.ctrlKey;
       const key = e.key;
