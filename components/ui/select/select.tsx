@@ -326,9 +326,12 @@ function SelectContent({
 
   const radixAlign = align === "left" ? "start" : align === "right" ? "end" : "center"
 
-  // Force popper position when searchable or onCreate is set — both render a
-  // sticky header which doesn't play well with item-aligned positioning.
-  const position = searchable || onCreate ? "popper" : (positionProp ?? "item-aligned")
+  // Default to popper positioning. Radix's item-aligned mode has a long-standing
+  // bug where a list taller than the viewport gets stuck at the bottom and can't
+  // scroll back up; popper uses a normal overflow container instead. searchable /
+  // onCreate also require popper for their sticky header. Callers can still opt
+  // into "item-aligned" explicitly (ignored when a sticky header is present).
+  const position = searchable || onCreate ? "popper" : (positionProp ?? "popper")
 
   return (
       <SelectPrimitive.Portal>
