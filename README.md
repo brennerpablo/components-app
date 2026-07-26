@@ -1346,6 +1346,110 @@ import { DonutChart } from "@/components/charts/donut-chart"
 
 ---
 
+### CompositionBar
+
+A single horizontal stacked bar showing how a total breaks down across categories, paired with an aligned legend listing each category's value and share. Hovering a segment or a legend row highlights both and dims the rest. Pure CSS + Tailwind — no charting library.
+
+**Demo:** `localhost:3000/charts/composition-bar`
+
+#### Files to copy
+
+```
+components/charts/composition-bar/CompositionBar.tsx
+components/charts/composition-bar/index.ts
+components/charts/utils/chartColors.ts
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+None — no charting library required.
+
+#### Internal dependencies
+
+| File                                     | Purpose                                                       |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| `lib/utils.ts`                           | `cn()` utility — already present in any shadcn project        |
+| `components/charts/utils/chartColors.ts` | Color palette, `getColorClass()`, `constructCategoryColors()`, `isHexColor()` |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { CompositionBar } from "@/components/charts/composition-bar"
+
+// Basic composition
+<CompositionBar
+  data={data}
+  category="assetClass"
+  value="amount"
+  valueFormatter={(v) => `$${v.toLocaleString()}`}
+/>
+
+// Sorted, custom palette
+<CompositionBar
+  data={data}
+  category="source"
+  value="sessions"
+  sortOrder="descending"
+  colors={["violet", "amber", "rose", "teal", "cyan"]}
+/>
+
+// Bar only, no legend
+<CompositionBar
+  data={data}
+  category="assetClass"
+  value="amount"
+  showLegend={false}
+  barHeight={8}
+/>
+
+// Fill a fixed-height card
+<div className="h-64">
+  <CompositionBar
+    data={data}
+    category="assetClass"
+    value="amount"
+    fillParent
+  />
+</div>
+```
+
+#### Props
+
+| Prop                | Type                                       | Default                       | Description |
+| ------------------- | ------------------------------------------ | ----------------------------- | ----------- |
+| `data`              | `Record<string, any>[]`                    | —                             | **Required.** Array of data objects with keys for the category label and the numeric value. |
+| `category`          | `string`                                   | —                             | **Required.** Key in each data object used as the segment label (e.g. `"assetClass"`, `"source"`). |
+| `value`             | `string`                                   | —                             | **Required.** Key in each data object used as the segment's numeric value. Percentages are computed against the sum of all values. |
+| `colors`            | `(ChartColor \| string)[]`                 | `CHART_COLORS`                | Palette for the segments. Accepts palette names or raw hex strings; cycles if fewer colors than categories. |
+| `valueFormatter`    | `(value: number) => string`                | `v => v.toString()`           | Formats the raw value in the legend and tooltip. |
+| `percentFormatter`  | `(percent: number) => string`              | ``p => `${p.toFixed(1)}%` ``  | Formats the share percentage in the legend and tooltip. Always receives the true percentage, never the inflated render width. |
+| `sortOrder`         | `"ascending" \| "descending" \| "none"`    | `"none"`                      | Sort order applied to segments by value. `"none"` preserves the input array order. |
+| `barHeight`         | `number`                                   | `12`                          | Height of the bar in pixels. |
+| `minSegmentPercent` | `number`                                   | `0.5`                         | Floor (in percent) applied to rendered segment widths so tiny slices stay visible. The inflation is reclaimed from the largest segment so widths still sum to 100. |
+| `showLegend`        | `boolean`                                  | `true`                        | Show the legend rows below the bar (swatch, label, value, percentage). |
+| `showTooltip`       | `boolean`                                  | `true`                        | Show the hover tooltip. Also gates the hover dimming of non-hovered segments. |
+| `fillParent`        | `boolean`                                  | `false`                       | Stretch to the parent's height and distribute legend rows evenly across the available vertical space. |
+| `emptyLabel`        | `string`                                   | —                             | Text rendered under the placeholder bar when data is empty or all values sum to zero. |
+| `className`         | `string`                                   | —                             | Additional classes on the outer wrapper. |
+
+#### Notes
+
+- Rows with non-finite values are dropped. If the total is `<= 0`, the empty state renders instead of the bar.
+- `minSegmentPercent` only changes rendered widths — the legend and tooltip always report the true share.
+- `fillParent` requires the parent to be a flex column with a fixed height for the legend distribution to be visible.
+- The built-in tooltip labels are hardcoded to Portuguese (`Total` / `Participação`). Edit `ChartTooltip` in `CompositionBar.tsx` if you need different copy — there is no `customTooltip` prop.
+- Only `chartColors.ts` is required from the utils directory (no axis helpers needed).
+
+---
+
 ### Card
 
 A fundamental layout primitive for grouping content — KPI cards, forms, or sections. Adapts Tremor's Card design using project CSS variable tokens. Supports `asChild` for rendering as any semantic element.

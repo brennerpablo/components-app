@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartHorizontal, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -98,6 +98,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Donut & pie chart",
         icon: PieChart,
         tags: ["Recharts", "Tremor", "Interactive"],
+      },
+      {
+        title: "Composition Bar",
+        href: "/charts/composition-bar",
+        description:
+          "A single horizontal stacked bar showing how a total breaks down across categories, with an aligned legend of values and shares. Pure CSS — no charting library.",
+        shortDescription: "Stacked share-of-total bar",
+        icon: BarChartHorizontal,
+        tags: ["Tremor", "No deps", "Interactive"],
       },
       {
         title: "Progress Bar",
