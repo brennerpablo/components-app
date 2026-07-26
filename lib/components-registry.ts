@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartHorizontal, CalendarDays, CalendarRange, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartHorizontal, CalendarDays, CalendarRange, ChartGantt, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -47,6 +47,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Excel-like editable spreadsheet",
         icon: Grid3X3,
         tags: ["Spreadsheet", "Inline Edit", "Validation"],
+      },
+      {
+        title: "Gantt",
+        href: "/gantt",
+        description:
+          "A tree-and-timeline chart with a sticky column pane, collapsible group rows that roll their children into a summary track, overlapping bars packed into lanes, milestones, non-working shading, a now line, and scales from hourly to yearly.",
+        shortDescription: "Tree + timeline scheduling chart",
+        icon: ChartGantt,
+        tags: ["Timeline", "date-fns", "Rollups"],
       },
       {
         title: "Formula Builder",

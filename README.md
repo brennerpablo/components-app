@@ -649,6 +649,187 @@ const columns: EditableColumnDef<Row>[] = [
 
 ---
 
+### Gantt
+
+A tree-and-timeline chart: a sticky column pane on the left, a scrollable time grid on the right. Collapsible group rows roll their descendants into a summary track with duration-weighted progress, overlapping bars pack into lanes so the row grows instead of the bars colliding, and the scale switches between hourly, daily, weekly and monthly columns. Fully props-driven — one `<Gantt>` call, no compound sub-components.
+
+**Demo:** `localhost:3000/gantt`
+
+#### Files to copy
+
+```
+components/ui/gantt/Gantt.tsx
+components/ui/gantt/GanttBar.tsx
+components/ui/gantt/colors.ts
+components/ui/gantt/timeline.ts
+components/ui/gantt/types.ts
+components/ui/gantt/index.ts
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add button select tooltip
+```
+
+#### npm dependencies
+
+```bash
+npm install date-fns lucide-react
+```
+
+#### Internal dependencies
+
+| File           | Purpose                             |
+| -------------- | ----------------------------------- |
+| `lib/utils.ts` | `cn()` class-merging utility        |
+
+Also relies on the `.grid-scrollbar` rules in `app/globals.css` for the always-visible scrollbar. Without them the chart still scrolls; it just uses the platform default scrollbar.
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { Gantt } from "@/components/ui/gantt"
+import type { GanttColumn, GanttRow } from "@/components/ui/gantt"
+
+type Task = { status: string; owner: string }
+
+const columns: GanttColumn<Task>[] = [
+  { id: "name", header: "Name", width: 230, cell: (row) => row.label },
+  { id: "status", header: "Status", width: 110, cell: (row) => row.data?.status },
+]
+
+const rows: GanttRow<Task>[] = [
+  {
+    id: "epic-1",
+    label: "Bug Tracking",
+    children: [
+      {
+        id: "task-1",
+        label: "Login redirect",
+        data: { status: "Done", owner: "Ana" },
+        bars: [{
+          id: "task-1-bar",
+          start: new Date(2026, 6, 13),
+          end: new Date(2026, 6, 15),
+          label: "Login redirect",
+          color: "blue",
+          progress: 1,
+        }],
+      },
+    ],
+  },
+]
+
+<Gantt<Task>
+  rows={rows}
+  columns={columns}
+  defaultScale="month"
+  defaultDate={new Date(2026, 6, 22)}
+  onBarClick={(bar, row) => console.log(bar.id, row.id)}
+/>
+```
+
+#### Props
+
+| Prop               | Type                                                | Default          | Description                                                                    |
+| ------------------ | --------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------ |
+| `rows`             | `GanttRow<T>[]`                                      | —                | **Required.** Row tree; a row with `children` becomes a collapsible group.      |
+| `columns`          | `GanttColumn<T>[]`                                   | —                | **Required.** Left pane columns. The first gets the indent + chevron.           |
+| `scale`            | `"day" \| "week" \| "month" \| "quarter" \| "year"` | —                | Controlled preset — sets both the visible range and the column unit.            |
+| `defaultScale`     | `GanttScale`                                         | `"month"`        | Uncontrolled initial scale.                                                     |
+| `onScaleChange`    | `(scale: GanttScale) => void`                        | —                | Fires when the toolbar picker changes.                                          |
+| `scales`           | `GanttScale[]`                                       | all five         | Presets in the toolbar picker; a single-entry array hides it.                   |
+| `date`             | `Date`                                               | —                | Controlled anchor date the range is derived from.                               |
+| `defaultDate`      | `Date`                                               | `new Date()`     | Uncontrolled initial anchor date.                                               |
+| `onDateChange`     | `(date: Date) => void`                               | —                | Fires on Today and the prev/next buttons.                                       |
+| `now`              | `Date \| null`                                       | current time     | Position of the red now line; `null` hides it. Only rendered after mount.       |
+| `weekStartsOn`     | `0 \| 1 \| … \| 6`                                   | `0`              | First day of the week — affects week columns, grouping and the `week` range.    |
+| `title`            | `ReactNode`                                          | derived          | Overrides the toolbar range label.                                              |
+| `toolbar`          | `boolean`                                            | `true`           | Renders the Today / scale / paging / title bar.                                 |
+| `actions`          | `ReactNode`                                          | —                | Rendered at the right end of the toolbar.                                       |
+| `zoomControls`     | `boolean`                                            | `true`           | Floating +/− control; scales column width 0.5×–4×.                              |
+| `rowHeight`        | `number`                                             | `36`             | Height of a single-lane row, in px.                                             |
+| `laneHeight`       | `number`                                             | `24`             | Extra height each additional overlap lane adds.                                 |
+| `nonWorking`       | `(start: Date, end: Date) => boolean`                | weekends         | Shades a column as non-working. Defaults to weekends on day columns only.       |
+| `summaryRows`      | `boolean`                                            | `true`           | Group rows render a rollup track across their descendants.                      |
+| `bordered`         | `boolean`                                            | `true`           | Wraps the chart in a rounded border.                                            |
+| `height`           | `number \| string`                                   | `520`            | Scroll viewport height; a number is px.                                         |
+| `onBarClick`       | `(bar: GanttBar, row: GanttRow<T>) => void`          | —                | Makes bars interactive and fires on click.                                      |
+| `onRowClick`       | `(row: GanttRow<T>) => void`                         | —                | Fires when either pane of a row is clicked.                                     |
+| `onExpandedChange` | `(expanded: Record<string, boolean>) => void`        | —                | Fires when a group expands or collapses.                                        |
+| `emptyState`       | `ReactNode`                                          | `"No rows…"`     | Shown when `rows` is empty.                                                     |
+| `className`        | `string`                                             | —                | Merged onto the outer wrapper.                                                  |
+
+#### `GanttRow<T>`
+
+| Field             | Type              | Description                                                                 |
+| ----------------- | ----------------- | --------------------------------------------------------------------------- |
+| `id`              | `string`          | **Required.** Unique row key.                                               |
+| `label`           | `string`          | **Required.** Row name, available to every column renderer.                 |
+| `bars`            | `GanttBar[]`      | Bars on the row. Overlapping bars pack into lanes and the row grows taller. |
+| `children`        | `GanttRow<T>[]`   | Nested rows; presence makes the row a group.                                |
+| `defaultExpanded` | `boolean`         | Defaults to `true`; pass `false` to start collapsed.                        |
+| `data`            | `T`               | Arbitrary payload handed to every column's `cell` renderer.                 |
+
+#### `GanttBar`
+
+| Field           | Type                                              | Description                                                                   |
+| --------------- | ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `id`            | `string`                                          | **Required.** Unique bar key.                                                 |
+| `start` / `end` | `Date`                                            | **Required.** `end` is ignored when `milestone` is true.                      |
+| `label`         | `string`                                          | Inside the bar when it fits, otherwise just after it.                         |
+| `labelPosition` | `"auto" \| "inside" \| "outside" \| "none"`       | Overrides automatic placement. Default `"auto"`.                              |
+| `progress`      | `number`                                          | 0–1. Fills that fraction with the saturated hue, projected through the axis.  |
+| `color`         | `GanttColor`                                      | One of the 8 validated hues, or `neutral`. Default `neutral`.                 |
+| `variant`       | `"soft" \| "solid" \| "outline"`                  | `soft` = tint + saturated rail; `outline` = dashed, for planned/queued work.   |
+| `startLabel` / `endLabel` | `string`                                | Small muted captions outside the bar's edges.                                 |
+| `icon`          | `ReactNode`                                       | Rendered before the label, inside the bar.                                    |
+| `milestone`     | `boolean`                                         | Ring marker at `start` instead of a bar.                                      |
+| `tooltip`       | `ReactNode`                                       | Replaces the default label / range / progress hover card.                     |
+| `disabled`      | `boolean`                                         | Dims the bar and suppresses `onBarClick`.                                     |
+
+#### `GanttColumn<T>`
+
+| Field    | Type                                  | Description                                                                       |
+| -------- | ------------------------------------- | --------------------------------------------------------------------------------- |
+| `id`     | `string`                              | **Required.** Unique column key.                                                  |
+| `header` | `ReactNode`                           | **Required.** Header cell content.                                                |
+| `width`  | `number`                              | Px. Defaults to 200 for the first column, 120 for the rest.                       |
+| `align`  | `"left" \| "center" \| "right"`       | Ignored on the first (tree) column.                                               |
+| `cell`   | `(row, ctx) => ReactNode`             | **Required.** `ctx` carries `depth`, `isGroup`, `expanded` and the rollup `span`. |
+
+#### Features
+
+- **Two-pane layout**: one scroll container; the column pane is `sticky left-0`, the headers `sticky top-0`. Row alignment is exact by construction — no scroll syncing.
+- **Tree rows**: unlimited nesting, expand/collapse on the first column, controlled or uncontrolled.
+- **Group rollups**: min start / max end across all descendants with duration-weighted progress, drawn as a hairline track with end caps and a trailing percentage.
+- **Overlap lanes**: greedy interval packing puts colliding bars on separate lanes and grows the row instead of stacking bars on top of each other.
+- **Five scales**: `day` (hour columns) → `year` (month columns), each with a two-tier header. Paging steps by one range unit.
+- **Zoom**: 0.5×–4× column width, independent of scale.
+- **Milestones**: zero-duration ring markers.
+- **Now line**: red hairline + dot, mount-gated so it can't cause a hydration mismatch.
+- **Non-working shading**: weekends by default on day columns; any predicate otherwise (shift envelopes, off-hours).
+- **Auto-focus**: scrolls to the now line on mount, or to the earliest bar when now falls outside the range.
+- **Hover cards**: every bar gets a tooltip with its label, range and progress; overridable per bar.
+- **Validated palette**: 8 categorical hues in a fixed, colorblind-checked order (see Notes).
+
+#### Notes
+
+- **Colour is a fixed 8-slot order** — `blue, emerald, violet, amber, rose, teal, orange, indigo` — chosen by searching orderings and keeping one that clears every adjacent-pair gate in both light and dark mode. Assign from slot 1 upward and never cycle; a 9th category folds into `neutral` or gets its own view. `ganttColorAt(i)` does the lookup. Re-run the data-viz palette validator before changing a hue, a step or the order.
+- Every bar carries a saturated 3px leading rail, so the hue clears 3:1 against the surface even when the body is a pale tint.
+- Bars that meet edge-to-edge keep a 2px surface gap; bars clipped by the visible range get squared-off ends.
+- A trailing label is capped to the gap before the next bar in its lane, and dropped when there's no room — labels can't collide.
+- `progress` is projected through the time axis, not taken as a percentage of drawn width, so a bar clipped by the range still shows the right fill.
+- The component is uncontrolled by default. Pass `scale`/`date` (with their `on*Change` handlers) to drive it from parent state.
+- Row heights are computed from lane counts and applied to both panes, which is what keeps them aligned — override `rowHeight`/`laneHeight` together if you restyle bars.
+
+---
+
 ### StatusMap
 
 A grid-based status heatmap that renders rows × dates cells, each colored by a status key. Useful for operational dashboards (machine status, service health, etc.). Fully driven by props — pass data, a label config, and display options.
