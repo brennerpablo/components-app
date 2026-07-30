@@ -137,6 +137,7 @@ export function ProjectTasks() {
       }}
       accentColor="indigo-500"
       enableFullscreen
+      stickyHeader
       paginationDisplayTop
       toolbarIconsOnly
       enableTextSelection={false}

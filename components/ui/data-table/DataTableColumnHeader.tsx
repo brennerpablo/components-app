@@ -39,6 +39,9 @@ export function DataTableColumnHeader<TData, TValue>({
 
   const content = canSort ? (
     <div
+      // Hooks for consumers that render this header a second time in a
+      // non-interactive context — see DataTableStickyHeader's `sortable={false}`.
+      data-sort-trigger=""
       onClick={column.getToggleSortingHandler()}
       className={cn(
         column.columnDef.enableSorting === true
@@ -48,7 +51,7 @@ export function DataTableColumnHeader<TData, TValue>({
     >
       {textBlock}
       {infoIcon}
-      <div className="-space-y-2">
+      <div className="-space-y-2" data-sort-indicator="">
         <ChevronUp
           className={cn(
             "size-3.5 text-foreground",

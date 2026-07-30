@@ -32,6 +32,7 @@ import { Filterbar } from "./DataTableFilterbar";
 import { DataTableLocaleContext } from "./DataTableLocaleContext";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableRowActions } from "./DataTableRowActions";
+import { DataTableStickyHeader } from "./DataTableStickyHeader";
 import { DataTableLanguage, getLocale } from "./i18n";
 import { ColumnMetadata, resolveAccentColor } from "./types";
 
@@ -118,6 +119,21 @@ interface DataTableProps<TData> {
   enableColumnOptions?: boolean;
   toolbarIconsOnly?: boolean;
   compact?: boolean;
+  /**
+   * Floats a copy of the header at the top of the viewport once the real one
+   * scrolls out of view, so long tables keep their column labels. Off by
+   * default. See `DataTableStickyHeader` for why this is a clone and not
+   * `position: sticky`.
+   */
+  stickyHeader?: boolean;
+  /** Gap in px between the top of the scroll viewport and the floating header. Default 16. */
+  stickyHeaderOffset?: number;
+  /**
+   * Whether the floating header can sort. Default `true`. Set `false` to make it
+   * labels-only — the sort arrows still reflect the current sort, they just stop
+   * responding to clicks.
+   */
+  stickyHeaderSortable?: boolean;
   fetching?: boolean;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
@@ -144,6 +160,9 @@ export function DataTable<TData>({
   enableColumnOptions = true,
   toolbarIconsOnly = false,
   compact = false,
+  stickyHeader = false,
+  stickyHeaderOffset,
+  stickyHeaderSortable = true,
   fetching = false,
   onRowAction,
   onBulkAction,
@@ -279,6 +298,49 @@ export function DataTable<TData>({
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // Measured by the floating header clone (`stickyHeader`).
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const tableElementRef = React.useRef<HTMLTableElement | null>(null);
+  const headerElementRef = React.useRef<HTMLTableSectionElement | null>(null);
+  const headerClassName = cn(isGhost && "[&_tr]:border-0!");
+
+  // Built once and rendered in both the in-flow header and the floating clone.
+  // Sharing the element identity also means the clone's own geometry updates
+  // never re-render these cells.
+  const headerRows = table.getHeaderGroups().map((headerGroup) => (
+    <TableRow
+      key={headerGroup.id}
+      className={cn(
+        "border-border",
+        !isGhost && "bg-muted/50 hover:bg-muted/50",
+        !isGhost && (bordered ? "border-b" : "border-y"),
+        isGhost && "hover:bg-transparent",
+      )}
+    >
+      {headerGroup.headers.map((header) => (
+        <TableHead
+          key={header.id}
+          className={cn(
+            compact
+              ? "whitespace-nowrap py-0.5 text-sm sm:text-xs"
+              : "whitespace-nowrap py-2 text-sm sm:text-xs",
+            bordered && "first:pl-4 last:pr-4",
+            header.column.columnDef.meta?.className,
+            // `columnClassName` describes the DATA cells — `align-top` is how a
+            // column with multi-line rows keeps its text at the top — but it
+            // lands on the header cell too. Left alone, those labels top-align
+            // while columns without it stay centred, so a header row mixes two
+            // baselines (most visible against the actions column's icon).
+            // Restored last so it wins the vertical-align group in twMerge.
+            "align-middle",
+          )}
+        >
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </TableHead>
+      ))}
+    </TableRow>
+  ));
+
   const tableContent = (
     <DataTableLocaleContext.Provider value={locale}>
       <div
@@ -302,36 +364,13 @@ export function DataTable<TData>({
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />
         )}
-        <div className={cn("relative overflow-hidden overflow-x-auto", bordered && "rounded-md border border-border")}>
-          <Table>
-            <TableHeader className={cn(isGhost && "[&_tr]:border-0!")}>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className={cn(
-                    "border-border",
-                    !isGhost && "bg-muted/50 hover:bg-muted/50",
-                    !isGhost && (bordered ? "border-b" : "border-y"),
-                    isGhost && "hover:bg-transparent",
-                  )}
-                >
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        compact ? "whitespace-nowrap py-0.5 text-sm sm:text-xs" : "whitespace-nowrap py-2 text-sm sm:text-xs",
-                        bordered && "first:pl-4 last:pr-4",
-                        header.column.columnDef.meta?.className,
-                      )}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
+        <div
+          ref={scrollContainerRef}
+          className={cn("relative overflow-hidden overflow-x-auto", bordered && "rounded-md border border-border")}
+        >
+          <Table ref={tableElementRef}>
+            <TableHeader ref={headerElementRef} className={headerClassName}>
+              {headerRows}
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.length ? (
@@ -390,6 +429,23 @@ export function DataTable<TData>({
               )}
             </TableBody>
           </Table>
+          {stickyHeader && (
+            <DataTableStickyHeader
+              containerRef={scrollContainerRef}
+              tableRef={tableElementRef}
+              headerRef={headerElementRef}
+              headerClassName={headerClassName}
+              style={
+                { "--dt-accent": resolveAccentColor(accentColor) } as React.CSSProperties
+              }
+              zIndex={isFullscreen ? 51 : 30}
+              offsetTop={stickyHeaderOffset}
+              sortable={stickyHeaderSortable}
+              surfaceClassName={isFullscreen ? "bg-background" : "bg-card"}
+            >
+              {headerRows}
+            </DataTableStickyHeader>
+          )}
           {enableRowSelection && (
             <DataTableBulkEditor
               table={table}

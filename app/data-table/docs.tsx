@@ -112,6 +112,27 @@ const columnsMetadata = [
                 "Adds a fullscreen toggle button to the toolbar. Opens the table in a fixed overlay covering the entire viewport via a React portal. Press Escape or click the button again to exit.",
             },
             {
+              name: "stickyHeader",
+              type: "boolean",
+              default: "false",
+              description:
+                "Floats a copy of the header at the top of the viewport once the real one scrolls out of view, so long tables keep their column labels. Portaled to the body and aligned to the table, so an overflow-hidden ancestor can't clip it.",
+            },
+            {
+              name: "stickyHeaderOffset",
+              type: "number",
+              default: "16",
+              description:
+                "Gap in px between the top of the scroll viewport and the floating header.",
+            },
+            {
+              name: "stickyHeaderSortable",
+              type: "boolean",
+              default: "true",
+              description:
+                "Whether the floating header can sort. Set to false to make it labels-only — the arrows still reflect the current sort, they just stop responding to clicks.",
+            },
+            {
               name: "enableDownload",
               type: "boolean",
               default: "true",

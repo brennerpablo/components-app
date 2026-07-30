@@ -208,6 +208,7 @@ components/ui/data-table/DataTableFilterbar.tsx
 components/ui/data-table/DataTableLocaleContext.tsx
 components/ui/data-table/DataTablePagination.tsx
 components/ui/data-table/DataTableRowActions.tsx
+components/ui/data-table/DataTableStickyHeader.tsx
 components/ui/data-table/DataTableViewOptions.tsx
 components/ui/data-table/TanstackTable.d.ts
 components/ui/data-table/columnBuilder.tsx
@@ -410,6 +411,9 @@ export default function Page() {
 | `language`              | `DataTableLanguage`       | No       | UI language for built-in labels. `"en"` (default) or `"pt"`. Import `DataTableLanguage` from `@/components/ui/data-table`. |
 | `enableTextSelection`   | `boolean`                 | No       | Allows users to select and copy text from table cells. Defaults to `true`. Set to `false` to disable selection (e.g. when click interactions conflict). |
 | `enableFullscreen`      | `boolean`                 | No       | Adds a fullscreen toggle button to the toolbar (right of the View button). Opens the table in a fixed overlay covering the entire viewport via a React portal. Press Escape or click the button again to exit. Defaults to `false`. |
+| `stickyHeader`          | `boolean`                 | No       | Floats a copy of the header at the top of the viewport once the real one scrolls out of view, so long tables keep their column labels. Rendered as a fixed clone portaled to `document.body` (see `DataTableStickyHeader`), so no `overflow-hidden` ancestor can clip it and horizontal scroll stays mirrored. Defaults to `false`. |
+| `stickyHeaderOffset`    | `number`                  | No       | Gap in px between the top of the scroll viewport and the floating header. Defaults to `16`. |
+| `stickyHeaderSortable`  | `boolean`                 | No       | Whether the floating header can sort. Set to `false` for a labels-only bar — the sort arrows still reflect the current sort, they just stop responding to clicks. Defaults to `true`. |
 | `enableDownload`        | `boolean`                 | No       | Shows or hides the Export dropdown button (CSV / XLSX) in the toolbar. Defaults to `true`. |
 | `enableColumnOptions`   | `boolean`                 | No       | Shows or hides the View (column visibility/reorder) button in the toolbar. Defaults to `true`. |
 | `toolbarIconsOnly`      | `boolean`                 | No       | When `true`, toolbar buttons (Export, View, Fullscreen) render only their icon without a text label. Defaults to `false`. |
@@ -454,10 +458,12 @@ export default function Page() {
 - Pagination (20 rows/page) with responsive first/last buttons
 - CSV and XLSX export via the Export dropdown (visible, filtered rows only) — filename controlled via `tableName` prop
 - Fullscreen overlay mode via React portal (ESC to dismiss)
+- Optional sticky header (`stickyHeader`) — a fixed clone of the header floats at the top of the scroll viewport while the real one is out of view, mirroring the table's horizontal scroll; works in fullscreen too
 
 #### Notes
 
 - Atlaskit DnD packages require `--legacy-peer-deps` due to a React 19 peer dependency conflict
+- `stickyHeader` renders a **clone** of the header portaled to `document.body`, not `position: sticky` on the real `<thead>`. The table sits inside `overflow-x-auto` wrappers that never scroll vertically, so a sticky `<thead>` would stick to a box that is itself scrolling off screen — i.e. do nothing. The clone measures the nearest vertically-scrolling ancestor (window if there is none) and the opaque background above the table, so it lines up inside cards, dialogs and fullscreen alike.
 
 ---
 
