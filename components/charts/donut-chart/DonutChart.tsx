@@ -6,7 +6,6 @@ import React from "react"
 import {
   Pie,
   PieChart as ReChartsDonutChart,
-  ResponsiveContainer,
   Sector,
   Tooltip,
 } from "recharts"
@@ -20,6 +19,7 @@ import {
   getColorClass,
   isHexColor,
 } from "../utils/chartColors"
+import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
 
 const sumNumericArray = (arr: number[]): number =>
   arr.reduce((sum, num) => sum + num, 0)
@@ -285,7 +285,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
     const isHorizontalLegend = legendPosition === "top" || legendPosition === "bottom"
 
     const pieChart = (
-      <ResponsiveContainer className="size-full">
+      <MeasuredResponsiveContainer className="size-full">
         <ReChartsDonutChart
           onClick={
             onValueChange && activeIndex !== undefined
@@ -370,7 +370,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
             />
           )}
         </ReChartsDonutChart>
-      </ResponsiveContainer>
+      </MeasuredResponsiveContainer>
     )
 
     if (!showLegend) {

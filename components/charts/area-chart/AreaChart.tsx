@@ -13,7 +13,6 @@ import {
   LabelList,
   Legend as RechartsLegend,
   Line,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -30,6 +29,7 @@ import {
   isHexColor,
 } from "../utils/chartColors"
 import { type CompactScale, computeNiceTicks, computeYDomainWithPadding, detectCompactScale, formatCompactNumber, getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
 import { useOnWindowResize } from "../utils/useOnWindowResize"
 
 type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
@@ -785,7 +785,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
         className={cn("h-72 max-h-full w-full **:outline-none", className)}
         {...other}
       >
-        <ResponsiveContainer width="100%" height="100%">
+        <MeasuredResponsiveContainer width="100%" height="100%">
           <RechartsAreaChart
             data={dataWithTotals}
             onClick={
@@ -1245,7 +1245,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 ))
               : null}
           </RechartsAreaChart>
-        </ResponsiveContainer>
+        </MeasuredResponsiveContainer>
       </div>
     )
   },

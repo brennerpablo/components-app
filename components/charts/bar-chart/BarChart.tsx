@@ -10,7 +10,6 @@ import {
   CartesianGrid,
   Label,
   Legend as RechartsLegend,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -26,6 +25,7 @@ import {
   getColorClass,
 } from "../utils/chartColors"
 import { getYAxisDomain, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
 import { useOnWindowResize } from "../utils/useOnWindowResize"
 
 type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
@@ -789,7 +789,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         style={scrollable ? { maxHeight } : undefined}
         {...other}
       >
-        <ResponsiveContainer width="100%" height={dynamicHeight ?? "100%"}>
+        <MeasuredResponsiveContainer width="100%" height={dynamicHeight ?? "100%"}>
           <RechartsBarChart
             data={data}
             layout={layout}
@@ -932,7 +932,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               />
             ))}
           </RechartsBarChart>
-        </ResponsiveContainer>
+        </MeasuredResponsiveContainer>
       </div>
     )
   },
