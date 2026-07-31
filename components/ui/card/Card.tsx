@@ -5,6 +5,7 @@ import { Slot } from "radix-ui";
 import React from "react";
 import ReactDOM from "react-dom";
 
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 
 export type AccentSide = "top" | "right" | "bottom" | "left";
@@ -38,6 +39,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       () => setIsFullscreen((v) => !v),
       [],
     );
+
+    // The overlay is `fixed`, but the page stays in flow behind it: without the
+    // lock its scrollbar remains live and scrolling changes nothing on screen.
+    useBodyScrollLock(isFullscreen);
 
     React.useEffect(() => {
       if (!isFullscreen) return;

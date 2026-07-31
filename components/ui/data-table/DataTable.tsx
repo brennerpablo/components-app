@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 
 import { buildColumnsFromMetadata } from "./columnBuilder";
@@ -175,6 +176,11 @@ export function DataTable<TData>({
   const [rowSelection, setRowSelection] = React.useState({});
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const toggleFullscreen = React.useCallback(() => setIsFullscreen((v) => !v), []);
+
+  // In fullscreen the table leaves the flow (only the portal renders), but the
+  // REST of the page stays: wherever there is tall content outside the table,
+  // the page scrollbar survives behind the overlay and scrolling does nothing.
+  useBodyScrollLock(isFullscreen);
 
   React.useEffect(() => {
     if (!isFullscreen) return;
