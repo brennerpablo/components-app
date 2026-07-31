@@ -8,6 +8,33 @@ export function getYAxisDomain(
   return [minDomain, maxDomain]
 }
 
+function coerceChartNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string" && value.trim()) {
+    const n = Number(value.replace(",", "."))
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+/** Decimals for domain bounds — avoids Math.round collapsing rates like 0.14 → 0. */
+function domainPrecisionForRange(range: number): number {
+  const abs = Math.abs(range)
+  if (abs >= 1000) return 0
+  if (abs >= 100) return 1
+  if (abs >= 10) return 2
+  if (abs >= 1) return 2
+  if (abs >= 0.1) return 3
+  if (abs >= 0.01) return 4
+  return 6
+}
+
+function roundDomainBound(value: number, range: number): number {
+  const decimals = domainPrecisionForRange(range)
+  const factor = 10 ** decimals
+  return Math.round(value * factor) / factor
+}
+
 export function computeYDomainWithPadding(
   data: Record<string, unknown>[],
   categories: string[],
@@ -20,15 +47,15 @@ export function computeYDomainWithPadding(
     if (stacked) {
       let sum = 0
       for (const cat of categories) {
-        const val = row[cat]
-        if (typeof val === "number") sum += val
+        const val = coerceChartNumber(row[cat])
+        if (val != null) sum += val
       }
       if (sum < min) min = sum
       if (sum > max) max = sum
     } else {
       for (const cat of categories) {
-        const val = row[cat]
-        if (typeof val === "number") {
+        const val = coerceChartNumber(row[cat])
+        if (val != null) {
           if (val < min) min = val
           if (val > max) max = val
         }
@@ -40,7 +67,10 @@ export function computeYDomainWithPadding(
   // More padding below (3x) so the line doesn't hug the bottom axis
   const bottomPadding = range * padding * 3
   const topPadding = range * padding
-  return [Math.round(min - bottomPadding), Math.round(max + topPadding)]
+  return [
+    roundDomainBound(min - bottomPadding, range),
+    roundDomainBound(max + topPadding, range),
+  ]
 }
 
 export type CompactScale = "k" | "M" | "B" | "T"

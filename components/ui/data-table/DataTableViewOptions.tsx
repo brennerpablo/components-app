@@ -333,6 +333,31 @@ function ViewOptions<TData>({
 
   const [instanceId] = React.useState(() => Symbol("instance-id"))
 
+  // `items` nasce do estado inicial e não acompanhava a tabela. Quando o
+  // conjunto de colunas muda sem desmontar (a mesma tabela trocando de fonte,
+  // de período ou de janela), a lista fica apontando para ids que já não
+  // existem: `table.getColumn(id)` devolve undefined e o tanstack loga
+  // "Column with id 'X' does not exist" — e o `setColumnOrder` abaixo ainda
+  // ordenava por eles. A ordem escolhida pelo usuário sobrevive; some quem
+  // saiu, entra no fim quem chegou.
+  const columnIdsKey = tableColumns.map((column) => column.id).join("|")
+  React.useEffect(() => {
+    setListState((state) => {
+      const byId = new Map(tableColumns.map((column) => [column.id, column]))
+      const kept = state.items.flatMap((item) =>
+        byId.has(item.id) ? [byId.get(item.id)!] : [],
+      )
+      const added = tableColumns.filter(
+        (column) => !state.items.some((item) => item.id === column.id),
+      )
+      if (kept.length === state.items.length && added.length === 0) {
+        return state
+      }
+      return { ...state, items: [...kept, ...added] }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnIdsKey])
+
   React.useEffect(() => {
     table.setColumnOrder(items.map((item) => item.id))
     if (persistColumnOrder) {

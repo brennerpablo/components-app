@@ -118,6 +118,8 @@ interface DataTableProps<TData> {
   enableDownload?: boolean;
   enableColumnOptions?: boolean;
   toolbarIconsOnly?: boolean;
+  /** Conteúdo extra renderizado junto dos botões da toolbar. */
+  toolbarExtras?: React.ReactNode;
   compact?: boolean;
   /**
    * Floats a copy of the header at the top of the viewport once the real one
@@ -159,6 +161,7 @@ export function DataTable<TData>({
   enableDownload = true,
   enableColumnOptions = true,
   toolbarIconsOnly = false,
+  toolbarExtras,
   compact = false,
   stickyHeader = false,
   stickyHeaderOffset,
@@ -360,6 +363,7 @@ export function DataTable<TData>({
           enableDownload={enableDownload}
           enableColumnOptions={enableColumnOptions}
           toolbarIconsOnly={toolbarIconsOnly}
+          toolbarExtras={toolbarExtras}
         />
         {enablePagination && paginationDisplayTop && (
           <DataTablePagination table={table} enablePageSizeSelect={enablePageSizeSelect} enableRowActions={enableRowActions} />

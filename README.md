@@ -417,6 +417,7 @@ export default function Page() {
 | `enableDownload`        | `boolean`                 | No       | Shows or hides the Export dropdown button (CSV / XLSX) in the toolbar. Defaults to `true`. |
 | `enableColumnOptions`   | `boolean`                 | No       | Shows or hides the View (column visibility/reorder) button in the toolbar. Defaults to `true`. |
 | `toolbarIconsOnly`      | `boolean`                 | No       | When `true`, toolbar buttons (Export, View, Fullscreen) render only their icon without a text label. Defaults to `false`. |
+| `toolbarExtras`         | `React.ReactNode`         | No       | Extra content rendered in the toolbar, between Export and View. For controls that act on the **table as a whole** (a level selector, a mode switch). For controls that act on the **rows** (expand/collapse all), pass `toolbarExtrasLeading` to `Filterbar` instead so the two families stay visually separate. |
 | `accentColor`           | `string`                  | No       | Accent color for active filter button backgrounds, filter value labels, the row-selection indicator bar, and the clear-filters button. Accepts a Tailwind color token (`"blue-600"`) or any CSS color value (`"#3b82f6"`). Defaults to `zinc-800`. |
 | `onRowAction`           | `{ onAdd?, onEdit?, onDelete? }` | No | Callbacks for the per-row action dropdown (requires `enableRowActions`). Each receives `row.original` as `TData`. Only items with a provided callback are rendered in the menu. |
 | `onBulkAction`          | `{ onEdit?, onDelete? }`  | No       | Callbacks for the bulk editor toolbar (requires `enableRowSelection`). Each receives `TData[]` for all selected rows. Commands are disabled when no callback is provided. |
@@ -464,6 +465,7 @@ export default function Page() {
 
 - Atlaskit DnD packages require `--legacy-peer-deps` due to a React 19 peer dependency conflict
 - `stickyHeader` renders a **clone** of the header portaled to `document.body`, not `position: sticky` on the real `<thead>`. The table sits inside `overflow-x-auto` wrappers that never scroll vertically, so a sticky `<thead>` would stick to a box that is itself scrolling off screen — i.e. do nothing. The clone measures the nearest vertically-scrolling ancestor (window if there is none) and the opaque background above the table, so it lines up inside cards, dialogs and fullscreen alike.
+- **Frozen columns inside the sticky clone**: the clone does not scroll, it is *translated*, so `position: sticky` sees `scrollLeft: 0` and a `sticky left-0` / `right-0` header cell would ride along with the translation instead of staying pinned. `DataTableStickyHeader` counter-translates exactly those cells via two CSS variables, which puts them back over their body counterparts on both edges. If you add frozen columns, keep the `sticky` class on the `<th>` (that is the hook) and make the cell background opaque — a translucent theme token lets the scrolling columns show through.
 
 ---
 
@@ -1209,6 +1211,7 @@ components/charts/area-chart/AreaChart.tsx
 components/charts/area-chart/index.ts
 components/charts/utils/chartColors.ts
 components/charts/utils/chartHelpers.ts
+components/charts/utils/MeasuredResponsiveContainer.tsx
 components/charts/utils/useOnWindowResize.ts
 ```
 
@@ -1229,6 +1232,7 @@ npm install recharts
 | `lib/utils.ts`                                | `cn()` utility — already present in any shadcn project |
 | `components/charts/utils/chartColors.ts`      | Color palette, `getColorClass()`, `constructCategoryColors()` |
 | `components/charts/utils/chartHelpers.ts`     | `getYAxisDomain()`, `hasOnlyOneValueForKey()`        |
+| `components/charts/utils/MeasuredResponsiveContainer.tsx` | Wraps recharts' `ResponsiveContainer`; measures the slot before first paint so the chart never renders (and warns) at −1×−1 |
 | `components/charts/utils/useOnWindowResize.ts`| Window resize hook used to recalculate legend height |
 
 #### Type augmentations
@@ -1264,6 +1268,21 @@ import { AreaChart } from "@/components/charts/area-chart"
   categories={["Organic", "Direct", "Referral"]}
   onValueChange={(event) => console.log(event)}
 />
+
+// Reference lines + status gradient (single series)
+<AreaChart
+  className="h-72"
+  data={usageData}
+  index="month"
+  categories={["Usage"]}
+  maxValue={1}
+  referenceLines={[{ y: 0.8, label: "Limit", color: "#ef4444" }]}
+  xColorStops={[
+    { offset: 0, color: "#10b981" },
+    { offset: 0.7, color: "#10b981" },
+    { offset: 1, color: "#ef4444" },
+  ]}
+/>
 ```
 
 #### Props
@@ -1286,7 +1305,7 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
 | `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |
 | `showGridLines`     | `boolean`                                          | `true`                         | Show horizontal grid lines. |
-| `showLegend`        | `boolean`                                          | `true`                         | Show the legend above the chart. |
+| `showLegend`        | `boolean`                                          | `categories.length > 1`        | Show the legend above the chart. When omitted, it shows only for multi-series charts. |
 | `showTooltip`       | `boolean`                                          | `true`                         | Show the tooltip on hover. |
 | `legendPosition`    | `"left" \| "center" \| "right"`                    | `"right"`                      | Horizontal alignment of the legend. |
 | `enableLegendSlider`| `boolean`                                          | `false`                        | Make the legend horizontally scrollable with arrow buttons. |
@@ -1294,6 +1313,10 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `autoMinValue`      | `boolean`                                          | `false`                        | Set Y-axis minimum to `"auto"` instead of `0`. |
 | `minValue`          | `number`                                           | —                              | Explicit Y-axis domain minimum. |
 | `maxValue`          | `number`                                           | —                              | Explicit Y-axis domain maximum. |
+| `yAxisTicks`        | `number[]`                                         | —                              | Explicit Y-axis tick values (also drives the auto-inferred axis width). Ignored when `softYAxis` computes its own ticks. |
+| `strictYAxisDomain` | `boolean`                                          | `false`                        | Clip data outside the Y domain (`allowDataOverflow`) instead of letting it stretch the axis. |
+| `referenceLines`    | `{ y, label?, color?, strokeDasharray? }[]`        | —                              | Dashed horizontal reference lines (limits, targets, alerts). Lines outside the axis domain are discarded, never stretch it — include them via `minValue`/`maxValue` when they must be visible. |
+| `xColorStops`       | `{ offset: number; color: string }[]`              | —                              | Paints the FIRST series with a horizontal gradient along X (one stop per point, offset 0–1 in data order) — for series whose meaning changes over time (ok → warning → breach). The hover dot takes the color of its own point. |
 | `allowDecimals`     | `boolean`                                          | `true`                         | Allow decimal Y-axis tick values. |
 | `startEndOnly`      | `boolean`                                          | `false`                        | Show only the first and last X-axis tick labels. |
 | `intervalType`      | `"preserveStartEnd" \| "equidistantPreserveStart"` | `"equidistantPreserveStart"`   | Recharts X-axis tick interval strategy. |
@@ -1304,13 +1327,14 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `onValueChange`     | `(value: AreaChartEventProps) => void`             | —                              | Fired when a dot or legend item is clicked; `null` on deselect. |
 | `tooltipCallback`   | `(content: TooltipProps) => void`                  | —                              | Side-effect callback when tooltip active state or label changes. |
 | `customTooltip`     | `React.ComponentType<TooltipProps>`                | —                              | Custom component rendered in place of the default tooltip. |
-| `className`         | `string`                                           | —                              | Additional classes on the outer wrapper (default height `h-80`). |
+| `className`         | `string`                                           | —                              | Additional classes on the outer wrapper. The chart fills its parent (`h-full`) — give the parent a height or pass one here (e.g. `h-72`). |
 
 #### Notes
 
 - The `ChartColor` type and `CHART_COLORS` constant are exported from the barrel for external use.
-- The three utility files in `components/charts/utils/` are shared across chart components — copy them once and reuse.
-- Recharts requires a fixed height on the container; override with `className="h-96"` or similar.
+- The utility files in `components/charts/utils/` are shared across chart components — copy them once and reuse.
+- **Sizing:** the chart fills its parent (`h-full min-h-0`). Place it inside a container with a height (a sized card, `h-72`, a grid row) or pass a height via `className` — an auto-height parent collapses the chart to 0.
+- `MeasuredResponsiveContainer` measures the slot before first paint, so recharts never renders (or console-warns) at −1×−1; a genuinely 0-sized slot still warns, on purpose.
 
 ---
 
@@ -1327,6 +1351,7 @@ components/charts/bar-chart/BarChart.tsx
 components/charts/bar-chart/index.ts
 components/charts/utils/chartColors.ts
 components/charts/utils/chartHelpers.ts
+components/charts/utils/MeasuredResponsiveContainer.tsx
 components/charts/utils/useOnWindowResize.ts
 ```
 
@@ -1347,6 +1372,7 @@ npm install recharts
 | `lib/utils.ts`                                | `cn()` utility — already present in any shadcn project |
 | `components/charts/utils/chartColors.ts`      | Color palette, `getColorClass()`, `constructCategoryColors()` |
 | `components/charts/utils/chartHelpers.ts`     | `getYAxisDomain()`, `inferYAxisWidth()`, `measureTextWidth()` |
+| `components/charts/utils/MeasuredResponsiveContainer.tsx` | Wraps recharts' `ResponsiveContainer`; measures the slot before first paint so the chart never renders (and warns) at −1×−1 |
 | `components/charts/utils/useOnWindowResize.ts`| Window resize hook used to recalculate legend height |
 
 #### Type augmentations
@@ -1403,7 +1429,7 @@ import { BarChart } from "@/components/charts/bar-chart"
 | `showXAxis`         | `boolean`                                          | `true`                         | Show the X-axis with tick labels. |
 | `showYAxis`         | `boolean`                                          | `true`                         | Show the Y-axis with tick labels. |
 | `showGridLines`     | `boolean`                                          | `true`                         | Show grid lines (horizontal for default layout, vertical for `layout="vertical"`). |
-| `showLegend`        | `boolean`                                          | `true`                         | Show the legend above the chart. |
+| `showLegend`        | `boolean`                                          | `categories.length > 1`        | Show the legend above the chart. When omitted, it shows only for multi-series charts. |
 | `showTooltip`       | `boolean`                                          | `true`                         | Show the tooltip on hover. |
 | `legendPosition`    | `"left" \| "center" \| "right"`                    | `"right"`                      | Horizontal alignment of the legend. |
 | `enableLegendSlider`| `boolean`                                          | `false`                        | Make the legend horizontally scrollable with arrow buttons. |
@@ -1411,6 +1437,8 @@ import { BarChart } from "@/components/charts/bar-chart"
 | `autoMinValue`      | `boolean`                                          | `false`                        | Set numeric axis minimum to `"auto"` instead of `0`. |
 | `minValue`          | `number`                                           | —                              | Explicit numeric axis domain minimum. |
 | `maxValue`          | `number`                                           | —                              | Explicit numeric axis domain maximum. |
+| `negativeColor`     | `ChartColor`                                       | `"red"`                        | Color applied to bars with a negative value, overriding the category color — negative bars render below/left of the baseline and read as a different thing. |
+| `showEndValueLabels`| `boolean`                                          | `false`                        | Horizontal bars only (`layout="vertical"`, non-stacked): renders the formatted value at the end of each bar, and widens the right margin to fit it. |
 | `allowDecimals`     | `boolean`                                          | `true`                         | Allow decimal tick values on the numeric axis. |
 | `startEndOnly`      | `boolean`                                          | `false`                        | Show only the first and last tick labels on the category axis. |
 | `intervalType`      | `"preserveStartEnd" \| "equidistantPreserveStart"` | `"equidistantPreserveStart"`   | Recharts tick interval strategy for the category axis. |
@@ -1443,6 +1471,7 @@ A Tremor-inspired donut and pie chart for visualizing part-to-whole relationship
 components/charts/donut-chart/DonutChart.tsx
 components/charts/donut-chart/index.ts
 components/charts/utils/chartColors.ts
+components/charts/utils/MeasuredResponsiveContainer.tsx
 ```
 
 #### shadcn dependencies
@@ -1461,6 +1490,7 @@ npm install recharts
 | ---------------------------------------- | ------------------------------------------------------------- |
 | `lib/utils.ts`                           | `cn()` utility — already present in any shadcn project        |
 | `components/charts/utils/chartColors.ts` | Color palette, `getColorClass()`, `constructCategoryColors()` |
+| `components/charts/utils/MeasuredResponsiveContainer.tsx` | Wraps recharts' `ResponsiveContainer`; measures the slot before first paint so the chart never renders (and warns) at −1×−1 |
 
 #### Type augmentations
 
@@ -1530,6 +1560,173 @@ import { DonutChart } from "@/components/charts/donut-chart"
 - Center label is only rendered when `variant="donut"` and `showLabel={true}`.
 - Clicking an active segment deselects it and fires `onValueChange(null)`.
 - Only `chartColors.ts` is required from the utils directory (no axis helpers needed).
+
+---
+
+### SparkAreaChart
+
+A compact decorative sparkline for stat cards and dense lists — no axes, no legend, no tooltip. Renders a soft gradient under the line by default, fills its parent container, and degrades to a muted placeholder block when there are fewer than two data points.
+
+**Demo:** `localhost:3000/charts/spark-area-chart`
+
+#### Files to copy
+
+```
+components/charts/spark-area-chart/SparkAreaChart.tsx
+components/charts/spark-area-chart/index.ts
+components/charts/utils/chartColors.ts
+components/charts/utils/MeasuredResponsiveContainer.tsx
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install recharts
+```
+
+#### Internal dependencies
+
+| File                                     | Purpose                                                       |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| `lib/utils.ts`                           | `cn()` utility — already present in any shadcn project        |
+| `components/charts/utils/chartColors.ts` | `chartColorToCss()`, `constructCategoryColors()`              |
+| `components/charts/utils/MeasuredResponsiveContainer.tsx` | Wraps recharts' `ResponsiveContainer`; measures the slot before first paint so the chart never renders (and warns) at −1×−1 |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import { SparkAreaChart } from "@/components/charts/spark-area-chart"
+
+// Size via the container — the chart fills it
+<div className="h-10 w-28">
+  <SparkAreaChart
+    data={history}
+    index="month"
+    categories={["value"]}
+    colors={["emerald"]}
+  />
+</div>
+
+// Line only, custom hex color
+<SparkAreaChart
+  data={history}
+  index="month"
+  categories={["value"]}
+  colors={["#8b5cf6"]}
+  showGradient={false}
+  strokeWidth={1.5}
+/>
+```
+
+#### Props
+
+| Prop           | Type                          | Default       | Description |
+| -------------- | ----------------------------- | ------------- | ----------- |
+| `data`         | `Record<string, unknown>[]`   | —             | **Required.** Data rows. Non-numeric values are ignored when computing the Y domain. |
+| `index`        | `string`                      | —             | **Required.** X-axis field key. Kept for API symmetry with the other charts; the axis is never rendered. |
+| `categories`   | `string[]`                    | —             | **Required.** Keys to render as series. |
+| `colors`       | `(ChartColor \| string)[]`    | `["emerald"]` | One palette name or hex color per category, in order. |
+| `showGradient` | `boolean`                     | `true`        | Soft gradient fill under each line. |
+| `strokeWidth`  | `number`                      | `2`           | Line thickness in pixels. |
+| `className`    | `string`                      | —             | Additional classes on the wrapper. The chart fills its parent — size the parent, or pass `h-*`/`w-*` here. |
+
+#### Notes
+
+- With fewer than two points it renders a `bg-muted/40` block instead of an empty chart — a one-point sparkline is a dot, which reads as a rendering bug.
+- No tooltip by design: it is decorative. When users need to read values, use `AreaChart`.
+
+---
+
+### WaterfallChart
+
+A waterfall chart explaining how a starting total becomes an ending total through a sequence of additions and subtractions. Bars typed `"total"` anchor at zero and reset the running total; bars typed `"delta"` float from the previous running total and take their color from the sign. Dashed connectors bridge consecutive bars, and the Y axis derives nice bounds and ticks from the stacked extent.
+
+**Demo:** `localhost:3000/charts/waterfall-chart`
+
+#### Files to copy
+
+```
+components/charts/waterfall-chart/WaterfallChart.tsx
+components/charts/waterfall-chart/index.ts
+components/charts/utils/chartColors.ts
+components/charts/utils/chartHelpers.ts
+components/charts/utils/MeasuredResponsiveContainer.tsx
+```
+
+#### shadcn dependencies
+
+None.
+
+#### npm dependencies
+
+```bash
+npm install recharts
+```
+
+#### Internal dependencies
+
+| File                                      | Purpose                                                       |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| `lib/utils.ts`                            | `cn()` utility — already present in any shadcn project        |
+| `components/charts/utils/chartColors.ts`  | `chartColorToCss()`, palette names                            |
+| `components/charts/utils/chartHelpers.ts` | `computeNiceTicks()`, `inferYAxisWidth()`                     |
+| `components/charts/utils/MeasuredResponsiveContainer.tsx` | Wraps recharts' `ResponsiveContainer`; measures the slot before first paint so the chart never renders (and warns) at −1×−1 |
+
+#### Type augmentations
+
+None.
+
+#### Usage
+
+```tsx
+import {
+  WaterfallChart,
+  type WaterfallChartDatum,
+} from "@/components/charts/waterfall-chart"
+
+const data: WaterfallChartDatum[] = [
+  { label: "Opening", value: 1200, type: "total" },
+  { label: "Inflows", value: 480, type: "delta" },
+  { label: "Outflows", value: -350, type: "delta" },
+  { label: "Closing", value: 1330, type: "total" },
+]
+
+<div className="h-80">
+  <WaterfallChart data={data} valueFormatter={(v) => `$${v}`} />
+</div>
+```
+
+#### Props
+
+| Prop                | Type                                     | Default             | Description |
+| ------------------- | ---------------------------------------- | ------------------- | ----------- |
+| `data`              | `WaterfallChartDatum[]`                  | —                   | **Required.** Ordered steps: `{ label, value, type: "total" \| "delta" }`. Totals anchor at zero (`value` is the absolute total); deltas are signed contributions. |
+| `valueFormatter`    | `(value: number) => string`              | `v => v.toString()` | Formats Y-axis ticks, tooltip values and legend. |
+| `showLegend`        | `boolean`                                | `true`              | Legend mapping the three roles (totals, additions, subtractions). |
+| `showTooltip`       | `boolean`                                | `true`              | Tooltip with the step value and the running total. |
+| `showGridLines`     | `boolean`                                | `true`              | Horizontal grid lines. |
+| `showConnectors`    | `boolean`                                | `true`              | Dashed lines bridging the end of one bar to the start of the next. |
+| `totalsColor`       | `ChartColor \| string`                   | `"blue"`            | Color of total bars (palette name or hex). |
+| `additionsColor`    | `ChartColor \| string`                   | `"emerald"`         | Color of positive delta bars. |
+| `subtractionsColor` | `ChartColor \| string`                   | `"red"`             | Color of negative delta bars. |
+| `yAxisWidth`        | `number`                                 | auto                | Pixels reserved for the Y axis; inferred from the formatted ticks when omitted. |
+| `axisTextSize`      | `"xs" \| "sm" \| "md" \| "lg" \| number` | `"xs"`              | Axis label font size. |
+| `labelTruncateAt`   | `number`                                 | —                   | Truncates long X labels with an ellipsis (full label stays in the tooltip). |
+| `minWidthPerBar`    | `number`                                 | `52`                | Minimum width per bar; when bars would get narrower, the chart scrolls horizontally instead of squeezing. |
+| `className`         | `string`                                 | —                   | Additional classes on the wrapper. The chart fills its parent — give the parent a height (e.g. `h-80`). |
+
+#### Notes
+
+- A `"total"` step **sets** the running total rather than adding to it — use it for opening/closing anchors and any intermediate subtotal.
+- Deltas are colored by sign, not by category, so `value: -350` is always the "subtractions" color regardless of position.
 
 ---
 

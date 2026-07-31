@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartHorizontal, CalendarDays, CalendarRange, ChartGantt, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { Activity, AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChart4, BarChartHorizontal, CalendarDays, CalendarRange, ChartGantt, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -107,6 +107,24 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Donut & pie chart",
         icon: PieChart,
         tags: ["Recharts", "Tremor", "Interactive"],
+      },
+      {
+        title: "Spark Area Chart",
+        href: "/charts/spark-area-chart",
+        description:
+          "A compact decorative sparkline for stat cards and dense lists — no axes, legend, or tooltip. Gradient fill by default; fills its parent container.",
+        shortDescription: "Sparkline for stat cards",
+        icon: Activity,
+        tags: ["Recharts", "Tremor", "Sparkline"],
+      },
+      {
+        title: "Waterfall Chart",
+        href: "/charts/waterfall-chart",
+        description:
+          "A waterfall chart explaining how a starting total becomes an ending total through additions and subtractions, with dashed connectors and sign-based colors.",
+        shortDescription: "Total-to-total bridge chart",
+        icon: BarChart4,
+        tags: ["Recharts", "Interactive"],
       },
       {
         title: "Composition Bar",

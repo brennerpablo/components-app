@@ -37,6 +37,7 @@ export default function AreaChartPage() {
               formatter.
             </p>
             <AreaChart
+              className="h-72"
               data={revenueData}
               index="month"
               categories={["Revenue"]}
@@ -52,6 +53,7 @@ export default function AreaChartPage() {
               legend.
             </p>
             <AreaChart
+              className="h-72"
               data={trafficData}
               index="month"
               categories={["Organic", "Direct", "Referral"]}
@@ -66,6 +68,7 @@ export default function AreaChartPage() {
               show cumulative totals.
             </p>
             <AreaChart
+              className="h-72"
               data={trafficData}
               index="month"
               categories={["Organic", "Direct", "Referral"]}
@@ -82,6 +85,7 @@ export default function AreaChartPage() {
               proportional breakdown over time.
             </p>
             <AreaChart
+              className="h-72"
               data={trafficData}
               index="month"
               categories={["Organic", "Direct", "Referral"]}
@@ -98,6 +102,7 @@ export default function AreaChartPage() {
               pill behind each label.
             </p>
             <AreaChart
+              className="h-72"
               data={trafficData}
               index="month"
               categories={["Organic", "Direct", "Referral"]}
@@ -113,6 +118,7 @@ export default function AreaChartPage() {
               A clean line-only look with no fill, no legend, and no grid lines.
             </p>
             <AreaChart
+              className="h-72"
               data={revenueData}
               index="month"
               categories={["Revenue"]}
@@ -131,6 +137,7 @@ export default function AreaChartPage() {
               event is shown below.
             </p>
             <AreaChart
+              className="h-72"
               data={trafficData}
               index="month"
               categories={["Organic", "Direct", "Referral"]}
@@ -151,6 +158,7 @@ export default function AreaChartPage() {
               categories over the trailing 12 months.
             </p>
             <AreaChart
+              className="h-72"
               data={aumData}
               index="month"
               categories={[
@@ -167,6 +175,39 @@ export default function AreaChartPage() {
               tooltipShowTotal
               showTotalDataPointLabels
               totalDataPointLabelPosition="top"
+            />
+          </section>
+
+          {/* Section: Reference lines + status gradient */}
+          <section>
+            <h2 className="text-base font-medium mb-1">
+              Reference Lines &amp; Status Gradient
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              <code>referenceLines</code> draws dashed horizontal rules (limits,
+              targets, alerts) that never force the axis domain — a line outside
+              the domain is discarded. <code>xColorStops</code> paints the first
+              series with a horizontal gradient, so the line changes color where
+              its <em>meaning</em> changes (e.g. within limit → above limit);
+              the hover dot picks up the color of its own point.
+            </p>
+            <AreaChart
+              className="h-72"
+              data={revenueData}
+              index="month"
+              categories={["Revenue"]}
+              valueFormatter={(v) => `$${v.toLocaleString()}`}
+              maxValue={200000}
+              referenceLines={[
+                { y: 150000, label: "Target", color: "#f59e0b" },
+                { y: 180000, label: "Stretch", color: "#ef4444" },
+              ]}
+              xColorStops={[
+                { offset: 0, color: "#10b981" },
+                { offset: 0.6, color: "#10b981" },
+                { offset: 0.8, color: "#f59e0b" },
+                { offset: 1, color: "#ef4444" },
+              ]}
             />
           </section>
         </div>

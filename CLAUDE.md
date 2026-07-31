@@ -25,6 +25,16 @@ Whenever you **create or update a component**, you must also update `README.md`:
 - Each component directory has an `index.ts` barrel export
 - Demo pages live at `app/<name>/page.tsx` → accessible at `localhost:3000/<name>`
 - Atlaskit DnD packages require `--legacy-peer-deps` (React 19 peer dep conflict)
+- Every component also needs an entry in `lib/components-registry.ts` — that registry is what the home page lists, so a component missing from it is invisible even though its route works
+
+## Chart Conventions
+
+Charts are the one exception to the paths above: they live in `components/charts/<name>/`, with demos at `app/charts/<name>/page.tsx`. Shared chart infrastructure sits in `components/charts/utils/` (`chartColors`, `chartHelpers`, `MeasuredResponsiveContainer`, `useOnWindowResize`) — copy those once per target project and reuse across every chart.
+
+- **Never mount recharts' `ResponsiveContainer` directly — use `MeasuredResponsiveContainer`.** recharts 3 renders once at its default `initialDimension` of −1×−1 before its ResizeObserver reports, and console-warns on that pass for every percent-sized chart. The wrapper measures the slot in `useLayoutEffect` (before first paint) and only mounts the container with a real `initialDimension`. A genuinely 0-sized slot still warns, on purpose — that one is a real layout bug.
+- **Charts fill their parent** (`h-full min-h-0 w-full`) rather than carrying a fixed height. The consumer sizes the container (a card, a grid row, `h-72`). Say so in the `className` prop docs; an auto-height parent collapses the chart to nothing.
+- **`showLegend` defaults to `categories.length > 1`**, not `true` — a legend for a single series is noise. Leave the prop `undefined` in the signature and resolve with `showLegend ?? categories.length > 1` so an explicit `false`/`true` still wins.
+- Colors come from `chartColors` (palette name or hex, via `chartColorToCss`). Charts never hardcode a brand color: downstream forks swap the palette, so a literal hex in a component is a merge conflict waiting to happen.
 
 ## Component API Standard
 

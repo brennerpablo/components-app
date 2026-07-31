@@ -86,9 +86,9 @@ const ChartTooltip = ({
             return (
             <div
               key={`id-${index}`}
-              className="flex items-center justify-between space-x-8"
+              className="flex items-center justify-between gap-x-8"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
                   className={cn("size-2 shrink-0 rounded-full", hex ? undefined : getColorClass(color as ChartColor, "bg"))}

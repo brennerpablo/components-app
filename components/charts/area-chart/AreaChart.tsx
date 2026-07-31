@@ -13,6 +13,7 @@ import {
   LabelList,
   Legend as RechartsLegend,
   Line,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -441,9 +442,9 @@ const ChartTooltip = ({
           {payload.map(({ value, category, color }, index) => (
             <div
               key={`id-${index}`}
-              className="flex items-center justify-between space-x-8"
+              className="flex items-center justify-between gap-x-8"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -476,7 +477,7 @@ const ChartTooltip = ({
             </div>
           ))}
           {total !== null && (
-            <div className="mt-1 flex items-center justify-between space-x-8 border-t border-gray-200 pt-1 dark:border-gray-800">
+            <div className="mt-1 flex items-center justify-between gap-x-8 border-t border-gray-200 pt-1 dark:border-gray-800">
               <p className="whitespace-nowrap text-gray-700 dark:text-gray-300">
                 Total
               </p>
@@ -527,6 +528,8 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   softYAxisScale?: CompactScale
   minValue?: number
   maxValue?: number
+  yAxisTicks?: number[]
+  strictYAxisDomain?: boolean
   allowDecimals?: boolean
   allowNegativeY?: boolean
   onValueChange?: (value: AreaChartEventProps) => void
@@ -538,6 +541,32 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   type?: "default" | "stacked" | "percent"
   legendPosition?: "left" | "center" | "right"
   fill?: "gradient" | "solid" | "none"
+  /**
+   * Pinta a série ao longo do eixo X com um degradê horizontal, em vez de uma
+   * cor só: uma parada por ponto, `offset` de 0 a 1 na ordem dos dados. Serve a
+   * séries cujo SIGNIFICADO muda ao longo do tempo (ok → alerta → violação);
+   * entre duas paradas de cor diferente o SVG interpola, e a transição sai
+   * suave sem que o gráfico precise ser cortado em fatias.
+   *
+   * Vale para a primeira série; com várias categorias a cor por categoria
+   * continua sendo a identidade, e sobrepor as duas coisas confundiria.
+   */
+  xColorStops?: { offset: number; color: string }[]
+  /**
+   * Linhas horizontais de referência (limite, meta, alerta). Tracejadas por
+   * convenção: é o que separa uma REGRA do dado — a grade continua sólida.
+   *
+   * Uma linha fora do domínio do eixo é descartada, não força o domínio a
+   * crescer: um limite de 100% num gráfico que anda perto de 8% espremeria a
+   * série inteira na base. Incluir a linha no domínio é decisão de quem chama
+   * (é quem sabe se o limite é uma referência próxima ou um teto distante).
+   */
+  referenceLines?: {
+    y: number
+    label?: string
+    color?: string
+    strokeDasharray?: string
+  }[]
   axisTextSize?: ChartTextSize
   xAxisTextSize?: ChartTextSize
   yAxisTextSize?: ChartTextSize
@@ -569,7 +598,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       yAxisWidth,
       intervalType = "equidistantPreserveStart",
       showTooltip = true,
-      showLegend = true,
+      showLegend,
       autoMinValue = false,
       autoYPadding,
       softYAxis,
@@ -577,6 +606,8 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       allowNegativeY = false,
       minValue,
       maxValue,
+      yAxisTicks,
+      strictYAxisDomain = false,
       allowDecimals = true,
       connectNulls = false,
       className,
@@ -588,6 +619,8 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       type = "default",
       legendPosition = "right",
       fill = "gradient",
+      xColorStops,
+      referenceLines,
       axisTextSize = "xs",
       xAxisTextSize,
       yAxisTextSize,
@@ -615,13 +648,16 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       undefined,
     )
     const categoryColors = constructCategoryColors(categories, colors)
+    const shouldShowLegend = showLegend ?? categories.length > 1
 
-    const rawYAxisDomain = autoYPadding != null && data.length > 0
-      ? computeYDomainWithPadding(data, categories, autoYPadding, type === "stacked")
-      : getYAxisDomain(autoMinValue, minValue, maxValue)
-    const yAxisDomain: [number | string, number | string] = !allowNegativeY && typeof rawYAxisDomain[0] === "number" && rawYAxisDomain[0] < 0
-      ? [0, rawYAxisDomain[1]]
-      : rawYAxisDomain
+    const yAxisDomain = React.useMemo<[number | string, number | string]>(() => {
+      const raw = autoYPadding != null && data.length > 0
+        ? computeYDomainWithPadding(data, categories, autoYPadding, type === "stacked")
+        : getYAxisDomain(autoMinValue, minValue, maxValue)
+      return !allowNegativeY && typeof raw[0] === "number" && raw[0] < 0
+        ? [0, raw[1]]
+        : raw
+    }, [autoYPadding, data, categories, type, autoMinValue, minValue, maxValue, allowNegativeY])
 
     const { softTicks, softDomain, softResolvedScale, softAxisFormatter } = React.useMemo(() => {
       if (!softYAxis || type === "percent" || data.length === 0) {
@@ -677,15 +713,16 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
         // so ticks are always 0%–100%. Measure against that range, not raw data values.
         return inferYAxisWidth([{ v: 0 }, { v: 0.5 }, { v: 1 }], ["v"], (v) => `${(v * 100).toFixed(0)}%`)
       }
-      if (softTicks) {
-        const longest = softTicks.reduce((acc, t) => {
-          const f = formatCompactNumber(t, softResolvedScale)
+      const axisTicks = softTicks ?? yAxisTicks
+      if (axisTicks) {
+        const longest = axisTicks.reduce((acc, t) => {
+          const f = softTicks ? formatCompactNumber(t, softResolvedScale) : valueFormatter(t)
           return f.length > acc.length ? f : acc
         }, "")
         return Math.ceil(measureTextWidth(longest) * 1.15) + 20
       }
       return inferYAxisWidth(data, categories, valueFormatter)
-    }, [yAxisWidth, data, categories, type, valueFormatter, softTicks, softResolvedScale])
+    }, [yAxisWidth, data, categories, type, valueFormatter, softTicks, yAxisTicks, softResolvedScale])
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
@@ -782,7 +819,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     return (
       <div
         ref={ref}
-        className={cn("h-72 max-h-full w-full **:outline-none", className)}
+        className={cn("h-full min-h-0 w-full max-h-full **:outline-none", className)}
         {...other}
       >
         <MeasuredResponsiveContainer width="100%" height="100%">
@@ -816,6 +853,29 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 vertical={false}
               />
             ) : null}
+            {/* Depois da grade e antes das áreas: a série passa por cima da
+                referência, que é anotação e não deve competir com o dado. */}
+            {referenceLines?.map((line, lineIndex) => (
+              <ReferenceLine
+                key={`reference-${lineIndex}-${line.y}`}
+                y={line.y}
+                ifOverflow="discard"
+                stroke={line.color ?? "currentColor"}
+                strokeDasharray={line.strokeDasharray ?? "4 4"}
+                strokeWidth={1}
+                className={line.color ? undefined : "stroke-gray-400 dark:stroke-gray-600"}
+                label={
+                  line.label
+                    ? {
+                        value: line.label,
+                        position: "insideTopRight",
+                        fill: line.color ?? "currentColor",
+                        fontSize: 11,
+                      }
+                    : undefined
+                }
+              />
+            ))}
             <XAxis
               padding={{ left: paddingValue, right: paddingValue }}
               hide={!showXAxis}
@@ -861,7 +921,8 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               tickLine={false}
               type="number"
               domain={(softDomain ?? yAxisDomain) as AxisDomain}
-              ticks={softTicks}
+              ticks={softTicks ?? yAxisTicks}
+              allowDataOverflow={strictYAxisDomain}
               tick={{ transform: "translate(-3, 0)", fontSize: resolvedYAxisTextSize }}
               fill=""
               stroke=""
@@ -943,7 +1004,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               }}
             />
 
-            {showLegend ? (
+            {shouldShowLegend ? (
               <RechartsLegend
                 verticalAlign="top"
                 height={legendHeight}
@@ -966,11 +1027,32 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 }
               />
             ) : null}
-            {categories.map((category) => {
+            {categories.map((category, categoryIndex) => {
               const categoryId = `${areaId}-${category.replace(/[^a-zA-Z0-9]/g, "")}`
+              // Só a primeira série, e só quando há paradas: com várias
+              // categorias a cor É a identidade de cada uma.
+              const xStops =
+                categoryIndex === 0 && xColorStops && xColorStops.length > 0
+                  ? xColorStops
+                  : undefined
+              const xGradientId = `${categoryId}-x`
               return (
                 <React.Fragment key={category}>
                   <defs key={`defs-${category}`}>
+                    {xStops ? (
+                      // `objectBoundingBox` (padrão): 0 e 1 são as bordas da
+                      // própria área desenhada, que vai exatamente do primeiro
+                      // ao último ponto — daí `offset = índice / (n - 1)`.
+                      <linearGradient id={xGradientId} x1="0" y1="0" x2="1" y2="0">
+                        {xStops.map((stop, stopIndex) => (
+                          <stop
+                            key={`${xGradientId}-${stopIndex}`}
+                            offset={stop.offset}
+                            stopColor={stop.color}
+                          />
+                        ))}
+                      </linearGradient>
+                    ) : null}
                     <linearGradient
                       key={`gradient-${category}`}
                       className={cn(
@@ -997,7 +1079,10 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                   </defs>
                   <Area
                     className={cn(
-                      isHexColor(categoryColors.get(category) as string)
+                      // Com degradê a classe tem de sair: CSS vence atributo de
+                      // apresentação, então `stroke-emerald-500` anularia o
+                      // `url(#...)` abaixo sem deixar rastro.
+                      xStops || isHexColor(categoryColors.get(category) as string)
                         ? undefined
                         : getColorClass(categoryColors.get(category) as ChartColor, "stroke"),
                     )}
@@ -1015,7 +1100,12 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                         strokeLinejoin,
                         strokeWidth,
                         dataKey,
+                        index: dotIndex,
                       } = props
+                      // Com degradê o ponto ativo tem de sair na cor DAQUELE x,
+                      // não na cor da série: um ponto verde num trecho laranja
+                      // contradiz a linha embaixo dele.
+                      const dotColor = xStops?.[dotIndex as number]?.color
                       return (
                         <g
                           onClick={(event) => onDotClick(props, event)}
@@ -1031,14 +1121,14 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                           <Dot
                             className={cn(
                               "stroke-white dark:stroke-gray-950",
-                              isHexColor(categoryColors.get(dataKey) as string)
+                              dotColor || isHexColor(categoryColors.get(dataKey) as string)
                                 ? undefined
                                 : getColorClass(categoryColors.get(dataKey) as ChartColor, "fill"),
                             )}
                             cx={cxCoord}
                             cy={cyCoord}
                             r={5}
-                            fill={isHexColor(categoryColors.get(dataKey) as string) ? categoryColors.get(dataKey) as string : ""}
+                            fill={dotColor ?? (isHexColor(categoryColors.get(dataKey) as string) ? categoryColors.get(dataKey) as string : "")}
                             stroke={stroke}
                             strokeLinecap={strokeLinecap}
                             strokeLinejoin={strokeLinejoin}
@@ -1095,14 +1185,23 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                     name={category}
                     type="linear"
                     dataKey={category}
-                    stroke={isHexColor(categoryColors.get(category) as string) ? categoryColors.get(category) as string : ""}
+                    stroke={
+                      xStops
+                        ? `url(#${xGradientId})`
+                        : isHexColor(categoryColors.get(category) as string)
+                          ? (categoryColors.get(category) as string)
+                          : ""
+                    }
                     strokeWidth={2}
                     strokeLinejoin="round"
                     strokeLinecap="round"
                     isAnimationActive={false}
                     connectNulls={connectNulls}
                     stackId={stacked ? "stack" : undefined}
-                    fill={`url(#${categoryId})`}
+                    // Sem o degradê vertical de `getFillContent`, a área vira o
+                    // mesmo degradê horizontal em opacidade de lavagem.
+                    fill={xStops ? `url(#${xGradientId})` : `url(#${categoryId})`}
+                    fillOpacity={xStops ? 0.12 : undefined}
                   >
                     {showDataPointLabels ? (
                       <LabelList

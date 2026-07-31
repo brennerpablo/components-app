@@ -359,11 +359,29 @@ export function DataTableStickyHeader({
           width: geometry.width,
         }}
       >
+        {/* Colunas congeladas (`sticky left-0` / `right-0`) não funcionam aqui:
+            o clone não rola, ele é transladado — para o `position: sticky` o
+            scrollLeft é sempre 0, então a célula viaja junto com a translação
+            em vez de ficar presa na borda. Devolvemos o deslocamento só nessas
+            células, o que as recoloca sobre as do corpo. À esquerda basta
+            desfazer a translação; à direita a célula tem de pousar na borda do
+            container, que fica a `tableWidth - width` de distância. */}
+        <style>{
+          "[data-dt-sticky-clone] th.sticky{transform:translateX(var(--dt-clone-scroll,0px))}" +
+          "[data-dt-sticky-clone] th.sticky.right-0{transform:translateX(var(--dt-clone-scroll-right,0px))}"
+        }</style>
         <div
-          style={{
-            width: geometry.tableWidth,
-            transform: `translateX(${-geometry.scrollLeft}px)`,
-          }}
+          data-dt-sticky-clone=""
+          style={
+            {
+              width: geometry.tableWidth,
+              transform: `translateX(${-geometry.scrollLeft}px)`,
+              "--dt-clone-scroll": `${geometry.scrollLeft}px`,
+              "--dt-clone-scroll-right": `${
+                geometry.width - geometry.tableWidth + geometry.scrollLeft
+              }px`,
+            } as React.CSSProperties
+          }
         >
           <Table
             className={cn("w-full caption-bottom text-sm")}

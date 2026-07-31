@@ -9,6 +9,7 @@ import {
   BarChart as RechartsBarChart,
   CartesianGrid,
   Label,
+  LabelList,
   Legend as RechartsLegend,
   Tooltip,
   XAxis,
@@ -429,9 +430,9 @@ const ChartTooltip = ({
           {payload.map(({ value, category, color }, index) => (
             <div
               key={`id-${index}`}
-              className="flex items-center justify-between space-x-8"
+              className="flex items-center justify-between gap-x-8"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -521,6 +522,9 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   minBarSize?: number
   maxHeight?: number | string
   autoScaleLabels?: boolean
+  negativeColor?: ChartColor
+  /** Barras horizontais (`layout="vertical"`): mostra o valor formatado no fim da barra. */
+  showEndValueLabels?: boolean
 }
 
 const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
@@ -541,7 +545,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       yAxisWidth,
       intervalType = "equidistantPreserveStart",
       showTooltip = true,
-      showLegend = true,
+      showLegend,
       autoMinValue = false,
       minValue,
       maxValue,
@@ -563,6 +567,8 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       minBarSize,
       maxHeight,
       autoScaleLabels = false,
+      negativeColor = "red",
+      showEndValueLabels = false,
       ...other
     } = props
 
@@ -579,6 +585,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       : resolvedAxisTextSize
     const resolvedLegendTextSize = resolveTextSize(legendTextSize)
     const hasOnValueChange = !!onValueChange
+    const shouldShowLegend = showLegend ?? categories.length > 1
     const stacked = type === "stacked" || type === "percent"
     const isVertical = layout === "vertical"
 
@@ -777,6 +784,25 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       </YAxis>
     ) : valueAxis
 
+    const chartMargin = React.useMemo(() => {
+      const right = isVertical
+        ? showEndValueLabels
+          ? 56
+          : 20
+        : yAxisLabel
+          ? 5
+          : undefined
+      return {
+        bottom: xAxisLabel ? 30 : undefined,
+        left: yAxisLabel ? 20 : undefined,
+        right,
+        top: 5,
+      }
+    }, [isVertical, showEndValueLabels, xAxisLabel, yAxisLabel])
+
+    const showBarEndLabels =
+      isVertical && showEndValueLabels && !stacked && categories.length > 0
+
     return (
       <div
         ref={ref}
@@ -804,12 +830,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                   }
                 : undefined
             }
-            margin={{
-              bottom: xAxisLabel ? 30 : undefined,
-              left: yAxisLabel ? 20 : undefined,
-              right: yAxisLabel ? 5 : undefined,
-              top: 5,
-            }}
+            margin={chartMargin}
           >
             {showGridLines ? (
               <CartesianGrid
@@ -828,7 +849,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               animationDuration={100}
               cursor={{ fill: "rgba(128,128,128,0.08)" }}
               offset={20}
-              position={{ y: 0 }}
+              allowEscapeViewBox={{ x: false, y: false }}
               content={({ active, payload, label }) => {
                 const cleanPayload: TooltipProps["payload"] = payload
                   ? payload
@@ -875,7 +896,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               }}
             />
 
-            {showLegend ? (
+            {shouldShowLegend ? (
               <RechartsLegend
                 verticalAlign="top"
                 height={legendHeight}
@@ -911,7 +932,14 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 }}
                 className={onValueChange ? "cursor-pointer" : ""}
                 shape={(shapeProps: any) => {
-                  const { x, y, width, height, index: barIndex } = shapeProps
+                  const { x, y, width, height, index: barIndex, value } = shapeProps
+                  const numericValue = typeof value === "number" ? value : Number(value)
+                  const color =
+                    Number.isFinite(numericValue) && numericValue < 0
+                      ? negativeColor
+                      : categoryColors.get(category)
+                  const rectX = width < 0 ? x + width : x
+                  const rectY = height < 0 ? y + height : y
                   const isActive =
                     (!activeBar && !activeLegend) ||
                     (activeBar?.index === barIndex && activeBar?.dataKey === category) ||
@@ -919,17 +947,37 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
 
                   return (
                     <rect
-                      x={x}
-                      y={y}
-                      width={Math.max(0, width)}
-                      height={Math.max(0, height)}
+                      x={rectX}
+                      y={rectY}
+                      width={Math.abs(width)}
+                      height={Math.abs(height)}
                       rx={rounded ? 8 : 0}
-                      className={getColorClass(categoryColors.get(category) as ChartColor, "fill")}
+                      className={getColorClass(color as ChartColor, "fill")}
                       opacity={isActive ? 1 : 0.3}
                     />
                   )
                 }}
-              />
+              >
+                {showBarEndLabels ? (
+                  <LabelList
+                    dataKey={category}
+                    position="right"
+                    offset={4}
+                    formatter={(v: unknown) => {
+                      if (v == null || v === "") return ""
+                      if (typeof v === "number") {
+                        return Number.isFinite(v) ? valueFormatter(v) : ""
+                      }
+                      if (typeof v === "string") {
+                        const n = Number(v)
+                        return Number.isFinite(n) ? valueFormatter(n) : ""
+                      }
+                      return ""
+                    }}
+                    className="fill-gray-700 text-xs font-medium dark:fill-gray-300"
+                  />
+                ) : null}
+              </Bar>
             ))}
           </RechartsBarChart>
         </MeasuredResponsiveContainer>

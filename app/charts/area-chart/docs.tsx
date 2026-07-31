@@ -141,9 +141,9 @@ export function AreaChartDocs() {
             {
               name: "showLegend",
               type: "boolean",
-              default: "true",
+              default: "categories.length > 1",
               description:
-                "Whether to render the legend above the chart.",
+                "Whether to render the legend above the chart. When omitted, the legend shows only for multi-series charts — a legend for a single series is redundant.",
             },
             {
               name: "showTooltip",
@@ -188,6 +188,31 @@ export function AreaChartDocs() {
               type: "number",
               description:
                 "Explicit maximum value for the Y-axis domain.",
+            },
+            {
+              name: "yAxisTicks",
+              type: "number[]",
+              description:
+                "Explicit Y-axis tick values. Also drives the auto-inferred Y-axis width. Ignored when softYAxis computes its own ticks.",
+            },
+            {
+              name: "strictYAxisDomain",
+              type: "boolean",
+              default: "false",
+              description:
+                "When true, data outside the Y-axis domain is clipped (allowDataOverflow) instead of stretching the axis.",
+            },
+            {
+              name: "referenceLines",
+              type: "{ y: number; label?: string; color?: string; strokeDasharray?: string }[]",
+              description:
+                "Dashed horizontal reference lines (limits, targets, alerts). A line outside the axis domain is discarded rather than forcing the domain to grow — include it in the domain yourself (minValue/maxValue) when it should be visible.",
+            },
+            {
+              name: "xColorStops",
+              type: "{ offset: number; color: string }[]",
+              description:
+                "Paints the FIRST series with a horizontal gradient along the X axis — one stop per point, offset 0–1 in data order. Use when the meaning of the series changes over time (ok → warning → breach). The active dot takes the color of its own point. Ignored for the other series: with several categories, color is each category's identity.",
             },
             {
               name: "allowDecimals",
@@ -277,7 +302,7 @@ export function AreaChartDocs() {
               name: "className",
               type: "string",
               description:
-                "Additional CSS classes applied to the outer wrapper div (default height is h-80).",
+                "Additional CSS classes applied to the outer wrapper div. The chart fills its parent (h-full) — give the parent a height, or pass one here (e.g. h-72).",
             },
           ],
         },

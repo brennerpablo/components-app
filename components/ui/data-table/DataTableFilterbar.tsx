@@ -2,7 +2,7 @@
 
 import { Column, Table } from "@tanstack/react-table";
 import { Download, Maximize2, Minimize2 } from "lucide-react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,16 @@ interface DataTableToolbarProps<TData> {
   enableDownload?: boolean;
   enableColumnOptions?: boolean;
   toolbarIconsOnly?: boolean;
+  /** Conteúdo extra na toolbar (ex.: seletor de níveis hierárquicos). */
+  toolbarExtras?: ReactNode;
+  /**
+   * Conteúdo extra na *abertura* da toolbar, antes do download. É onde ficam os
+   * controles que agem sobre as linhas (expandir/recolher tudo) — os demais
+   * botões agem sobre a tabela inteira (exportar, colunas, tela cheia), e
+   * misturar as duas famílias no mesmo bloco deixava o par de chevrons perdido
+   * no meio de ícones sem relação com ele.
+   */
+  toolbarExtrasLeading?: ReactNode;
 }
 
 export function Filterbar<TData>({
@@ -75,6 +85,8 @@ export function Filterbar<TData>({
   enableDownload = true,
   enableColumnOptions = true,
   toolbarIconsOnly = false,
+  toolbarExtras,
+  toolbarExtrasLeading,
 }: DataTableToolbarProps<TData>) {
   const locale = useDataTableLocale();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -192,6 +204,7 @@ export function Filterbar<TData>({
         )}
       </div>
       <div className="flex items-center gap-2">
+        {toolbarExtrasLeading}
         {enableDownload && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -219,6 +232,7 @@ export function Filterbar<TData>({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        {toolbarExtras}
         {enableColumnOptions && (
           <ViewOptions table={table} persistColumnOrder={persistColumnOrder} iconsOnly={toolbarIconsOnly} />
         )}
