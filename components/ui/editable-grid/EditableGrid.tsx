@@ -44,6 +44,7 @@ function EditableGridInner<TData extends Record<string, unknown>>({
   onRowChange,
   onAddRow,
   onDeleteRows,
+  onSelectionChange,
   enableAddRow = false,
   enableDeleteRow = false,
   enableRowSelection = false,
@@ -197,17 +198,29 @@ function EditableGridInner<TData extends Record<string, unknown>>({
   const allSelected = data.length > 0 && selectedRows.size === data.length
   const someSelected = selectedRows.size > 0 && selectedRows.size < data.length
 
-  const toggleSelectAll = React.useCallback(() => {
-    setSelectedRows(allSelected ? new Set() : new Set(rowIds))
-  }, [allSelected, rowIds])
+  // Notify on the setter rather than in an effect: an effect would also fire
+  // for the programmatic clear after a delete, telling the parent the user
+  // deselected when in fact the rows are gone.
+  const applySelection = React.useCallback(
+    (next: Set<string | number>) => {
+      setSelectedRows(next)
+      onSelectionChange?.(Array.from(next))
+    },
+    [onSelectionChange]
+  )
 
-  const toggleSelectRow = React.useCallback((rowId: string | number) => {
-    setSelectedRows((prev) => {
-      const next = new Set(prev)
+  const toggleSelectAll = React.useCallback(() => {
+    applySelection(allSelected ? new Set() : new Set(rowIds))
+  }, [allSelected, rowIds, applySelection])
+
+  const toggleSelectRow = React.useCallback(
+    (rowId: string | number) => {
+      const next = new Set(selectedRows)
       if (next.has(rowId)) { next.delete(rowId) } else { next.add(rowId) }
-      return next
-    })
-  }, [])
+      applySelection(next)
+    },
+    [selectedRows, applySelection]
+  )
 
   const startEdit = React.useCallback(
     (rowId: string | number, columnId: string) => {
@@ -233,9 +246,9 @@ function EditableGridInner<TData extends Record<string, unknown>>({
   const handleDeleteSelected = React.useCallback(() => {
     if (selectedRows.size > 0 && onDeleteRows) {
       onDeleteRows(Array.from(selectedRows))
-      setSelectedRows(new Set())
+      applySelection(new Set())
     }
-  }, [selectedRows, onDeleteRows])
+  }, [selectedRows, onDeleteRows, applySelection])
 
   const visibleColumns = React.useMemo(
     () => columns.filter((c) => c.type !== undefined),

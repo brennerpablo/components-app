@@ -59,6 +59,8 @@ export type EditableGridProps<TData extends Record<string, unknown>> = {
   onRowChange?: (rowId: string | number, updatedRow: TData) => void
   onAddRow?: () => void
   onDeleteRows?: (rowIds: (string | number)[]) => void
+  /** Fires whenever the selected rows change (selection itself stays internal). */
+  onSelectionChange?: (rowIds: (string | number)[]) => void
   enableAddRow?: boolean
   enableDeleteRow?: boolean
   enableRowSelection?: boolean
