@@ -265,8 +265,12 @@ function EditableGridInner<TData extends Record<string, unknown>>({
 
   const tableContent = (
     <table
-      className={cn("caption-bottom text-sm", stickyColumns > 0 ? "table-fixed" : "w-full")}
-      style={tableWidth ? { width: `${tableWidth}px` } : undefined}
+      className={cn("caption-bottom text-sm w-full", stickyColumns > 0 && "table-fixed")}
+      // With sticky columns the declared widths are a MINIMUM, not the final
+      // width: pinning the table to that px sum left it shrunk inside a wider
+      // container. Below the minimum, horizontal scroll and sticky offsets work
+      // exactly as before.
+      style={tableWidth ? { minWidth: `${tableWidth}px` } : undefined}
     >
       <TableHeader>
         {/* Header row — matches DataTable: bg-muted/50, border-b (bordered) or border-y (non-bordered) */}
