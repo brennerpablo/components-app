@@ -1317,6 +1317,7 @@ import { AreaChart } from "@/components/charts/area-chart"
 | `strictYAxisDomain` | `boolean`                                          | `false`                        | Clip data outside the Y domain (`allowDataOverflow`) instead of letting it stretch the axis. |
 | `referenceLines`    | `{ y, label?, color?, strokeDasharray? }[]`        | —                              | Dashed horizontal reference lines (limits, targets, alerts). Lines outside the axis domain are discarded, never stretch it — include them via `minValue`/`maxValue` when they must be visible. |
 | `xColorStops`       | `{ offset: number; color: string }[]`              | —                              | Paints the FIRST series with a horizontal gradient along X (one stop per point, offset 0–1 in data order) — for series whose meaning changes over time (ok → warning → breach). The hover dot takes the color of its own point. |
+| `bands`             | `{ key, color?, fillOpacity? }[]`                  | —                              | Vertical bands (e.g. a forecast confidence interval). The row value at `key` is a `[lower, upper]` tuple (or `null` where it does not apply). Drawn under the series, included in the auto Y domain, and kept out of the legend and tooltip. |
 | `allowDecimals`     | `boolean`                                          | `true`                         | Allow decimal Y-axis tick values. |
 | `startEndOnly`      | `boolean`                                          | `false`                        | Show only the first and last X-axis tick labels. |
 | `intervalType`      | `"preserveStartEnd" \| "equidistantPreserveStart"` | `"equidistantPreserveStart"`   | Recharts X-axis tick interval strategy. |
@@ -1887,7 +1888,7 @@ import { Card } from "@/components/ui/card"
 
 | Prop               | Type                                    | Default | Description                                                                                                        |
 | ------------------ | --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| `enableFullscreen` | `boolean`                               | `false` | When true, shows a fullscreen toggle button in the top-right corner. Expands via portal; Escape to exit.           |
+| `enableFullscreen` | `boolean`                               | `false` | When true, shows a fullscreen toggle button in the top-right corner. Expands via portal; Escape to exit. Content can react to the state with the exported `useCardFullscreen()` hook (must be called from a component **inside** `<Card>`), or in CSS via the `data-fullscreen` attribute on the card root (`in-data-fullscreen:flex-1`). |
 | `hoverShadow`      | `boolean`                               | `false` | When true, applies a subtle shadow on hover with a smooth fade-in transition.                                      |
 | `asChild`          | `boolean`                               | `false` | When true, merges Card props onto its first child element instead of rendering a `<div>`.                          |
 | `className`        | `string`                                | —       | Additional Tailwind classes to customize the card.                                                                 |

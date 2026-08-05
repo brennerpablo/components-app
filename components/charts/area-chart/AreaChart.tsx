@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import {
   CHART_COLORS,
   type ChartColor,
+  chartColorToCss,
   constructCategoryColors,
   getColorClass,
   isHexColor,
@@ -567,6 +568,22 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
     color?: string
     strokeDasharray?: string
   }[]
+  /**
+   * Vertical bands — the typical case is the confidence interval of a
+   * forecast. The row value at `key` is a TUPLE `[lower, upper]` (or `null`
+   * on points where the band does not exist), which recharts renders as an
+   * area between the two bounds.
+   *
+   * The band is deliberately kept out of the legend and the tooltip: it is
+   * the uncertainty of the series, not another series — listing it would make
+   * the reader parse two extra numbers per point for no added information. It
+   * is drawn BEFORE the categories, so the line always sits on top.
+   */
+  bands?: {
+    key: string
+    color?: ChartColor | string
+    fillOpacity?: number
+  }[]
   axisTextSize?: ChartTextSize
   xAxisTextSize?: ChartTextSize
   yAxisTextSize?: ChartTextSize
@@ -621,6 +638,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       fill = "gradient",
       xColorStops,
       referenceLines,
+      bands,
       axisTextSize = "xs",
       xAxisTextSize,
       yAxisTextSize,
@@ -651,13 +669,38 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     const shouldShowLegend = showLegend ?? categories.length > 1
 
     const yAxisDomain = React.useMemo<[number | string, number | string]>(() => {
+      // `computeYDomainWithPadding` only reads scalar values, so a band tuple
+      // is ignored and its top would fall outside the domain (clipped, with no
+      // tick covering it). Flattening into two scalar keys fixes it without
+      // touching the helper, which is shared with the other charts.
+      const bandKeys = bands?.map((band) => band.key) ?? []
+      // Stacked is excluded: there the helper SUMS the categories, and adding
+      // the band bounds to the total would produce a meaningless domain.
+      const useBands =
+        autoYPadding != null && data.length > 0 && bandKeys.length > 0 && type !== "stacked"
+      const domainData = useBands
+        ? data.map((row) => {
+            const extra: Record<string, unknown> = { ...row }
+            for (const key of bandKeys) {
+              const pair = row[key]
+              if (Array.isArray(pair)) {
+                extra[`${key}__lo`] = pair[0]
+                extra[`${key}__hi`] = pair[1]
+              }
+            }
+            return extra
+          })
+        : data
+      const domainCategories = useBands
+        ? [...categories, ...bandKeys.flatMap((key) => [`${key}__lo`, `${key}__hi`])]
+        : categories
       const raw = autoYPadding != null && data.length > 0
-        ? computeYDomainWithPadding(data, categories, autoYPadding, type === "stacked")
+        ? computeYDomainWithPadding(domainData, domainCategories, autoYPadding, type === "stacked")
         : getYAxisDomain(autoMinValue, minValue, maxValue)
       return !allowNegativeY && typeof raw[0] === "number" && raw[0] < 0
         ? [0, raw[1]]
         : raw
-    }, [autoYPadding, data, categories, type, autoMinValue, minValue, maxValue, allowNegativeY])
+    }, [autoYPadding, data, categories, bands, type, autoMinValue, minValue, maxValue, allowNegativeY])
 
     const { softTicks, softDomain, softResolvedScale, softAxisFormatter } = React.useMemo(() => {
       if (!softYAxis || type === "percent" || data.length === 0) {
@@ -1027,6 +1070,26 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 }
               />
             ) : null}
+            {bands?.map((band) => (
+              // Before the categories on purpose: render order is paint order,
+              // so the band sits underneath the line.
+              <Area
+                key={`band-${band.key}`}
+                name={band.key}
+                dataKey={band.key}
+                stroke="none"
+                fill={chartColorToCss(
+                  (band.color ?? colors[0] ?? "blue") as ChartColor | string,
+                )}
+                fillOpacity={band.fillOpacity ?? 0.15}
+                isAnimationActive={false}
+                activeDot={false}
+                dot={false}
+                legendType="none"
+                tooltipType="none"
+                connectNulls={false}
+              />
+            ))}
             {categories.map((category, categoryIndex) => {
               const categoryId = `${areaId}-${category.replace(/[^a-zA-Z0-9]/g, "")}`
               // Só a primeira série, e só quando há paradas: com várias

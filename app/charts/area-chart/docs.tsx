@@ -215,6 +215,12 @@ export function AreaChartDocs() {
                 "Paints the FIRST series with a horizontal gradient along the X axis — one stop per point, offset 0–1 in data order. Use when the meaning of the series changes over time (ok → warning → breach). The active dot takes the color of its own point. Ignored for the other series: with several categories, color is each category's identity.",
             },
             {
+              name: "bands",
+              type: "{ key: string; color?: string; fillOpacity?: number }[]",
+              description:
+                "Vertical bands (typically a forecast confidence interval). The row value at `key` must be a tuple [lower, upper] (or null where the band does not apply). Drawn under the series and kept out of the legend and tooltip — it is the uncertainty of the series, not another series. The band is included in the auto Y domain.",
+            },
+            {
               name: "allowDecimals",
               type: "boolean",
               default: "true",

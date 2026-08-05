@@ -10,6 +10,25 @@ import { cn } from "@/lib/utils";
 
 export type AccentSide = "top" | "right" | "bottom" | "left";
 
+/**
+ * Fullscreen state, exposed to the card's content.
+ *
+ * The state is internal to `Card`, but content sometimes needs to react to it —
+ * a fixed-height chart should grow to fill the overlay. Context rather than a
+ * controlled component: in controlled mode the OPEN button only exists on the
+ * `ghost` path, so controlling it from outside would leave the card with no
+ * trigger.
+ *
+ * Consumers must sit INSIDE `<Card>` in the tree — calling the hook in the same
+ * component that renders the `Card` always returns `false`, because the provider
+ * does not exist there yet.
+ */
+const CardFullscreenContext = React.createContext(false);
+
+export function useCardFullscreen(): boolean {
+  return React.useContext(CardFullscreenContext);
+}
+
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   asChild?: boolean;
   hoverShadow?: boolean;
@@ -110,6 +129,14 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     const cardContent = (
       <div
         ref={ref}
+        // Fullscreen state is internal to the Card, but content sometimes needs
+        // to react to it (a fixed-height chart should grow to fill the overlay).
+        // Exposing it as an attribute avoids turning Card into a controlled
+        // component — in controlled mode the open button only exists on the
+        // `ghost` path, so controlling it from outside would leave the card with
+        // no trigger. Consumers style against it with the `in-data-fullscreen:`
+        // variant.
+        data-fullscreen={isFullscreen ? "" : undefined}
         className={cn(
           baseClass,
           isFullscreen
@@ -136,16 +163,22 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       </div>
     );
 
+    // The provider wraps BOTH outputs so content always sees the state —
+    // including the normal view, where it is `false`.
     if (isFullscreen) {
       return ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex flex-col bg-background p-4 animate-in fade-in-0 zoom-in-95 duration-200 sm:p-6">
-          {cardContent}
-        </div>,
+        <CardFullscreenContext.Provider value={true}>
+          <div className="fixed inset-0 z-50 flex flex-col bg-background p-4 animate-in fade-in-0 zoom-in-95 duration-200 sm:p-6">
+            {cardContent}
+          </div>
+        </CardFullscreenContext.Provider>,
         document.body,
       );
     }
 
-    return cardContent;
+    return (
+      <CardFullscreenContext.Provider value={false}>{cardContent}</CardFullscreenContext.Provider>
+    );
   },
 );
 
