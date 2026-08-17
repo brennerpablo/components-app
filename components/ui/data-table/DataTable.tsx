@@ -2,6 +2,7 @@
 
 import {
   ColumnDef,
+  ColumnFiltersState,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -138,6 +139,14 @@ interface DataTableProps<TData> {
    */
   stickyHeaderSortable?: boolean;
   fetching?: boolean;
+  /**
+   * Filters applied on first render, with the filter UI already showing them —
+   * e.g. `[{ id: "isActive", value: ["true"] }]` for a list that opens on the
+   * active records only. This is *initial*, uncontrolled state: the user can
+   * still change it, and "clear filters" clears for real rather than restoring
+   * the default.
+   */
+  initialColumnFilters?: ColumnFiltersState;
   onRowAction?: RowActionCallbacks<TData>;
   onBulkAction?: BulkActionCallbacks<TData>;
 }
@@ -168,6 +177,7 @@ export function DataTable<TData>({
   stickyHeaderOffset,
   stickyHeaderSortable = true,
   fetching = false,
+  initialColumnFilters,
   onRowAction,
   onBulkAction,
 }: DataTableProps<TData>) {
@@ -296,8 +306,11 @@ export function DataTable<TData>({
       rowSelection,
       ...(columnVisibilityForTable && { columnVisibility: columnVisibilityForTable }),
     },
+    initialState: {
+      ...(enablePagination ? { pagination: { pageIndex: 0, pageSize } } : {}),
+      ...(initialColumnFilters ? { columnFilters: initialColumnFilters } : {}),
+    },
     ...(enablePagination && {
-      initialState: { pagination: { pageIndex: 0, pageSize } },
       getPaginationRowModel: getPaginationRowModel(),
     }),
     enableRowSelection,

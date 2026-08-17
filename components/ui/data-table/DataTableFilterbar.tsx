@@ -93,7 +93,10 @@ export function Filterbar<TData>({
   const [clearKey, setClearKey] = useState(0);
 
   const handleClearFilters = () => {
-    table.resetColumnFilters();
+    // `true` = reset to a blank state. Without it tanstack resets to
+    // `initialState.columnFilters`, so a table using `initialColumnFilters`
+    // would re-apply its default here — the button says "clear", not "reset".
+    table.resetColumnFilters(true);
     setClearKey((k) => k + 1);
   };
 
