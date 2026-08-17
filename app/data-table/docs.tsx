@@ -231,14 +231,14 @@ const columnsMetadata = [
               name: "options",
               type: "OptionItem[]",
               description:
-                "Explicit list of { value, label } pairs for select/checkbox filters.",
+                "Explicit list of { value, label } pairs for select/checkbox filters. Alongside inferOptions it becomes a label dictionary instead of the list itself.",
             },
             {
               name: "inferOptions",
               type: "boolean",
               default: "false",
               description:
-                "Auto-derives filter options from the unique values in the data array. Overrides options.",
+                "Auto-derives filter options from the unique values in the data array. Values always come from the data; pass options too to label them, and any value missing from that dictionary keeps its raw text.",
             },
             {
               name: "filters",

@@ -48,7 +48,14 @@ export type ColumnMetadata<TData = Record<string, unknown>> = {
   type: ColumnType
   sortable?: boolean
   hideable?: boolean
+  /**
+   * Filter choices. Alone, this is the whole list. Combined with `inferOptions`
+   * it degrades to a label dictionary: the list still comes from the data, and
+   * each value shows the matching label — falling back to the raw value — so an
+   * incomplete dictionary loses no rows.
+   */
   options?: OptionItem[]
+  /** Derive the filter choices from the values present in the data. */
   inferOptions?: boolean
   filters?: FilterConfig
   /** Filter-only column: hidden from table and column options menu, but filter still shows in toolbar. */

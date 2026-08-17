@@ -27,7 +27,7 @@ import {
 import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 
-import { buildColumnsFromMetadata } from "./columnBuilder";
+import { buildColumnsFromMetadata, buildOptionLabelLookup } from "./columnBuilder";
 import { DataTableBulkEditor } from "./DataTableBulkEditor";
 import { Filterbar } from "./DataTableFilterbar";
 import { DataTableLocaleContext } from "./DataTableLocaleContext";
@@ -227,6 +227,7 @@ export function DataTable<TData>({
     if (!columnsMetadata?.length) return columnsMetadata;
     return columnsMetadata.map((col) => {
       if (!col.inferOptions) return col;
+      const labelFor = buildOptionLabelLookup(col);
       const seen = new Set<string>();
       const options: { value: string; label: string }[] = [];
       for (const row of stableData) {
@@ -234,7 +235,7 @@ export function DataTable<TData>({
         const val = raw == null ? "" : String(raw);
         if (!seen.has(val)) {
           seen.add(val);
-          options.push({ value: val, label: val });
+          options.push({ value: val, label: labelFor(val) });
         }
       }
       options.sort((a, b) => a.label.localeCompare(b.label));

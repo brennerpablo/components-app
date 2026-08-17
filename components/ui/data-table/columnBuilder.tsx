@@ -8,6 +8,22 @@ import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import type { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
 import { ColumnMetadata } from "./types"
 
+/**
+ * Label dictionary for `inferOptions`. The values offered by an inferred filter
+ * always come from the data — never from this map — so a value the caller did
+ * not foresee (a legacy spelling, a new enum member) still gets an entry and no
+ * row becomes unfilterable. Declared `options` only supply the display label;
+ * anything missing falls back to the raw value, which is what the column showed
+ * before a dictionary was passed.
+ */
+export function buildOptionLabelLookup<TData>(
+  col: ColumnMetadata<TData>,
+): (value: string) => string {
+  if (!col.options?.length) return (value) => value;
+  const labels = new Map(col.options.map((o) => [o.value, o.label]));
+  return (value) => labels.get(value) ?? value;
+}
+
 export const percentageRangeFilterFn: FilterFn<unknown> = (
   row: Row<unknown>,
   columnId: string,
