@@ -1,6 +1,13 @@
 "use client"
 
-import { addDays, isSameDay, isWeekend, parse, parseISO } from "date-fns"
+import {
+  addDays,
+  endOfDay,
+  isSameDay,
+  isWeekend,
+  parse,
+  parseISO,
+  startOfDay} from "date-fns"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
 import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
@@ -269,8 +276,21 @@ function DatePicker(props: DatePickerProps) {
 
   // --- Calendar props per mode ---
 
+  // `minDate`/`maxDate` also have to be disabled matchers, not just the
+  // `startMonth`/`endMonth` bounds below. Those bounds only limit which months
+  // you can navigate to — every day inside the boundary month stays clickable,
+  // so a `maxDate` mid-month silently allowed picking the rest of it. The day
+  // arrows already refused to cross the bounds, which made the calendar and the
+  // arrows disagree.
+  //
+  // Compared at day boundaries, not at the raw instant: a bound built from a
+  // fixed timezone (`2026-08-06` anchored to São Paulo) lands mid-day for a
+  // viewer further west, and `after: <that instant>` would disable the bound's
+  // own day.
   const disabledMatchers: Matcher[] = [
     ...(disableWeekends ? [{ dayOfWeek: [0, 6] }] : []),
+    ...(minDate ? [{ before: startOfDay(minDate) }] : []),
+    ...(maxDate ? [{ after: endOfDay(maxDate) }] : []),
     ...(disabledDates?.map((d) => parseISO(d)) ?? []),
   ]
 
