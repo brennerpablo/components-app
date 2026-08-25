@@ -421,7 +421,7 @@ export default function Page() {
 | `initialColumnFilters`  | `ColumnFiltersState`      | No       | Filters applied on first render, with the filter UI already showing them — e.g. `[{ id: "isActive", value: ["true"] }]` for a list that opens on the active records only. Initial, uncontrolled state: the user can still change it, and "clear filters" clears for real instead of restoring the default. |
 | `accentColor`           | `string`                  | No       | Accent color for active filter button backgrounds, filter value labels, the row-selection indicator bar, and the clear-filters button. Accepts a Tailwind color token (`"blue-600"`) or any CSS color value (`"#3b82f6"`). Defaults to `zinc-800`. |
 | `onRowAction`           | `{ onAdd?, onEdit?, onDelete? }` | No | Callbacks for the per-row action dropdown (requires `enableRowActions`). Each receives `row.original` as `TData`. Only items with a provided callback are rendered in the menu. |
-| `onBulkAction`          | `{ onEdit?, onDelete? }`  | No       | Callbacks for the bulk editor toolbar (requires `enableRowSelection`). Each receives `TData[]` for all selected rows. Commands are disabled when no callback is provided. |
+| `onBulkAction`          | `{ onEdit?, onDelete?, actions? }`  | No       | Callbacks for the bulk editor toolbar (requires `enableRowSelection`). Each receives `TData[]` for all selected rows. Edit and Delete render only when their callback is given. `actions` adds commands beyond that pair — `{ label, shortcut, action, disabled? }` — for a bulk operation that is neither an edit nor a delete; the built-in labels come from `locale` and cannot be renamed. |
 
 **`ColumnMetadata` fields:**
 

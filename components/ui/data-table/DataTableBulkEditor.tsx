@@ -169,11 +169,29 @@ const CommandBarCommand = React.forwardRef<HTMLButtonElement, CommandProps>(
 )
 CommandBarCommand.displayName = "CommandBarCommand"
 
+/**
+ * A bulk action beyond the built-in Edit/Delete pair.
+ *
+ * It exists because the two built-in buttons take their labels from `locale`
+ * and cannot be renamed: reusing `onEdit` for an action of a different name
+ * would put the label "Edit" on a button that edits nothing. `shortcut` is a
+ * single key, same scheme as the built-ins (`e`, `d`, `esc`) — pick one that
+ * does not collide.
+ */
+export type DataTableBulkAction<TData> = {
+  label: string
+  shortcut: string
+  action: (rows: TData[]) => void
+  disabled?: boolean
+}
+
 type DataTableBulkEditorProps<TData> = {
   table: Table<TData>
   rowSelection: RowSelectionState
   onEdit?: (rows: TData[]) => void
   onDelete?: (rows: TData[]) => void
+  /** Extra actions, rendered before Reset. */
+  actions?: DataTableBulkAction<TData>[]
 }
 
 function DataTableBulkEditor<TData>({
@@ -181,34 +199,63 @@ function DataTableBulkEditor<TData>({
   rowSelection,
   onEdit,
   onDelete,
+  actions,
 }: DataTableBulkEditorProps<TData>) {
   const locale = useDataTableLocale()
-  const hasSelectedRows = Object.keys(rowSelection).length > 0
+
+  // Count from the row model, not from `rowSelection` keys: a bulk action can
+  // only ever receive rows present in `data`, so in server-pagination mode a
+  // selection carried over from another page must not inflate the count.
+  // `rowSelection` stays a dependency so the count re-renders on toggle.
+  void rowSelection
+  const selectedRows = table.getSelectedRowModel().rows
+  const hasSelectedRows = selectedRows.length > 0
 
   function getSelectedRows() {
-    return table.getSelectedRowModel().rows.map((r) => r.original)
+    return selectedRows.map((r) => r.original)
   }
 
+  // Edit/Delete only render when a callback is given. They used to render
+  // always, disabled — so a table that only does bulk delete showed a dead
+  // "Edit" next to it, and one with only custom actions would show two. A
+  // disabled button that will never enable is noise, not affordance.
   return (
     <CommandBar open={hasSelectedRows}>
       <CommandBarBar>
         <CommandBarValue>
-          {Object.keys(rowSelection).length} {locale.selected}
+          {selectedRows.length} {locale.selected}
         </CommandBarValue>
-        <CommandBarSeparator />
-        <CommandBarCommand
-          label={locale.edit}
-          action={() => onEdit?.(getSelectedRows())}
-          shortcut={{ shortcut: "e" }}
-          disabled={!onEdit}
-        />
-        <CommandBarSeparator />
-        <CommandBarCommand
-          label={locale.delete}
-          action={() => onDelete?.(getSelectedRows())}
-          shortcut={{ shortcut: "d" }}
-          disabled={!onDelete}
-        />
+        {onEdit && (
+          <>
+            <CommandBarSeparator />
+            <CommandBarCommand
+              label={locale.edit}
+              action={() => onEdit(getSelectedRows())}
+              shortcut={{ shortcut: "e" }}
+            />
+          </>
+        )}
+        {onDelete && (
+          <>
+            <CommandBarSeparator />
+            <CommandBarCommand
+              label={locale.delete}
+              action={() => onDelete(getSelectedRows())}
+              shortcut={{ shortcut: "d" }}
+            />
+          </>
+        )}
+        {actions?.map((custom) => (
+          <React.Fragment key={custom.label}>
+            <CommandBarSeparator />
+            <CommandBarCommand
+              label={custom.label}
+              action={() => custom.action(getSelectedRows())}
+              shortcut={{ shortcut: custom.shortcut }}
+              disabled={custom.disabled}
+            />
+          </React.Fragment>
+        ))}
         <CommandBarSeparator />
         <CommandBarCommand
           label={locale.reset}

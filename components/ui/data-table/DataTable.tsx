@@ -29,7 +29,7 @@ import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 
 import { buildColumnsFromMetadata, buildOptionLabelLookup } from "./columnBuilder";
-import { DataTableBulkEditor } from "./DataTableBulkEditor";
+import { type DataTableBulkAction, DataTableBulkEditor } from "./DataTableBulkEditor";
 import { Filterbar } from "./DataTableFilterbar";
 import { DataTableLocaleContext } from "./DataTableLocaleContext";
 import { DataTablePagination } from "./DataTablePagination";
@@ -98,6 +98,13 @@ function createActionsColumn<TData>(callbacks: RowActionCallbacks<TData>): Colum
 type BulkActionCallbacks<TData> = {
   onEdit?: (rows: TData[]) => void;
   onDelete?: (rows: TData[]) => void;
+  /**
+   * Bulk actions beyond the Edit/Delete pair, each with its own label and
+   * shortcut. See `DataTableBulkAction`: the two built-in buttons take their
+   * labels from `locale` and cannot be renamed, so reusing `onEdit` for
+   * something else would put "Edit" on a button that edits nothing.
+   */
+  actions?: DataTableBulkAction<TData>[];
 };
 
 interface DataTableProps<TData> {
@@ -476,6 +483,7 @@ export function DataTable<TData>({
               rowSelection={rowSelection}
               onEdit={onBulkAction?.onEdit}
               onDelete={onBulkAction?.onDelete}
+              actions={onBulkAction?.actions}
             />
           )}
         </div>

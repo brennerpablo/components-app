@@ -166,9 +166,9 @@ const columnsMetadata = [
             },
             {
               name: "onBulkAction",
-              type: "{ onEdit?: (rows: TData[]) => void; onDelete?: (rows: TData[]) => void }",
+              type: "{ onEdit?: (rows: TData[]) => void; onDelete?: (rows: TData[]) => void; actions?: DataTableBulkAction<TData>[] }",
               description:
-                "Callbacks for the bulk editor toolbar (requires enableRowSelection). Edit and Delete commands are disabled when the corresponding callback is not provided.",
+                "Callbacks for the bulk editor toolbar (requires enableRowSelection). Edit and Delete render only when their callback is given. Use actions — { label, shortcut, action, disabled? } — for a bulk operation that is neither an edit nor a delete: the built-in labels come from locale and cannot be renamed.",
             },
           ],
         },

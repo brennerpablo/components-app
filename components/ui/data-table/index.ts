@@ -1,6 +1,6 @@
 export { buildColumnsFromMetadata, dateRangeFilterFn, numberConditionFilterFn, percentageRangeFilterFn } from "./columnBuilder"
 export { DataTable } from "./DataTable"
-export { DataTableBulkEditor } from "./DataTableBulkEditor"
+export { type DataTableBulkAction, DataTableBulkEditor } from "./DataTableBulkEditor"
 export { DataTableColumnHeader } from "./DataTableColumnHeader"
 export type { ConditionFilter, DateRangeFilter, PercentageRangeFilter } from "./DataTableFilter"
 export { DataTableFilter } from "./DataTableFilter"
