@@ -121,12 +121,23 @@ export class GridSelectionStore {
     this.emit({ anchor: this.snap.anchor ?? p, focus: p });
   }
 
-  beginDrag(c: CellCoord, mode: SelectionMode, extend: boolean) {
+  /**
+   * `dragging` is false for selections made without the mouse (Ctrl/Shift+Space
+   * from the keyboard, or the re-selection after a column move): the status bar
+   * suppresses its aggregates while a drag is live, so leaving the flag on
+   * would park it on "…" until the next click.
+   */
+  beginDrag(
+    c: CellCoord,
+    mode: SelectionMode,
+    extend: boolean,
+    dragging = true,
+  ) {
     const p = this.clamp(c);
     if (extend && this.snap.anchor) {
-      this.emit({ focus: p, mode, dragging: true });
+      this.emit({ focus: p, mode, dragging });
     } else {
-      this.emit({ anchor: p, focus: p, mode, dragging: true });
+      this.emit({ anchor: p, focus: p, mode, dragging });
     }
   }
 
@@ -142,12 +153,12 @@ export class GridSelectionStore {
     if (this.snap.dragging) this.emit({ dragging: false });
   }
 
-  selectRow(row: number, extend: boolean) {
-    this.beginDrag({ row, col: 0 }, "row", extend);
+  selectRow(row: number, extend: boolean, dragging = true) {
+    this.beginDrag({ row, col: 0 }, "row", extend, dragging);
   }
 
-  selectColumn(col: number, extend: boolean) {
-    this.beginDrag({ row: 0, col }, "col", extend);
+  selectColumn(col: number, extend: boolean, dragging = true) {
+    this.beginDrag({ row: 0, col }, "col", extend, dragging);
   }
 
   selectAll() {

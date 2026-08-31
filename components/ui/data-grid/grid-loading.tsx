@@ -3,7 +3,7 @@
 import { SearchX } from "lucide-react";
 import * as React from "react";
 
-import { GUTTER_WIDTH, HEADER_HEIGHT, ROW_HEIGHT, Z_GUTTER } from "./constants";
+import { GUTTER_WIDTH, HEADER_HEIGHT, Z_GUTTER } from "./constants";
 import { useGridContext } from "./grid-context";
 
 /**
@@ -45,7 +45,7 @@ export function GridEmptyState() {
 }
 
 export function GridLoadingState() {
-  const { columns } = useGridContext();
+  const { columns, rowHeight } = useGridContext();
 
   return (
     // Fill the sheet below the header and clip the surplus rows, so the ghost
@@ -58,7 +58,7 @@ export function GridLoadingState() {
       style={{ top: HEADER_HEIGHT }}
     >
       {Array.from({ length: GHOST_ROWS }, (_, r) => (
-        <div key={r} className="flex" style={{ height: ROW_HEIGHT }}>
+        <div key={r} className="flex" style={{ height: rowHeight }}>
           <div
             className="sticky left-0 shrink-0 border-b border-r bg-muted"
             style={{ zIndex: Z_GUTTER, width: GUTTER_WIDTH }}

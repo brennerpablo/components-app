@@ -27,6 +27,8 @@ export type GridContextValue = {
   /** Total width of the pinned-right lane (0 when none). */
   pinnedWidth: number;
   rowCount: number;
+  /** Row height in px — the toolbar's density control drives it. */
+  rowHeight: number;
   sorting: GridSortState;
   onSortingChange: (s: GridSortState) => void;
   filters: GridFilterState;
@@ -34,6 +36,16 @@ export type GridContextValue = {
   filterOptions: Record<string, GridFilterOption[]>;
   /** Begin a column-width drag from a header resize handle. */
   startResize: (colId: string, clientX: number, startWidth: number) => void;
+  /** Fit a column to its loaded content (double-click on the resize handle). */
+  autoSizeColumn: (colId: string) => void;
+  /** Leading `columns` entries rendered in the frozen-left sticky lane. */
+  frozenCount: number;
+  /** Width of that lane in px — `colOffsets[frozenCount]`. */
+  frozenWidth: number;
+  /** Freeze the first `count` visible columns (0 unfreezes). */
+  setFrozen: (count: number) => void;
+  /** Folded "find" needle; "" when the find bar is closed or empty. */
+  findNeedle: string;
   /** Resolved UI strings for the active language. */
   strings: GridStrings;
   /** Active language (drives number/date locale formatting). */

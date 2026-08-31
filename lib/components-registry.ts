@@ -34,10 +34,10 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         title: "Data Grid",
         href: "/data-grid",
         description:
-          "A virtualized, spreadsheet-style grid for very large datasets. Excel-style per-column filters, cell/row/column selection with clipboard copy, drag-to-reorder and resize columns, frozen columns, saved views, CSV/XLSX export, and en/pt chrome.",
+          "A virtualized, spreadsheet-style grid for very large datasets. Excel-style per-column filters, cell/row/column selection with clipboard copy and a right-click menu, drag-to-reorder and resize columns (double-click to autofit), user-driven frozen columns, find-in-grid, row density, undo/redo, saved views, CSV/XLSX export, and en/pt chrome.",
         shortDescription: "Virtualized spreadsheet grid",
         icon: Sheet,
-        tags: ["Virtualized", "Excel-style", "Frozen columns"],
+        tags: ["Virtualized", "Excel-style", "Frozen columns", "Undo/redo"],
       },
       {
         title: "Editable Grid",

@@ -1,11 +1,15 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Sigma } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 
 import { useGridContext } from "./grid-context";
 import { localeFor } from "./i18n";
 import { useGridSelection } from "./selection-store";
+import type { GridAggregate } from "./types";
 
 /**
  * Excel-style status bar: filtered total on the left, selection stats on the
@@ -32,18 +36,32 @@ type Stats = {
   partial: boolean;
 } | null;
 
+/** Exact (server-side) aggregate for one selection rect. */
+type ExactState = {
+  /** Rect signature this belongs to; a stale one is ignored. */
+  key: string;
+  loading: boolean;
+  value: { sum: number; min: number; max: number; n: number } | null;
+};
+
 export function GridStatusBar({
   totalCount,
   rowCount,
   getRow,
   summary,
   isFetching,
+  selectionStats,
 }: {
   totalCount: number;
   rowCount: number;
   getRow: (index: number) => unknown;
   summary?: GridStatusSummary | null;
   isFetching?: boolean;
+  selectionStats?: (req: {
+    r0: number;
+    r1: number;
+    columnIds: string[];
+  }) => Promise<Record<string, GridAggregate>>;
 }) {
   const { store, columns, strings, language } = useGridContext();
   const intFmt = React.useMemo(
@@ -106,6 +124,54 @@ export function GridStatusBar({
 
   const cellCount = r1 >= r0 ? (r1 - r0 + 1) * (c1 - c0 + 1) : 0;
 
+  // Keyed by the rect: moving the selection invalidates a previous answer
+  // without needing an effect to clear it.
+  const rectKey = `${r0}:${r1}:${c0}:${c1}`;
+  const [exact, setExact] = React.useState<ExactState | null>(null);
+  const shown = exact?.key === rectKey ? exact : null;
+
+  // The exact answer replaces the local one wherever it exists; the label
+  // says which of the two is on screen, and never leaves that implicit.
+  const display = shown?.value ?? stats;
+  const displayLabel = shown?.value
+    ? `${strings.exact} `
+    : stats?.partial
+      ? `${strings.partial} `
+      : "";
+
+  const askServer = React.useCallback(async () => {
+    if (!selectionStats) return;
+    const columnIds: string[] = [];
+    for (let c = c0; c <= c1; c++) {
+      if (columns[c]?.type === "number") columnIds.push(columns[c].id);
+    }
+    if (!columnIds.length) return;
+    setExact({ key: rectKey, loading: true, value: null });
+    try {
+      const byField = await selectionStats({ r0, r1, columnIds });
+      let sum = 0;
+      let min = Infinity;
+      let max = -Infinity;
+      let n = 0;
+      for (const id of columnIds) {
+        const agg = byField[id];
+        if (!agg?.count) continue;
+        sum += agg.sum ?? 0;
+        if (agg.min != null && agg.min < min) min = agg.min;
+        if (agg.max != null && agg.max > max) max = agg.max;
+        n += agg.count;
+      }
+      setExact({
+        key: rectKey,
+        loading: false,
+        value: n ? { sum, min, max, n } : null,
+      });
+    } catch {
+      setExact(null);
+      toast.error(strings.computeExactFailed);
+    }
+  }, [selectionStats, columns, c0, c1, r0, r1, rectKey, strings]);
+
   return (
     <div className="flex h-8 shrink-0 items-center gap-3 border-t bg-muted/50 px-3 text-xs text-muted-foreground">
       <span>
@@ -130,15 +196,32 @@ export function GridStatusBar({
           <>
             {strings.cells(intFmt.format(cellCount))}
             {dragging && " · …"}
-            {stats && (
+            {display && (
               <>
                 {" "}
-                ·{stats.partial && ` ${strings.partial}`} {strings.sum}{" "}
-                {numFmt.format(stats.sum)} · {strings.mean}{" "}
-                {numFmt.format(stats.sum / stats.n)} · {strings.min}{" "}
-                {numFmt.format(stats.min)} · {strings.max}{" "}
-                {numFmt.format(stats.max)}
+                · {displayLabel}
+                {strings.sum} {numFmt.format(display.sum)} · {strings.mean}{" "}
+                {numFmt.format(display.sum / display.n)} · {strings.min}{" "}
+                {numFmt.format(display.min)} · {strings.max}{" "}
+                {numFmt.format(display.max)}
               </>
+            )}
+            {stats?.partial && !shown?.value && selectionStats && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-1.5 h-5 px-1.5 text-[11px]"
+                disabled={shown?.loading}
+                onClick={askServer}
+                title={strings.computeExactTitle}
+              >
+                {shown?.loading ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Sigma className="size-3" />
+                )}
+                {strings.computeExact}
+              </Button>
             )}
           </>
         )}

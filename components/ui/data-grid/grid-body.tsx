@@ -5,7 +5,8 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-import { GUTTER_WIDTH, HEADER_HEIGHT, ROW_HEIGHT, Z_GUTTER } from "./constants";
+import { cellText, matchRange } from "./cell-text";
+import { GUTTER_WIDTH, HEADER_HEIGHT, Z_FROZEN, Z_GUTTER } from "./constants";
 import { useGridContext } from "./grid-context";
 import { useGridSelection } from "./selection-store";
 import type { GridCellAction, GridColumn } from "./types";
@@ -25,7 +26,16 @@ export function GridBody({
   items: VirtualItem[];
   getRow: (index: number) => unknown;
 }) {
-  const { columns, colOffsets, pinnedColumns, pinnedWidth } = useGridContext();
+  const {
+    columns,
+    colOffsets,
+    pinnedColumns,
+    pinnedWidth,
+    rowHeight,
+    frozenCount,
+    frozenWidth,
+    findNeedle,
+  } = useGridContext();
   const width = GUTTER_WIDTH + colOffsets[columns.length] + pinnedWidth;
   return (
     <>
@@ -36,11 +46,15 @@ export function GridBody({
           // virtualItem.start includes the virtualizer's scrollMargin (the
           // sticky header); rows are positioned inside the canvas below it.
           top={vi.start - HEADER_HEIGHT}
+          height={rowHeight}
           row={getRow(vi.index)}
           columns={columns}
           pinnedColumns={pinnedColumns}
           pinnedWidth={pinnedWidth}
           width={width}
+          frozenCount={frozenCount}
+          frozenWidth={frozenWidth}
+          highlight={findNeedle}
         />
       ))}
     </>
@@ -50,67 +64,88 @@ export function GridBody({
 type GridRowProps = {
   index: number;
   top: number;
+  height: number;
   row: unknown;
   columns: GridColumn<never>[];
   pinnedColumns: GridColumn<never>[];
   pinnedWidth: number;
   width: number;
+  frozenCount: number;
+  frozenWidth: number;
+  /** Folded "Localizar" needle, "" when the find bar is closed. */
+  highlight: string;
 };
 
 const GridRow = React.memo(function GridRow({
   index,
   top,
+  height,
   row,
   columns,
   pinnedColumns,
   pinnedWidth,
   width,
+  frozenCount,
+  frozenWidth,
+  highlight,
 }: GridRowProps) {
   const record = row as Record<string, unknown> | undefined;
+  const zebra = index % 2 === 1;
+
+  const renderCell = (col: GridColumn<never>, c: number) => {
+    if (col.action) {
+      return (
+        <GridActionCell
+          key={col.id}
+          action={col.action as GridCellAction<never>}
+          row={record}
+          width={col.width}
+          loaded={!!record}
+          r={index}
+          c={c}
+        />
+      );
+    }
+    return (
+      <GridCell
+        key={col.id}
+        text={cellText(col, record as never)}
+        highlight={highlight}
+        width={col.width}
+        align={col.align}
+        loaded={!!record}
+        r={index}
+        c={c}
+      />
+    );
+  };
+
   return (
     <div
       className={cn(
-        "absolute left-0 flex hover:bg-accent/40",
-        index % 2 === 1 && "bg-muted/30",
+        "group absolute left-0 flex hover:bg-accent/40",
+        zebra && "bg-muted/30",
       )}
-      style={{ top, height: ROW_HEIGHT, width }}
+      style={{ top, height, width }}
     >
       <GutterCell index={index} />
-      {columns.map((col, c) => {
-        if (col.action) {
-          return (
-            <GridActionCell
-              key={col.id}
-              action={col.action as GridCellAction<never>}
-              row={record}
-              width={col.width}
-              loaded={!!record}
-              r={index}
-              c={c}
-            />
-          );
-        }
-        let text = "";
-        if (record) {
-          const v = record[col.id];
-          text = col.format
-            ? col.format(v, record as never)
-            : v == null
-              ? ""
-              : String(v);
-        }
-        return (
-          <GridCell
-            key={col.id}
-            text={text}
-            width={col.width}
-            align={col.align}
-            loaded={!!record}
-            r={index}
-            c={c}
-          />
-        );
-      })}
+      {frozenCount > 0 && (
+        // Frozen-left lane. The cells inside are ORDINARY grid cells — they
+        // keep their `data-grid-cell` markers and their visible indices, so
+        // selection, copy, keyboard and export never learn that a freeze
+        // exists. Only the painting changes: the lane is sticky and opaque, so
+        // the scrolling columns pass behind it.
+        <div
+          className="sticky flex shrink-0 bg-background shadow-[2px_0_0_0_var(--color-border)]"
+          style={{ zIndex: Z_FROZEN, left: GUTTER_WIDTH, width: frozenWidth }}
+        >
+          <LaneBackdrop zebra={zebra} />
+          {columns.slice(0, frozenCount).map((col, i) => renderCell(col, i))}
+        </div>
+      )}
+      {columns
+        .slice(frozenCount)
+        .map((col, i) => renderCell(col, frozenCount + i))}
       {pinnedColumns.length > 0 && (
         // Frozen-right lane — mirror of the sticky-left gutter. Display-only:
         // no data-grid-cell markers, so the mouse layer never selects it.
@@ -131,6 +166,32 @@ const GridRow = React.memo(function GridRow({
     </div>
   );
 });
+
+/**
+ * The row's zebra stripe and hover tint, repainted INSIDE the frozen lane.
+ *
+ * The lane has to be opaque or the columns scrolling under it show through,
+ * and an opaque lane hides the two backgrounds the row itself paints. They
+ * come back as negative-z layers: inside the lane's stacking context those
+ * paint above its own background and below its cells, which is exactly where
+ * the row's own stripes sit.
+ */
+function LaneBackdrop({ zebra }: { zebra: boolean }) {
+  return (
+    <>
+      {zebra && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-muted/30"
+        />
+      )}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 hidden bg-accent/40 group-hover:block"
+      />
+    </>
+  );
+}
 
 const GutterCell = React.memo(function GutterCell({ index }: { index: number }) {
   const { store } = useGridContext();
@@ -163,6 +224,8 @@ const GutterCell = React.memo(function GutterCell({ index }: { index: number }) 
 
 type GridCellProps = {
   text: string;
+  /** Folded "Localizar" needle; "" leaves the text alone. */
+  highlight: string;
   width: number;
   align?: "left" | "right";
   loaded: boolean;
@@ -172,6 +235,7 @@ type GridCellProps = {
 
 const GridCell = React.memo(function GridCell({
   text,
+  highlight,
   width,
   align,
   loaded,
@@ -190,13 +254,28 @@ const GridCell = React.memo(function GridCell({
       style={{ width }}
     >
       {loaded ? (
-        <span className="truncate">{text}</span>
+        <CellText text={text} highlight={highlight} />
       ) : (
         <span className="h-3 w-3/4 animate-pulse rounded-sm bg-muted" />
       )}
     </div>
   );
 });
+
+/** Cell text, with the first "Localizar" hit marked. */
+function CellText({ text, highlight }: { text: string; highlight: string }) {
+  const range = highlight ? matchRange(text, highlight) : null;
+  if (!range) return <span className="truncate">{text}</span>;
+  return (
+    <span className="truncate">
+      {text.slice(0, range[0])}
+      <mark className="rounded-[2px] bg-yellow-300 text-inherit dark:bg-yellow-500/60">
+        {text.slice(range[0], range[1])}
+      </mark>
+      {text.slice(range[1])}
+    </span>
+  );
+}
 
 const ICON_CLS =
   "text-muted-foreground hover:text-foreground inline-flex items-center";
@@ -218,6 +297,13 @@ function ActionIcon({
 }) {
   if (!loaded || !row) {
     return <span className="size-3.5 animate-pulse rounded-sm bg-muted" />;
+  }
+  if (action.render) {
+    return (
+      <span data-grid-cell-action className="inline-flex items-center">
+        {action.render(row as never)}
+      </span>
+    );
   }
   const Icon = action.icon;
   const href = action.href?.(row as never);

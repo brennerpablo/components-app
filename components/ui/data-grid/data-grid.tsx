@@ -4,10 +4,15 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 
+import { fontOf, measureAutoWidth } from "./autosize";
+import { cellText } from "./cell-text";
 import { copySelection } from "./clipboard";
 import {
+  DENSITIES,
+  type GridDensity,
   GUTTER_WIDTH,
   HEADER_HEIGHT,
   MAX_COL_WIDTH,
@@ -18,22 +23,35 @@ import {
 } from "./constants";
 import { GridBody } from "./grid-body";
 import { GridContext, type GridContextValue } from "./grid-context";
+import { GridContextMenuContent } from "./grid-context-menu";
+import { GridFindBar } from "./grid-find";
 import { GridHeader } from "./grid-header";
 import { GridEmptyState, GridLoadingState } from "./grid-loading";
 import { type GridLanguage, localeFor, resolveGridStrings } from "./i18n";
+import { scrollCellIntoView } from "./scroll-into-view";
 import { SelectionOverlay } from "./selection-overlay";
 import { GridSelectionStore } from "./selection-store";
 import { GridStatusBar, type GridStatusSummary } from "./status-bar";
 import { GridToolbar, type GridToolbarConfig } from "./toolbar";
 import type {
+  CellCoord,
+  GridAggregate,
   GridColumn,
   GridColumnState,
   GridFilterOption,
   GridFilterState,
   GridSortState,
 } from "./types";
+import { useGridHistory } from "./use-grid-history";
 import { useGridKeyboard } from "./use-grid-keyboard";
 import { useGridMouse } from "./use-grid-mouse";
+
+/**
+ * How far past the viewport double-click autosize looks for loaded rows.
+ * Wide enough to cover the resident blocks (viewport ±1 block), and bounded
+ * so the scan can't walk a 100k-row window on a gesture.
+ */
+const AUTOSIZE_SCAN_ROWS = 1_500;
 
 export type DataGridProps<TData> = {
   /** Base column definitions (full set; display is driven by columnState). */
@@ -60,6 +78,17 @@ export type DataGridProps<TData> = {
    * dims the body under a subtle veil instead of blanking the sheet. */
   isRefreshing?: boolean;
   summary?: GridStatusSummary | null;
+  /**
+   * Exact per-column aggregates for a row range of the CURRENT sort+filter,
+   * asked of the server when the selection reaches rows the grid hasn't
+   * loaded. Omit and the status bar keeps labeling those numbers "partial" —
+   * it never silently reports a partial sum as a total.
+   */
+  selectionStats?: (req: {
+    r0: number;
+    r1: number;
+    columnIds: string[];
+  }) => Promise<Record<string, GridAggregate>>;
   /** Top toolbar: export, fullscreen, saved views, column picker. Omit to hide it. */
   toolbar?: GridToolbarConfig<TData>;
   /**
@@ -75,19 +104,20 @@ export type DataGridProps<TData> = {
 export function DataGrid<TData>({
   columns,
   columnState,
-  onColumnStateChange,
+  onColumnStateChange: onColumnStateChangeProp,
   rowCount,
   totalCount,
   getRow,
   onViewportChange,
   sorting,
-  onSortingChange,
+  onSortingChange: onSortingChangeProp,
   filters,
-  onFiltersChange,
+  onFiltersChange: onFiltersChangeProp,
   filterOptions,
   isFetching,
   isRefreshing,
   summary,
+  selectionStats,
   toolbar,
   resetToken,
   language = "en",
@@ -103,11 +133,96 @@ export function DataGrid<TData>({
   if (!storeRef.current) storeRef.current = new GridSelectionStore();
   const store = storeRef.current;
 
+  // The three view setters go through the history BEFORE reaching anything
+  // else — the column popover, the toolbar and the grid's own gestures
+  // (resize, move, freeze) all use the wrapped ones from here down, and that
+  // is what turns every click into an undoable step. See `use-grid-history.ts`.
+  const {
+    onFiltersChange,
+    onSortingChange,
+    onColumnStateChange,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useGridHistory({
+    filters,
+    sorting,
+    columnState,
+    onFiltersChange: onFiltersChangeProp,
+    onSortingChange: onSortingChangeProp,
+    onColumnStateChange: onColumnStateChangeProp,
+  });
+
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const toggleFullscreen = React.useCallback(
     () => setIsFullscreen((v) => !v),
     [],
   );
+
+  // Row density is a per-person reading preference, not part of the shared
+  // view: it rides localStorage next to the saved views rather than inside
+  // them, so applying a colleague's saved filter doesn't also resize their
+  // rows onto your screen. Grids without a `savedViews` storage key simply
+  // don't persist it.
+  const densityKey = toolbar?.savedViews?.storageKey
+    ? `${toolbar.savedViews.storageKey}:density`
+    : null;
+  const [density, setDensity] = React.useState<GridDensity | null>(null);
+  React.useEffect(() => {
+    if (!densityKey) return;
+    try {
+      const saved = localStorage.getItem(densityKey);
+      if (saved && DENSITIES.some((d) => d.id === saved)) {
+        setDensity(saved as GridDensity);
+      }
+    } catch {
+      // Private mode / blocked storage: the default density is fine.
+    }
+  }, [densityKey]);
+  const changeDensity = React.useCallback(
+    (next: GridDensity) => {
+      setDensity(next);
+      if (!densityKey) return;
+      try {
+        localStorage.setItem(densityKey, next);
+      } catch {
+        // Same as above — persisting is a nicety, not a requirement.
+      }
+    },
+    [densityKey],
+  );
+  const rowHeight =
+    DENSITIES.find((d) => d.id === density)?.rowHeight ?? ROW_HEIGHT;
+
+  /**
+   * How many right-clicks there have been. It is the `key` of the menu
+   * content, and it exists because of ONE Radix detail: `ContextMenuTrigger`
+   * stores the click point in a REF and calls `onOpenChange(true)`. With the
+   * menu already open that is a no-op — nothing re-renders, Popper never
+   * re-measures the virtual anchor, and the menu stays where it was while the
+   * ref already points at the new cell. The symptom was exactly that:
+   * right-clicking a second cell reopened the menu on top of the first, and
+   * only a left click in between (which really closes it) untangled things.
+   *
+   * Changing the `key` remounts the content, and remounting is what makes
+   * Popper measure again. This handler is React's and so is Radix's, so both
+   * land in the SAME batch: by the time the remount measures, the ref has been
+   * updated. (It lives on the `div` and not in the native `use-grid-mouse`
+   * listener on purpose — the native one fires earlier, and the batch would
+   * stop being guaranteed.)
+   */
+  const [contextMenuEpoch, setContextMenuEpoch] = React.useState(0);
+
+  // Find (Ctrl/Cmd+F). The needle is folded by the find bar and rides the
+  // context down to the cells, which mark their first hit.
+  const [findOpen, setFindOpen] = React.useState(false);
+  const [findNeedle, setFindNeedle] = React.useState("");
+  const openFind = React.useCallback(() => setFindOpen(true), []);
+  const closeFind = React.useCallback(() => {
+    setFindOpen(false);
+    scrollRef.current?.focus({ preventScroll: true });
+  }, []);
 
   // Live width overrides while a resize drag is in flight — grid-local so
   // the screen doesn't re-render per pointer frame; committed to
@@ -150,6 +265,27 @@ export function DataGrid<TData>({
       offsets.push(offsets[offsets.length - 1] + col.width);
     return offsets;
   }, [visibleColumns]);
+
+  // Freezing is pure painting: the frozen columns keep their visible indices
+  // and their place in `colOffsets`, so nothing downstream changes. Clamped
+  // here as well as in `sanitizeColumnState` because hiding a column can drop
+  // the visible count under a previously-valid freeze.
+  const frozenCount = Math.min(
+    Math.max(0, columnState.frozen ?? 0),
+    Math.max(0, visibleColumns.length - 1),
+  );
+  const frozenWidth = colOffsets[frozenCount] ?? 0;
+
+  const setFrozen = React.useCallback(
+    (count: number) => {
+      const max = Math.max(0, visibleColumns.length - 1);
+      onColumnStateChange({
+        ...columnState,
+        frozen: Math.max(0, Math.min(count, max)),
+      });
+    },
+    [visibleColumns.length, columnState, onColumnStateChange],
+  );
 
   // Order/visibility changes re-map what each visible index MEANS — clear
   // the selection (unless a header move just replaced it deliberately).
@@ -204,6 +340,52 @@ export function DataGrid<TData>({
     [columnState, onColumnStateChange],
   );
 
+  // `getRow` and the viewport range change identity on every block load. They
+  // are read through refs so the callbacks that need them (autosize) stay
+  // stable — a churning callback would churn the grid context and re-render
+  // every header and gutter cell each time a block lands.
+  const getRowRef = React.useRef(getRow);
+  React.useEffect(() => {
+    getRowRef.current = getRow;
+  }, [getRow]);
+  const viewportRef = React.useRef({ first: 0, last: 0 });
+
+  const autoSizeColumn = React.useCallback(
+    (colId: string) => {
+      const col = visibleColumns.find((c) => c.id === colId);
+      const el = scrollRef.current;
+      if (!col || !el) return;
+      // Fonts come from live nodes — see autosize.ts on why they are not
+      // hardcoded.
+      const cellEl = el.querySelector("[data-grid-cell] span");
+      const headerEl = el.querySelector("[data-grid-header-col] span");
+      const cellFont = cellEl ? fontOf(cellEl) : "12px sans-serif";
+      const headerFont = headerEl ? fontOf(headerEl) : cellFont;
+
+      const { first, last } = viewportRef.current;
+      const from = Math.max(0, first - AUTOSIZE_SCAN_ROWS);
+      const to = Math.min(rowCount - 1, last + AUTOSIZE_SCAN_ROWS);
+      const texts: string[] = [];
+      for (let r = from; r <= to; r++) {
+        const row = getRowRef.current(r);
+        if (row) texts.push(cellText(col, row));
+      }
+
+      const width = measureAutoWidth({
+        title: col.title,
+        texts,
+        cellFont,
+        headerFont,
+      });
+      if (width == null || width === col.width) return;
+      onColumnStateChange({
+        ...columnState,
+        widths: { ...columnState.widths, [colId]: width },
+      });
+    },
+    [visibleColumns, rowCount, columnState, onColumnStateChange],
+  );
+
   // Sheets-style header move: the mouse hook reports the live drop boundary
   // and the commit in VISIBLE indices; we translate to ids on the full order.
   const [colDropTarget, setColDropTarget] = React.useState<number | null>(null);
@@ -235,7 +417,7 @@ export function DataGrid<TData>({
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => ROW_HEIGHT,
+    estimateSize: () => rowHeight,
     overscan: OVERSCAN,
     // The sticky header sits INSIDE the scroll container above the rows
     // canvas; without this, scrollToIndex/range math is 36px shallow and
@@ -243,6 +425,13 @@ export function DataGrid<TData>({
     scrollMargin: HEADER_HEIGHT,
   });
   const items = virtualizer.getVirtualItems();
+
+  // Row height is a virtualizer option, not reactive state — re-measure so a
+  // density change repositions the rows instead of leaving them at the height
+  // measured on mount.
+  React.useEffect(() => {
+    virtualizer.measure();
+  }, [virtualizer, rowHeight]);
 
   // Sort/filter change: clear selection, scroll to top, keep the mount.
   // Declared BEFORE the viewport effect so the scroll reset lands first on a
@@ -259,6 +448,7 @@ export function DataGrid<TData>({
   const firstIndex = items[0]?.index ?? 0;
   const lastIndex = items[items.length - 1]?.index ?? 0;
   React.useEffect(() => {
+    viewportRef.current = { first: firstIndex, last: lastIndex };
     if (rowCount > 0) onViewportChange(firstIndex, lastIndex);
   }, [onViewportChange, firstIndex, lastIndex, rowCount]);
 
@@ -280,6 +470,8 @@ export function DataGrid<TData>({
     colOffsets,
     rowCount,
     colCount: visibleColumns.length,
+    rowHeight,
+    frozenWidth,
     onColMoveTarget: setColDropTarget,
     onColMove: handleColMove,
   });
@@ -318,8 +510,30 @@ export function DataGrid<TData>({
     colOffsets,
     rowCount,
     colCount: visibleColumns.length,
+    rowHeight,
+    frozenCount,
+    frozenWidth,
     onCopy: handleCopy,
+    onFind: openFind,
+    onUndo: undo,
+    onRedo: redo,
   });
+
+  /** Select a cell and bring it into view — the find bar's jump. */
+  const goToCell = React.useCallback(
+    (coord: CellCoord) => {
+      store.setActive(coord);
+      scrollCellIntoView({
+        el: scrollRef.current,
+        virtualizer,
+        colOffsets,
+        frozenWidth,
+        frozenCount,
+        coord,
+      });
+    },
+    [store, virtualizer, colOffsets, frozenWidth, frozenCount],
+  );
 
   // getRow deliberately does NOT ride the context: its identity changes on
   // every block load, and gutter/header cells never read it. It goes as a
@@ -332,12 +546,18 @@ export function DataGrid<TData>({
       pinnedColumns: pinnedColumns as GridColumn<never>[],
       pinnedWidth,
       rowCount,
+      rowHeight,
       sorting,
       onSortingChange,
       filters,
       onFiltersChange,
       filterOptions: filterOptions ?? {},
       startResize,
+      autoSizeColumn,
+      frozenCount,
+      frozenWidth,
+      setFrozen,
+      findNeedle,
       strings,
       language,
     }),
@@ -348,12 +568,18 @@ export function DataGrid<TData>({
       pinnedColumns,
       pinnedWidth,
       rowCount,
+      rowHeight,
       sorting,
       onSortingChange,
       filters,
       onFiltersChange,
       filterOptions,
       startResize,
+      autoSizeColumn,
+      frozenCount,
+      frozenWidth,
+      setFrozen,
+      findNeedle,
       strings,
       language,
     ],
@@ -388,12 +614,29 @@ export function DataGrid<TData>({
             onSortingChange={onSortingChange}
             isFullscreen={isFullscreen}
             onToggleFullscreen={toggleFullscreen}
+            density={density}
+            onDensityChange={changeDensity}
+            onFind={openFind}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
           />
         )}
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border bg-background">
           {/* Refresh veil companion: a small floating pill anchored to the
               CARD (not the 3000px-wide canvas, where centering would land
               off-screen). */}
+          {findOpen && (
+            <GridFindBar
+              columns={visibleColumns}
+              rowCount={rowCount}
+              getRow={getRow}
+              onNeedleChange={setFindNeedle}
+              onGo={goToCell}
+              onClose={closeFind}
+            />
+          )}
           {rowCount === 0 && !isFetching && <GridEmptyState />}
           {isRefreshing && rowCount > 0 && (
             <div className="pointer-events-none absolute bottom-12 left-1/2 z-40 -translate-x-1/2">
@@ -403,51 +646,70 @@ export function DataGrid<TData>({
               </span>
             </div>
           )}
-          <div
-            ref={scrollRef}
-            tabIndex={0}
-            role="grid"
-            aria-rowcount={rowCount}
-            aria-colcount={visibleColumns.length}
-            onKeyDown={onKeyDown}
-            className="grid-scrollbar relative flex-1 overflow-auto overscroll-contain outline-none"
-          >
-            <div
-              className="relative min-h-full"
-              style={{ width: canvasWidth, minWidth: "100%" }}
-            >
-              <GridHeader />
-              {rowCount === 0 && isFetching ? (
-                <GridLoadingState />
-              ) : rowCount > 0 ? (
+          {/* The context menu wraps ONLY the scroll container, so the toolbar
+              and the status bar keep the browser's own menu. `asChild` keeps
+              the same element in the DOM — Radix's trigger draws nothing around
+              it —, which matters more than usual here: remounting this div
+              would drop the virtualizer along with the scroll and the
+              selection.
+
+              `modal={false}` because Radix's modal menu locks the DOCUMENT's
+              scroll, and what scrolls here is the grid canvas. */}
+          <ContextMenu modal={false}>
+            <ContextMenuTrigger asChild>
+              <div
+                ref={scrollRef}
+                tabIndex={0}
+                role="grid"
+                aria-rowcount={rowCount}
+                aria-colcount={visibleColumns.length}
+                onKeyDown={onKeyDown}
+                onContextMenu={() => setContextMenuEpoch((n) => n + 1)}
+                className="grid-scrollbar relative flex-1 overflow-auto overscroll-contain outline-none"
+              >
                 <div
-                  className={cn(
-                    "relative transition-opacity duration-200",
-                    isRefreshing && "opacity-50",
-                  )}
-                  style={{ height: virtualizer.getTotalSize() }}
+                  className="relative min-h-full"
+                  style={{ width: canvasWidth, minWidth: "100%" }}
                 >
-                  <SelectionOverlay />
-                  <GridBody items={items} getRow={getRow} />
+                  <GridHeader />
+                  {rowCount === 0 && isFetching ? (
+                    <GridLoadingState />
+                  ) : rowCount > 0 ? (
+                    <div
+                      className={cn(
+                        "relative transition-opacity duration-200",
+                        isRefreshing && "opacity-50",
+                      )}
+                      style={{ height: virtualizer.getTotalSize() }}
+                    >
+                      <SelectionOverlay />
+                      <GridBody items={items} getRow={getRow} />
+                    </div>
+                  ) : null}
+                  {colDropTarget != null && (
+                    <div
+                      className="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
+                      style={{
+                        zIndex: Z_DROPLINE,
+                        left: GUTTER_WIDTH + colOffsets[colDropTarget] - 1,
+                      }}
+                    />
+                  )}
                 </div>
-              ) : null}
-              {colDropTarget != null && (
-                <div
-                  className="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
-                  style={{
-                    zIndex: Z_DROPLINE,
-                    left: GUTTER_WIDTH + colOffsets[colDropTarget] - 1,
-                  }}
-                />
-              )}
-            </div>
-          </div>
+              </div>
+            </ContextMenuTrigger>
+            <GridContextMenuContent
+              key={contextMenuEpoch}
+              onCopy={handleCopy}
+            />
+          </ContextMenu>
           <GridStatusBar
             totalCount={totalCount}
             rowCount={rowCount}
             getRow={getRow}
             summary={summary}
             isFetching={isFetching}
+            selectionStats={selectionStats}
           />
         </div>
       </div>

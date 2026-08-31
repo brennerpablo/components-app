@@ -3,7 +3,7 @@
 import type { Virtualizer } from "@tanstack/react-virtual";
 import * as React from "react";
 
-import { GUTTER_WIDTH, ROW_HEIGHT } from "./constants";
+import { scrollCellIntoView } from "./scroll-into-view";
 import type { GridSelectionStore } from "./selection-store";
 import type { CellCoord } from "./types";
 
@@ -12,7 +12,17 @@ import type { CellCoord } from "./types";
  * extends the range from the anchor, Ctrl/Cmd jumps to the data edge (the
  * dataset is fully dense, so the edge IS the first/last row/column —
  * matching Excel on a filled sheet). Ctrl/Cmd+C is handled by the caller via
- * `onCopy`.
+ * `onCopy`, Ctrl/Cmd+F opens "Localizar", and Ctrl/Cmd+Z / Ctrl+Shift+Z step
+ * the VIEW history (filters, sort, column layout — there is no cell editing to
+ * undo here; see use-grid-history.ts).
+ *
+ * Tab and Enter walk cells like a spreadsheet (Tab wraps to the next row,
+ * Enter steps down; Shift reverses both) and always COLLAPSE the selection —
+ * Shift is the direction modifier there, not the extend modifier. They only
+ * do that while a selection exists: with none, Tab is left alone to move
+ * focus out of the grid, which is the behavior the ARIA grid pattern expects
+ * and the only way out of the sheet for a keyboard user. Escape clears the
+ * selection, so "Escape then Tab" always leaves.
  */
 
 type KeyboardDeps = {
@@ -22,7 +32,14 @@ type KeyboardDeps = {
   colOffsets: number[];
   rowCount: number;
   colCount: number;
+  rowHeight: number;
+  /** Leading columns frozen to the left edge (never scrolled to). */
+  frozenCount: number;
+  frozenWidth: number;
   onCopy: () => void;
+  onFind: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
 };
 
 export function useGridKeyboard({
@@ -32,15 +49,21 @@ export function useGridKeyboard({
   colOffsets,
   rowCount,
   colCount,
+  rowHeight,
+  frozenCount,
+  frozenWidth,
   onCopy,
+  onFind,
+  onUndo,
+  onRedo,
 }: KeyboardDeps) {
   return React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       // The header's filter menus portal to `document.body` but stay React
       // children of this subtree, so their keystrokes bubble here through
       // React's synthetic event tree even though they live outside the grid's
-      // DOM. Never hijack a key — above all Cmd/Ctrl+A and the arrows — that
-      // belongs to a focused form field or an open overlay.
+      // DOM. Never hijack a key — above all Cmd/Ctrl+A, Cmd/Ctrl+C and the
+      // arrows — that belongs to a focused form field or an open overlay.
       const target = e.target as HTMLElement | null;
       if (
         target &&
@@ -59,6 +82,24 @@ export function useGridKeyboard({
       if (ctrl && (key === "c" || key === "C")) {
         e.preventDefault();
         onCopy();
+        return;
+      }
+      if (ctrl && (key === "f" || key === "F")) {
+        e.preventDefault();
+        onFind();
+        return;
+      }
+      if (ctrl && (key === "z" || key === "Z")) {
+        e.preventDefault();
+        // Shift+Z é o refazer do Sheets; Ctrl+Y é o do Excel, e custa uma
+        // linha aceitar os dois.
+        if (e.shiftKey) onRedo();
+        else onUndo();
+        return;
+      }
+      if (ctrl && (key === "y" || key === "Y")) {
+        e.preventDefault();
+        onRedo();
         return;
       }
       if (ctrl && (key === "a" || key === "A")) {
@@ -80,12 +121,37 @@ export function useGridKeyboard({
 
       const snap = store.getSnapshot();
       const cur: CellCoord = snap.focus ?? { row: 0, col: 0 };
+      // Ctrl+Space / Shift+Space select the active cell's column / row, and
+      // both together select the sheet — the same three shortcuts Excel and
+      // Sheets bind. The anchor stays on the current cell so the active ring
+      // doesn't jump to row 0 / column A.
+      if (key === " " || key === "Spacebar") {
+        if (ctrl && e.shiftKey) {
+          e.preventDefault();
+          store.selectAll();
+          return;
+        }
+        if (ctrl) {
+          e.preventDefault();
+          store.beginDrag(cur, "col", false, false);
+          return;
+        }
+        if (e.shiftKey) {
+          e.preventDefault();
+          store.beginDrag(cur, "row", false, false);
+          return;
+        }
+        return;
+      }
+
       const el = scrollRef.current;
       const visibleRows = el
-        ? Math.max(1, Math.floor(el.clientHeight / ROW_HEIGHT) - 1)
+        ? Math.max(1, Math.floor(el.clientHeight / rowHeight) - 1)
         : 20;
 
       let next: CellCoord | null = null;
+      // Tab/Enter never extend; Shift only reverses their direction.
+      let collapse = false;
       switch (key) {
         case "ArrowDown":
           next = { row: ctrl ? rowCount - 1 : cur.row + 1, col: cur.col };
@@ -113,6 +179,24 @@ export function useGridKeyboard({
             ? { row: rowCount - 1, col: colCount - 1 }
             : { row: cur.row, col: colCount - 1 };
           break;
+        case "Tab": {
+          if (!snap.focus) return;
+          collapse = true;
+          next = e.shiftKey
+            ? cur.col > 0
+              ? { row: cur.row, col: cur.col - 1 }
+              : { row: cur.row - 1, col: colCount - 1 }
+            : cur.col < colCount - 1
+              ? { row: cur.row, col: cur.col + 1 }
+              : { row: cur.row + 1, col: 0 };
+          break;
+        }
+        case "Enter": {
+          if (!snap.focus) return;
+          collapse = true;
+          next = { row: cur.row + (e.shiftKey ? -1 : 1), col: cur.col };
+          break;
+        }
         default:
           return;
       }
@@ -122,22 +206,32 @@ export function useGridKeyboard({
         row: Math.max(0, Math.min(next.row, rowCount - 1)),
         col: Math.max(0, Math.min(next.col, colCount - 1)),
       };
-      if (e.shiftKey) store.extendTo(clamped);
+      if (e.shiftKey && !collapse) store.extendTo(clamped);
       else store.setActive(clamped);
 
-      virtualizer.scrollToIndex(clamped.row, { align: "auto" });
-      if (el) {
-        // Horizontal: keep the cell clear of the sticky gutter on the left
-        // and the scrollport edge on the right.
-        const left = GUTTER_WIDTH + colOffsets[clamped.col];
-        const right = GUTTER_WIDTH + colOffsets[clamped.col + 1];
-        if (left - GUTTER_WIDTH < el.scrollLeft) {
-          el.scrollLeft = left - GUTTER_WIDTH;
-        } else if (right > el.scrollLeft + el.clientWidth) {
-          el.scrollLeft = right - el.clientWidth;
-        }
-      }
+      scrollCellIntoView({
+        el,
+        virtualizer,
+        colOffsets,
+        frozenWidth,
+        frozenCount,
+        coord: clamped,
+      });
     },
-    [scrollRef, store, virtualizer, colOffsets, rowCount, colCount, onCopy],
+    [
+      scrollRef,
+      store,
+      virtualizer,
+      colOffsets,
+      rowCount,
+      colCount,
+      rowHeight,
+      frozenCount,
+      frozenWidth,
+      onCopy,
+      onFind,
+      onUndo,
+      onRedo,
+    ],
   );
 }

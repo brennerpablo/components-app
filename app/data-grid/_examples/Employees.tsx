@@ -134,9 +134,12 @@ export function Employees() {
     desc: false,
   });
   const [filters, setFilters] = React.useState<GridFilterState>({});
-  const [columnState, setColumnState] = React.useState<GridColumnState>(() =>
-    defaultColumnState(columns),
-  );
+  // Seeded with the name column already frozen — the user moves the boundary
+  // from any column's menu ("Freeze up to this column").
+  const [columnState, setColumnState] = React.useState<GridColumnState>(() => ({
+    ...defaultColumnState(columns),
+    frozen: 1,
+  }));
 
   const src = useClientGridSource({
     rows: employeesData,

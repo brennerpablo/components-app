@@ -1,3 +1,4 @@
+import type { GridDensity } from "./constants";
 import type { GridConditionOp } from "./types";
 
 /**
@@ -41,8 +42,14 @@ export type GridStrings = {
   exportFailed: string;
   fullscreen: string;
   exitFullscreen: string;
+  undo: string;
+  redo: string;
+  find: string;
+  findAria: string;
+  density: string;
+  densityLabels: Record<GridDensity, string>;
   // filter popover
-  filterColumn: (title: string) => string;
+  columnMenu: (title: string) => string;
   sortAsc: string;
   sortDesc: string;
   condition: string;
@@ -55,6 +62,9 @@ export type GridStrings = {
   showingCap: (cap: number) => string;
   apply: string;
   opLabels: Record<GridConditionOp, string>;
+  freezeToHere: string;
+  unfreeze: string;
+  resizeHint: string;
   // status bar
   rows: (n: string) => string;
   showingFirst: (n: string) => string;
@@ -62,6 +72,10 @@ export type GridStrings = {
   avg: string;
   cells: (n: string) => string;
   partial: string;
+  exact: string;
+  computeExact: string;
+  computeExactTitle: string;
+  computeExactFailed: string;
   sum: string;
   mean: string;
   min: string;
@@ -69,8 +83,16 @@ export type GridStrings = {
   // empty state
   emptyTitle: string;
   emptyHint: string;
+  // find bar
+  findPlaceholder: string;
+  findMatches: (pos: string, total: string, capped: boolean) => string;
+  findNoMatches: (rows: string) => string;
+  findPrev: string;
+  findNext: string;
+  findClose: string;
   // clipboard (data-grid)
   selectAllCorner: string;
+  copy: string;
   nothingCopied: string;
   copiedPartial: (
     copied: string,
@@ -110,7 +132,17 @@ const EN: GridStrings = {
   exportFailed: "Export failed",
   fullscreen: "Fullscreen",
   exitFullscreen: "Exit fullscreen",
-  filterColumn: (title) => `Filter ${title}`,
+  undo: "Undo (Ctrl+Z)",
+  redo: "Redo (Ctrl+Shift+Z)",
+  find: "Find (Ctrl+F)",
+  findAria: "Find in grid",
+  density: "Row density",
+  densityLabels: {
+    compact: "Compact",
+    default: "Default",
+    comfortable: "Comfortable",
+  },
+  columnMenu: (title) => `Menu for column ${title}`,
   sortAsc: "Sort ascending",
   sortDesc: "Sort descending",
   condition: "Condition",
@@ -130,19 +162,33 @@ const EN: GridStrings = {
     lte: "less or equal",
     between: "between",
   },
+  freezeToHere: "Freeze up to this column",
+  unfreeze: "Unfreeze columns",
+  resizeHint: "Drag to resize · double-click fits the content",
   rows: (n) => `${n} rows`,
   showingFirst: (n) => ` · showing the first ${n} — refine with filters`,
   total: "total",
   avg: "avg",
   cells: (n) => `${n} cells`,
   partial: "partial:",
+  exact: "exact:",
+  computeExact: "compute exact",
+  computeExactTitle: "Sum the whole selection on the server",
+  computeExactFailed: "Could not compute the selection on the server",
   sum: "sum",
   mean: "avg",
   min: "min",
   max: "max",
   emptyTitle: "No rows found",
   emptyHint: "Adjust or clear filters to see results.",
+  findPlaceholder: "Find in the loaded rows",
+  findMatches: (pos, total, capped) => `${pos} of ${total}${capped ? "+" : ""}`,
+  findNoMatches: (rows) => `0 in ${rows} rows`,
+  findPrev: "Previous (Shift+Enter)",
+  findNext: "Next (Enter)",
+  findClose: "Close find (Esc)",
   selectAllCorner: "Select all",
+  copy: "Copy",
   nothingCopied: "Nothing copied — the selected rows haven't loaded yet.",
   copiedPartial: (copied, total, skipped, truncated) =>
     `Copied ${copied} of ${total} selected rows` +
@@ -180,7 +226,17 @@ const PT: GridStrings = {
   exportFailed: "Falha ao exportar",
   fullscreen: "Tela cheia",
   exitFullscreen: "Sair da tela cheia",
-  filterColumn: (title) => `Filtrar ${title}`,
+  undo: "Desfazer (Ctrl+Z)",
+  redo: "Refazer (Ctrl+Shift+Z)",
+  find: "Localizar (Ctrl+F)",
+  findAria: "Localizar na grade",
+  density: "Densidade das linhas",
+  densityLabels: {
+    compact: "Compacta",
+    default: "Padrão",
+    comfortable: "Confortável",
+  },
+  columnMenu: (title) => `Menu da coluna ${title}`,
   sortAsc: "Ordenar crescente",
   sortDesc: "Ordenar decrescente",
   condition: "Condição",
@@ -200,19 +256,33 @@ const PT: GridStrings = {
     lte: "menor ou igual",
     between: "entre",
   },
+  freezeToHere: "Congelar até esta coluna",
+  unfreeze: "Descongelar colunas",
+  resizeHint: "Arraste para redimensionar · duplo clique ajusta ao conteúdo",
   rows: (n) => `${n} linhas`,
   showingFirst: (n) => ` · mostrando as primeiras ${n} — refine com filtros`,
   total: "total",
   avg: "médio",
   cells: (n) => `${n} células`,
   partial: "parcial:",
+  exact: "exato:",
+  computeExact: "calcular exato",
+  computeExactTitle: "Somar a seleção inteira no servidor",
+  computeExactFailed: "Não foi possível calcular a seleção no servidor",
   sum: "soma",
   mean: "média",
   min: "mín",
   max: "máx",
   emptyTitle: "Nenhuma linha encontrada",
   emptyHint: "Ajuste ou limpe os filtros para ver resultados.",
+  findPlaceholder: "Localizar nas linhas carregadas",
+  findMatches: (pos, total, capped) => `${pos} de ${total}${capped ? "+" : ""}`,
+  findNoMatches: (rows) => `0 em ${rows} linhas`,
+  findPrev: "Anterior (Shift+Enter)",
+  findNext: "Próxima (Enter)",
+  findClose: "Fechar localizar (Esc)",
   selectAllCorner: "Selecionar tudo",
+  copy: "Copiar",
   nothingCopied: "Nada copiado — as linhas selecionadas ainda não carregaram.",
   copiedPartial: (copied, total, skipped, truncated) =>
     `Copiadas ${copied} de ${total} linhas selecionadas` +

@@ -5,7 +5,28 @@ import type { GridColumn, GridColumnState } from "./types";
 export function defaultColumnState<TData>(
   columns: GridColumn<TData>[],
 ): GridColumnState {
-  return { order: columns.map((c) => c.id), hidden: [], widths: {} };
+  return { order: columns.map((c) => c.id), hidden: [], widths: {}, frozen: 0 };
+}
+
+/**
+ * How many columns may be frozen: every VISIBLE unpinned column but one.
+ * Freezing the last scrollable column away would leave a sheet that cannot be
+ * scrolled horizontally at all, with no control left to undo it.
+ */
+function maxFrozen<TData>(
+  columns: GridColumn<TData>[],
+  order: string[],
+  hidden: string[],
+): number {
+  const byId = new Map(columns.map((c) => [c.id, c]));
+  const hiddenSet = new Set(hidden);
+  let visible = 0;
+  for (const id of order) {
+    const col = byId.get(id);
+    if (!col || hiddenSet.has(id) || col.pinned === "right") continue;
+    visible++;
+  }
+  return Math.max(0, visible - 1);
 }
 
 /**
@@ -31,5 +52,12 @@ export function sanitizeColumnState<TData>(
       widths[id] = Math.max(MIN_COL_WIDTH, Math.min(MAX_COL_WIDTH, w));
     }
   }
-  return { order, hidden, widths };
+  const frozen = Math.max(
+    0,
+    Math.min(
+      Math.trunc(state.frozen ?? 0) || 0,
+      maxFrozen(columns, order, hidden),
+    ),
+  );
+  return { order, hidden, widths, frozen };
 }

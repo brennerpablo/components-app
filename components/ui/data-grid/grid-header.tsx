@@ -15,8 +15,15 @@ import { useGridSelection } from "./selection-store";
 import type { GridColumn } from "./types";
 
 export function GridHeader() {
-  const { columns, colOffsets, pinnedColumns, pinnedWidth, strings } =
-    useGridContext();
+  const {
+    columns,
+    colOffsets,
+    pinnedColumns,
+    pinnedWidth,
+    frozenCount,
+    frozenWidth,
+    strings,
+  } = useGridContext();
   return (
     <div
       className="sticky top-0 flex border-b bg-background"
@@ -41,8 +48,22 @@ export function GridHeader() {
         className="sticky left-0 shrink-0 cursor-pointer border-r bg-muted"
         style={{ zIndex: Z_CORNER, width: GUTTER_WIDTH }}
       />
-      {columns.map((col, i) => (
-        <HeaderCell key={col.id} col={col} index={i} />
+      {frozenCount > 0 && (
+        // Frozen-left header lane. Its FLOW width is exactly the width of the
+        // columns inside it, so `colOffsets` — and therefore every index
+        // calculation in the grid — is unaffected by the freeze. Ordinary
+        // `HeaderCell`s: a frozen column still sorts, filters and resizes.
+        <div
+          className="sticky flex shrink-0 bg-background shadow-[2px_0_0_0_var(--color-border)]"
+          style={{ zIndex: 1, left: GUTTER_WIDTH, width: frozenWidth }}
+        >
+          {columns.slice(0, frozenCount).map((col, i) => (
+            <HeaderCell key={col.id} col={col} index={i} />
+          ))}
+        </div>
+      )}
+      {columns.slice(frozenCount).map((col, i) => (
+        <HeaderCell key={col.id} col={col} index={frozenCount + i} />
       ))}
       {pinnedColumns.length > 0 && (
         // Frozen-right header lane — mirror of the sticky-left corner.
@@ -77,7 +98,8 @@ const HeaderCell = React.memo(function HeaderCell({
   col: GridColumn<never>;
   index: number;
 }) {
-  const { store, sorting, startResize } = useGridContext();
+  const { store, sorting, startResize, autoSizeColumn, strings } =
+    useGridContext();
   const isSelected = useGridSelection(store, () => {
     const rect = store.getRect();
     return !!rect && index >= rect.c0 && index <= rect.c1;
@@ -104,10 +126,11 @@ const HeaderCell = React.memo(function HeaderCell({
       {sorted === "desc" && (
         <ArrowDown className="size-3 shrink-0 text-primary" />
       )}
-      {(col.filter || col.sortable) && <GridFilterPopover col={col} />}
+      <GridFilterPopover col={col} index={index} />
       <div
         data-grid-resize={index}
         aria-hidden
+        title={strings.resizeHint}
         className="absolute -right-0.75 top-0 z-10 h-full w-1.5 cursor-col-resize hover:bg-primary/50"
         onMouseDown={(e) => {
           // The delegated grid mousedown ignores [data-grid-resize]; this
@@ -115,6 +138,11 @@ const HeaderCell = React.memo(function HeaderCell({
           e.preventDefault();
           e.stopPropagation();
           startResize(col.id, e.clientX, col.width);
+        }}
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          autoSizeColumn(col.id);
         }}
       />
     </div>

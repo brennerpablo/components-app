@@ -5,6 +5,7 @@ import {
   ArrowUpZA,
   ListFilter,
   Search,
+  Snowflake,
 } from "lucide-react";
 import * as React from "react";
 
@@ -24,9 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { foldIncludes } from "@/lib/fold-text";
 import { cn } from "@/lib/utils";
 
 import { useGridContext } from "./grid-context";
+import { localeFor } from "./i18n";
 import type {
   GridColumn,
   GridColumnFilter,
@@ -64,15 +67,58 @@ function draftFromFilter(
   };
 }
 
-export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
+/**
+ * A grouped number typed into an `<input type="number">`.
+ *
+ * In a locale that groups with a dot, "150.000" is a VALID HTML floating-point
+ * number — it means one hundred and fifty. So the field accepts it, `value`
+ * comes back with the dot, and the server filters on `>= 150`. Someone who
+ * typed the amount the way their locale writes it sees a grid that excluded
+ * nothing and reads that as a broken filter; there is no error anywhere.
+ * (A comma the field already refuses: `type="number"` drops it.)
+ *
+ * Only applied where the active locale's grouping separator IS the dot — in
+ * `en-US`, "150.000" means 150 and stripping the dot would change what the
+ * user asked for. And the pattern is deliberately STRICT: groups of exactly
+ * three digits after the first dot ("1.500", "150.000", "1.250.000"), which is
+ * the only shape where the grouped reading is unambiguous. "0.5" and "1.25"
+ * don't match and stay decimals, as whoever typed them meant.
+ */
+const GROUPED = /^\d{1,3}(\.\d{3})+$/;
+
+function dotGroupsDigits(locale: string): boolean {
+  return new Intl.NumberFormat(locale)
+    .formatToParts(1_000_000)
+    .some((part) => part.type === "group" && part.value === ".");
+}
+
+function stripGrouping(v: string, dotGroups: boolean): string {
+  return dotGroups && GROUPED.test(v) ? v.replaceAll(".", "") : v;
+}
+
+export function GridFilterPopover({
+  col,
+  index,
+}: {
+  col: GridColumn<never>;
+  /** Visible column index — the freeze boundary is "up to and including me". */
+  index: number;
+}) {
   const {
     sorting,
     onSortingChange,
     filters,
     onFiltersChange,
     filterOptions,
+    frozenCount,
+    setFrozen,
     strings,
+    language,
   } = useGridContext();
+  const dotGroups = React.useMemo(
+    () => dotGroupsDigits(localeFor(language)),
+    [language],
+  );
 
   const active = filters[col.id];
   const conf = col.filter;
@@ -115,9 +161,12 @@ export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
   };
 
   const visible = React.useMemo(() => {
-    const needle = search.trim().toLowerCase();
+    // Folded on both sides: the same value reaches a grid spelled "São Paulo"
+    // from one source and "SAO PAULO" from the next, so a raw `includes` finds
+    // it on one and not on the other.
+    const needle = search.trim();
     const list = needle
-      ? options.filter((o) => o.label.toLowerCase().includes(needle))
+      ? options.filter((o) => foldIncludes(o.label, needle))
       : options;
     return list.slice(0, LIST_RENDER_CAP);
   }, [options, search]);
@@ -160,8 +209,12 @@ export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
   const apply = () => {
     const next: GridColumnFilter = {};
     if (draft.values !== null) next.values = [...draft.values];
-    const v = draft.value.trim();
-    const v2 = draft.value2.trim();
+    // Numeric columns only: in a text field a dot belongs to the text.
+    const grouped = conf?.conditions === "number";
+    const strip = (x: string) =>
+      grouped ? stripGrouping(x.trim(), dotGroups) : x.trim();
+    const v = strip(draft.value);
+    const v2 = strip(draft.value2);
     // "between" applies with either bound filled (De-only / Até-only).
     if (
       draft.op &&
@@ -195,7 +248,7 @@ export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={strings.filterColumn(col.title)}
+          aria-label={strings.columnMenu(col.title)}
           className={cn(
             "shrink-0 rounded p-0.5 hover:bg-accent",
             active
@@ -373,6 +426,44 @@ export function GridFilterPopover({ col }: { col: GridColumn<never> }) {
             </div>
           </>
         )}
+
+        {/* Freeze lives HERE, in the column menu, and not in the toolbar's
+            column picker: the boundary is "up to this column", and the column
+            that defines it is the one being looked at. It is also why this menu
+            now opens on EVERY column — it used to exist only where there was a
+            filter or a sort, and freezing depends on neither. */}
+        {(col.sortable || ops.length > 0 || options.length > 0) && (
+          <Separator />
+        )}
+        <div className="p-1">
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-accent"
+            onClick={() => {
+              setFrozen(index + 1);
+              setOpen(false);
+            }}
+          >
+            <Snowflake className="size-4 text-muted-foreground" />
+            {strings.freezeToHere}
+            {frozenCount === index + 1 && (
+              <span className="ml-auto text-primary">✓</span>
+            )}
+          </button>
+          {frozenCount > 0 && (
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-accent"
+              onClick={() => {
+                setFrozen(0);
+                setOpen(false);
+              }}
+            >
+              <Snowflake className="size-4 text-muted-foreground opacity-40" />
+              {strings.unfreeze}
+            </button>
+          )}
+        </div>
 
         {(ops.length > 0 || options.length > 0) && (
           <>

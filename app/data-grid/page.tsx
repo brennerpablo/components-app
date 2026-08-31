@@ -17,9 +17,12 @@ export default function DataGridPage() {
         <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
           A virtualized, spreadsheet-style grid: server-ready windowed data,
           Excel-style per-column filters, cell/row/column selection with
-          clipboard copy, drag-to-reorder &amp; resize columns, frozen columns,
-          saved views, CSV/XLSX export, and English/Portuguese chrome. These
-          demos run fully client-side via <code>useClientGridSource</code>.
+          clipboard copy and a right-click menu, drag-to-reorder &amp; resize
+          columns (double-click a handle to autofit), user-driven frozen
+          columns, find-in-grid (Ctrl/Cmd+F), row density, undo/redo of the
+          view, saved views, CSV/XLSX export, and English/Portuguese chrome.
+          These demos run fully client-side via{" "}
+          <code>useClientGridSource</code>.
         </p>
         <Tabs defaultValue="transactions">
           <TabsList variant="line">

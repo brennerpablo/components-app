@@ -22,9 +22,12 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  Redo2,
+  Rows3,
   Save,
   Search,
   Trash2,
+  Undo2,
   X,
 } from "lucide-react";
 import * as React from "react";
@@ -45,9 +48,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { foldIncludes } from "@/lib/fold-text";
 import { cn } from "@/lib/utils";
 
 import { defaultColumnState, sanitizeColumnState } from "./column-state";
+import { DENSITIES, type GridDensity } from "./constants";
 import { exportRowsToCSV, exportRowsToXLSX } from "./export";
 import { useGridContext } from "./grid-context";
 import { type GridStrings, localeFor } from "./i18n";
@@ -132,6 +137,15 @@ type GridToolbarProps<TData> = {
   onSortingChange: (s: GridSortState) => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  /** null = the grid's own default height. */
+  density: GridDensity | null;
+  onDensityChange: (d: GridDensity) => void;
+  onFind: () => void;
+  /** View history — see `use-grid-history.ts`. */
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 };
 
 export function GridToolbar<TData>({
@@ -146,6 +160,13 @@ export function GridToolbar<TData>({
   onSortingChange,
   isFullscreen,
   onToggleFullscreen,
+  density,
+  onDensityChange,
+  onFind,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
 }: GridToolbarProps<TData>) {
   const { strings } = useGridContext();
   const filterCount = Object.keys(filters).length;
@@ -193,6 +214,71 @@ export function GridToolbar<TData>({
           columnState={columnState}
           onColumnStateChange={onColumnStateChange}
         />
+
+        {/* A plain rule and not `Separator`: that one is `h-full` on the
+            vertical axis, which collapses inside this auto-height flex row. */}
+        <div aria-hidden className="mx-1 h-5 w-px bg-border" />
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          disabled={!canUndo}
+          onClick={onUndo}
+          title={strings.undo}
+          aria-label={strings.undo}
+        >
+          <Undo2 className="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          disabled={!canRedo}
+          onClick={onRedo}
+          title={strings.redo}
+          aria-label={strings.redo}
+        >
+          <Redo2 className="size-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          onClick={onFind}
+          title={strings.find}
+          aria-label={strings.findAria}
+        >
+          <Search className="size-4" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2"
+              title={strings.density}
+              aria-label={strings.density}
+            >
+              <Rows3 className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-40">
+            {DENSITIES.map((d) => (
+              <DropdownMenuItem
+                key={d.id}
+                onSelect={() => onDensityChange(d.id)}
+              >
+                {strings.densityLabels[d.id]}
+                {(density ?? "default") === d.id && (
+                  <span className="ml-auto text-primary">✓</span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {config.export && (
           <ExportMenu
@@ -279,15 +365,16 @@ function ExportMenu<TData>({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-7 px-2"
           disabled={exporting}
+          title={strings.exportLabel}
+          aria-label={strings.exportLabel}
         >
           {exporting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <Download className="size-4" />
           )}
-          {strings.exportLabel}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -502,7 +589,8 @@ function ColumnsMenu<TData>({
 
   // Reordering while the list is search-filtered would reorder against wrong
   // indexes — disable dragging under a search instead.
-  const needle = search.trim().toLowerCase();
+  // Folded, so "endereco" finds the column titled "Endereço".
+  const needle = search.trim();
   const dragDisabled = needle.length > 0;
 
   // Commit a drop: indexes are positions in the FULL order array.
@@ -571,7 +659,7 @@ function ColumnsMenu<TData>({
           {columnState.order.map((id, index) => {
             const col = byId.get(id);
             if (!col) return null;
-            if (needle && !col.title.toLowerCase().includes(needle)) {
+            if (needle && !foldIncludes(col.title, needle)) {
               return null;
             }
             const visible = !hiddenSet.has(id);

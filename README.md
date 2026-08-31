@@ -472,21 +472,22 @@ export default function Page() {
 
 ### DataGrid
 
-A virtualized, spreadsheet-style data grid for very large datasets. Excel-style per-column filters (checkbox value lists + typed conditions), cell/row/column selection with clipboard copy, drag-to-reorder and drag-to-resize columns, columns frozen to the right edge, saved views, CSV/XLSX export, a fullscreen toggle, and English/Portuguese chrome. Server-oriented by contract (a sparse `getRow` accessor + windowed block fetching), so it scales to millions of rows; `useClientGridSource` drives it from a plain array for local data.
+A virtualized, spreadsheet-style data grid for very large datasets. Excel-style per-column filters (checkbox value lists + typed conditions), cell/row/column selection with clipboard copy, a right-click menu, drag-to-reorder and drag-to-resize columns (double-click the handle to fit the content), user-driven frozen columns on the left and display-only pinned columns on the right, find-in-grid (Ctrl/Cmd+F), row density, undo/redo of the view, saved views, CSV/XLSX export, a fullscreen toggle, and English/Portuguese chrome. Server-oriented by contract (a sparse `getRow` accessor + windowed block fetching), so it scales to millions of rows; `useClientGridSource` drives it from a plain array for local data.
 
 **Demo:** `localhost:3000/data-grid`
 
 #### Files to copy
 
 ```
-components/ui/data-grid/       (whole folder — 21 files incl. index.ts, i18n.ts, client-source.ts)
+components/ui/data-grid/       (whole folder — 27 files incl. index.ts, i18n.ts, client-source.ts)
 components/ui/separator.tsx     (if not already present)
+lib/fold-text.ts                (accent-insensitive matching, shared by the filters and find)
 ```
 
 #### shadcn dependencies
 
 ```bash
-npx shadcn@latest add button input popover select dropdown-menu checkbox separator
+npx shadcn@latest add button input popover select dropdown-menu context-menu checkbox separator
 ```
 
 #### npm dependencies
@@ -530,6 +531,11 @@ const src = useClientGridSource({ rows, columns, sorting, filters, summaryColumn
 
 - Set a height via `className` (e.g. `h-[560px]`) so the grid can virtualize.
 - Pinned (`pinned: "right"`) columns are display-only — ideal for action/link icon cells.
+- Freezing to the LEFT is a different thing: `GridColumnState.frozen` is a COUNT of leading visible columns, driven by the user from any column's menu ("Freeze up to this column"). Those columns stay full members of the grid — selectable, copyable, exportable — and only their painting changes, so no index math downstream is affected. Seed it (`{ ...defaultColumnState(columns), frozen: 2 }`) for a sheet whose identity columns should start pinned.
+- **Find (Ctrl/Cmd+F) searches the LOADED rows only**, and says so in the bar. A server-side find would need an `ORDER BY … OFFSET` scan of the whole filtered set per keystroke — the query a windowed grid exists to avoid.
+- Row density rides `localStorage` under `<savedViews.storageKey>:density`, deliberately NOT inside a saved view: applying a colleague's filters must not resize your rows. Grids with no `savedViews` key simply don't persist it.
+- Undo/redo (toolbar, Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y) steps the VIEW — filters, sort, column layout. There is no cell editing to undo. Changes made from outside the grid never enter the stack.
+- `selectionStats` is optional. Without it, a selection spanning unloaded rows is labelled "partial"; with it, that label carries a button that asks the server for the exact aggregate — one deliberate query per click, never automatic.
 - `language="pt"` switches the chrome to Portuguese; defaults to `"en"`.
 - Atlaskit DnD packages require `--legacy-peer-deps` (React 19 peer conflict).
 

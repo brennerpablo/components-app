@@ -37,7 +37,9 @@ function Example({ data }: { data: Row[] }) {
   const [sorting, setSorting] = React.useState<GridSortState>({ id: "name", desc: false })
   const [filters, setFilters] = React.useState<GridFilterState>({})
   const [columnState, setColumnState] = React.useState<GridColumnState>(
-    () => defaultColumnState(columns),
+    // \`frozen\` is a COUNT of leading visible columns; the user moves the
+    // boundary from any column's menu ("Freeze up to this column").
+    () => ({ ...defaultColumnState(columns), frozen: 1 }),
   )
   const src = useClientGridSource({ rows: data, columns, sorting, filters, summaryColumn: "salary" })
 
@@ -162,6 +164,12 @@ function Example({ data }: { data: Row[] }) {
                 "Top toolbar: export, fullscreen, saved views, column picker. Omit to hide the toolbar.",
             },
             {
+              name: "selectionStats",
+              type: "(req) => Promise<Record<string, GridAggregate>>",
+              description:
+                "Optional. Exact per-column aggregates for a row range of the current sort+filter. Without it, a selection spanning unloaded rows stays labelled \"partial\"; with it, that label carries a button that asks the server for the exact figure — one query per click, never automatic.",
+            },
+            {
               name: "resetToken",
               type: "string",
               description:
@@ -268,7 +276,7 @@ function Example({ data }: { data: Row[] }) {
               name: "savedViews",
               type: "{ storageKey: string }",
               description:
-                "Enables saving/loading named filter+sort+layout snapshots to localStorage under storageKey.",
+                "Enables saving/loading named filter+sort+layout snapshots to localStorage under storageKey. Also the key row density persists under (<storageKey>:density) — deliberately outside the views, so applying someone else's filters doesn't resize your rows.",
             },
             {
               name: "fullscreen",

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { GUTTER_WIDTH, HEADER_HEIGHT, ROW_HEIGHT } from "./constants";
+import { GUTTER_WIDTH, HEADER_HEIGHT } from "./constants";
 import type { GridSelectionStore } from "./selection-store";
 import type { CellCoord } from "./types";
 
@@ -12,6 +12,9 @@ import type { CellCoord } from "./types";
  * arithmetic from scroll offsets + client position (no elementFromPoint), the
  * move handler is rAF-throttled, and near-edge auto-scroll runs on an
  * interval that keeps extending the selection while the pointer is parked.
+ *
+ * Também trata o `contextmenu` — só a SELEÇÃO, nunca o menu em si, que é do
+ * `ContextMenuTrigger` em volta do container.
  *
  * Two drag kinds share the loop:
  * - "select": anchor→focus range extension (cells, gutter rows, headers).
@@ -31,6 +34,9 @@ type MouseDeps = {
   colOffsets: number[];
   rowCount: number;
   colCount: number;
+  rowHeight: number;
+  /** Width of the sticky frozen-left lane, in canvas px (0 when none). */
+  frozenWidth: number;
   /** Live drop boundary (0..colCount) during a column move; null = none. */
   onColMoveTarget: (boundary: number | null) => void;
   /** Commit a column move: visible index `from` → visible boundary `to`. */
@@ -39,7 +45,6 @@ type MouseDeps = {
 
 const EDGE_PX = 28;
 const EDGE_INTERVAL_MS = 50;
-const EDGE_STEP_PX = ROW_HEIGHT * 2;
 const MOVE_THRESHOLD_PX = 4;
 
 export function useGridMouse({
@@ -48,9 +53,12 @@ export function useGridMouse({
   colOffsets,
   rowCount,
   colCount,
+  rowHeight,
+  frozenWidth,
   onColMoveTarget,
   onColMove,
 }: MouseDeps) {
+  const edgeStepPx = rowHeight * 2;
   React.useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -72,13 +80,26 @@ export function useGridMouse({
     // (capturing dy/dx at interval creation froze the scroll direction).
     const edgeDir = { dx: 0, dy: 0 };
 
+    /**
+     * Pointer x → canvas x. The frozen lane doesn't scroll, so a pointer over
+     * it maps to its own width regardless of `scrollLeft`; past the lane, the
+     * result is clamped to the lane's right edge so a pointer parked over the
+     * lane during a drag can't extend the selection into columns hidden
+     * underneath it.
+     */
+    const canvasX = (clientX: number): number => {
+      const vx = clientX - containerRect.left - GUTTER_WIDTH;
+      if (vx < frozenWidth) return Math.max(0, vx);
+      return Math.max(frozenWidth, vx + el.scrollLeft);
+    };
+
     const coordFromClient = (clientX: number, clientY: number): CellCoord => {
       const rect = containerRect;
       const y = clientY - rect.top + el.scrollTop - HEADER_HEIGHT;
-      const x = clientX - rect.left + el.scrollLeft - GUTTER_WIDTH;
+      const x = canvasX(clientX);
       const row = Math.max(
         0,
-        Math.min(Math.floor(y / ROW_HEIGHT), Math.max(0, rowCount - 1)),
+        Math.min(Math.floor(y / rowHeight), Math.max(0, rowCount - 1)),
       );
       let col = Math.max(0, colCount - 1);
       if (x < 0) {
@@ -96,7 +117,7 @@ export function useGridMouse({
 
     /** Nearest column boundary (0..colCount) for the move drop line. */
     const boundaryFromClient = (clientX: number): number => {
-      const x = clientX - containerRect.left + el.scrollLeft - GUTTER_WIDTH;
+      const x = canvasX(clientX);
       for (let i = 0; i < colCount; i++) {
         const mid = (colOffsets[i] + colOffsets[i + 1]) / 2;
         if (x < mid) return i;
@@ -136,7 +157,7 @@ export function useGridMouse({
       edgeDir.dx =
         lastClient.x > rect.right - EDGE_PX
           ? 1
-          : lastClient.x < rect.left + GUTTER_WIDTH + EDGE_PX
+          : lastClient.x < rect.left + GUTTER_WIDTH + frozenWidth + EDGE_PX
             ? -1
             : 0;
       if (!edgeDir.dy && !edgeDir.dx) {
@@ -145,8 +166,8 @@ export function useGridMouse({
       }
       if (edgeTimer) return;
       edgeTimer = setInterval(() => {
-        el.scrollTop += edgeDir.dy * EDGE_STEP_PX;
-        el.scrollLeft += edgeDir.dx * EDGE_STEP_PX;
+        el.scrollTop += edgeDir.dy * edgeStepPx;
+        el.scrollLeft += edgeDir.dx * edgeStepPx;
         updateFromLastClient();
       }, EDGE_INTERVAL_MS);
     };
@@ -275,10 +296,87 @@ export function useGridMouse({
       }
     };
 
+    /**
+     * Botão direito: move a seleção para o alvo, se ele estiver FORA dela, e a
+     * preserva se estiver dentro — a regra da planilha, e a que impede o caso
+     * feio de escolher 400 linhas, errar o clique numa quinta coluna e copiar
+     * uma célula.
+     *
+     * Só isso. Quem ABRE o menu é o `ContextMenuTrigger` do Radix em volta do
+     * container; este listener é nativo e está no próprio elemento, então roda
+     * antes do handler delegado do React e a seleção já está certa quando o
+     * menu monta.
+     */
+    const onContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Link ou botão dentro da célula fica com o menu do NAVEGADOR: "abrir em
+      // nova aba" e "copiar endereço do link" são o que se quer ali, e nosso
+      // menu não tem como oferecer nenhum dos dois. `stopPropagation` impede o
+      // handler delegado do React — e portanto o Radix — de ver o evento.
+      if (target.closest("[data-grid-cell-action]")) {
+        e.stopPropagation();
+        return;
+      }
+      el.focus({ preventScroll: true });
+      const rect = store.getRect();
+      const snap = store.getSnapshot();
+
+      if (target.closest("[data-grid-corner]")) {
+        store.selectAll();
+        return;
+      }
+
+      const header = target.closest<HTMLElement>("[data-grid-header-col]");
+      if (header) {
+        const col = Number(header.dataset.gridHeaderCol);
+        const dentro =
+          snap.mode === "col" && rect && col >= rect.c0 && col <= rect.c1;
+        if (!dentro) store.selectColumn(col, false, false);
+        return;
+      }
+
+      const gutter = target.closest<HTMLElement>("[data-grid-gutter]");
+      if (gutter) {
+        const row = Number(gutter.dataset.gridGutter);
+        const dentro =
+          snap.mode === "row" && rect && row >= rect.r0 && row <= rect.r1;
+        if (!dentro) store.selectRow(row, false, false);
+        return;
+      }
+
+      const cell = target.closest<HTMLElement>("[data-grid-cell]");
+      if (cell) {
+        const coord = {
+          row: Number(cell.dataset.r),
+          col: Number(cell.dataset.c),
+        };
+        const dentro =
+          rect &&
+          coord.row >= rect.r0 &&
+          coord.row <= rect.r1 &&
+          coord.col >= rect.c0 &&
+          coord.col <= rect.c1;
+        if (!dentro) store.setActive(coord);
+      }
+    };
+
     el.addEventListener("mousedown", onMouseDown);
+    el.addEventListener("contextmenu", onContextMenu);
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
+      el.removeEventListener("contextmenu", onContextMenu);
       onUp();
     };
-  }, [scrollRef, store, colOffsets, rowCount, colCount, onColMoveTarget, onColMove]);
+  }, [
+    scrollRef,
+    store,
+    colOffsets,
+    rowCount,
+    colCount,
+    edgeStepPx,
+    rowHeight,
+    frozenWidth,
+    onColMoveTarget,
+    onColMove,
+  ]);
 }

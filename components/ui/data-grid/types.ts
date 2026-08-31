@@ -26,6 +26,13 @@ export type GridCellAction<TData> = {
   href?: (row: TData) => string | null | undefined;
   /** Renders a `<button>` firing this (used when there's no `href`). */
   onClick?: (row: TData) => void;
+  /**
+   * Escape hatch: render arbitrary content (e.g. a dropdown-menu trigger)
+   * instead of the plain icon. Takes precedence over `href`/`onClick`. The
+   * grid wraps it in a `data-grid-cell-action` element so clicks never start a
+   * selection; any menu should portal outside the grid (Radix does by default).
+   */
+  render?: (row: TData) => React.ReactNode;
 };
 
 /**
@@ -117,6 +124,27 @@ export type GridColumnState = {
   hidden: string[];
   /** Width overrides by id; falls back to GridColumn.width. */
   widths: Record<string, number>;
+  /**
+   * How many LEADING visible columns are frozen to the left edge ("freeze up
+   * to this column", Sheets-style). Absent/0 = none.
+   *
+   * A count and not a set of ids, because that is what the freeze IS: a
+   * boundary in display order. Freezing a scattered set of columns would have
+   * to reorder them anyway, and a count survives reorder/hide without ever
+   * naming a column that moved. Frozen columns stay full members of the data
+   * grid — selectable, sortable, copied, exported — they simply render in a
+   * sticky lane whose flow width equals `colOffsets[frozen]`, so every index
+   * calculation downstream is untouched.
+   */
+  frozen?: number;
+};
+
+/** Per-column aggregate of a selection — see DataGrid's `selectionStats`. */
+export type GridAggregate = {
+  count: number;
+  sum: number | null;
+  min: number | null;
+  max: number | null;
 };
 
 /** A named snapshot of the grid's filter + sort state (see views-storage). */
