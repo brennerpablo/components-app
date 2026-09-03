@@ -20,6 +20,8 @@ export type StatusMapProps = {
   label?: boolean
   labelAlign?: "left" | "center" | "right"
   labelTop?: boolean
+  /** Initial horizontal scroll position; defaults to `start`. */
+  initialScroll?: "start" | "end"
   className?: string
   onCellClick?: (row: string, date: string, status: string) => void
   onAction?: (row: string, date: string, status: string) => void

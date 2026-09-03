@@ -2,7 +2,7 @@
 
 import { format } from "date-fns"
 import { Tooltip } from "radix-ui"
-import { useMemo } from "react"
+import { useLayoutEffect, useMemo, useRef } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -26,6 +26,7 @@ export function StatusMap({
   onCellClick,
   onAction,
   tooltip = false,
+  initialScroll = "start",
   tooltipContent,
 }: StatusMapProps) {
   const { rows, dates, index, counts } = useMemo(() => {
@@ -54,8 +55,19 @@ export function StatusMap({
   const statuses = Object.keys(labelConfig)
   const fallbackStatus = statuses[statuses.length - 1]
 
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // In a window of days the interesting end is the LAST one, and that is
+  // exactly what falls out of view when the axis overflows. Layout effect and
+  // not effect: after paint the user would see the map jump.
+  useLayoutEffect(() => {
+    if (initialScroll !== "end") return
+    const el = scrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [initialScroll, dates])
+
   const legend = label && (
-    <div className={cn("flex items-center gap-6", LABEL_ALIGN[labelAlign])}>
+    <div className={cn("flex flex-wrap items-center gap-x-6 gap-y-2", LABEL_ALIGN[labelAlign])}>
       {statuses.map((s) => (
         <div key={s} className="flex items-center gap-2">
           <div className={cn("h-3 w-3 rounded-sm", labelConfig[s].color)} />
@@ -76,11 +88,19 @@ export function StatusMap({
       {labelTop && legend}
 
       {/* Grid */}
-      <div className={cn("overflow-x-auto", bordered && "rounded-md border border-border")}>
+      <div
+        ref={scrollRef}
+        className={cn("grid-scrollbar overflow-x-auto", bordered && "rounded-md border border-border")}
+      >
         <table className="border-separate border-spacing-0 w-full">
           <thead>
             <tr className={cn("border-b border-border", bordered && "bg-muted/50")}>
-              <th className="w-16 pt-3 pb-2 pl-6" />
+              <th
+                className={cn(
+                  "sticky left-0 z-20 w-16 pt-3 pb-2 pl-6",
+                  bordered ? "status-map-frozen-head" : "status-map-frozen-label",
+                )}
+              />
               {dates.map((date, di) => (
                 <th
                   key={date}
@@ -106,7 +126,7 @@ export function StatusMap({
               >
                 <td
                   className={cn(
-                    "pl-6 pr-4 text-sm font-medium text-muted-foreground whitespace-nowrap",
+                    "status-map-frozen-label sticky left-0 z-10 pl-6 pr-4 text-sm font-medium text-muted-foreground whitespace-nowrap",
                     tight ? "py-0" : "py-2",
                     !tight && ri === rows.length - 1 && "pb-3"
                   )}

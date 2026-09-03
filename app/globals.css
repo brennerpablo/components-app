@@ -247,3 +247,17 @@
       color-mix(in oklab, var(--muted) 60%, transparent);
   }
 }
+
+/* StatusMap — frozen row-label band (`position: sticky` + these classes). The
+   cell must be OPAQUE, because the day columns scroll underneath it, and the
+   theme colors are translucent (`bg-muted/50` compiles to
+   `color-mix(..., transparent)` in Tailwind v4). `-head` reproduces the header
+   row color without the alpha; the vertical rule marks the frozen boundary. */
+.status-map-frozen-label {
+  background-color: var(--background);
+  box-shadow: 1px 0 0 0 var(--border);
+}
+.status-map-frozen-head {
+  background-color: color-mix(in oklab, var(--muted) 50%, var(--background));
+  box-shadow: 1px 0 0 0 var(--border);
+}

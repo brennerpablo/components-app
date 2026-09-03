@@ -874,6 +874,12 @@ npm install date-fns
 | File           | Purpose                                     |
 | -------------- | ------------------------------------------- |
 | `lib/utils.ts` | `cn()` utility — already in any shadcn project |
+| `app/globals.css` | `.grid-scrollbar` (always-visible scrollbar) + `.status-map-frozen-label` / `.status-map-frozen-head` (opaque background for the frozen row-label column) |
+
+The row-label column is `position: sticky`, so it stays in view while the date
+axis scrolls. It has to be painted opaque — the day cells scroll underneath it —
+and the theme's `bg-muted/50` compiles to a translucent `color-mix()`, hence the
+two dedicated classes rather than utilities.
 
 #### Type augmentations
 
@@ -922,6 +928,7 @@ export default function Page() {
 | `label`       | `boolean`                               | `false`      | Shows a color legend.                                                             |
 | `labelAlign`  | `"left" \| "center" \| "right"`        | `"left"`     | Horizontal alignment of the legend.                                               |
 | `labelTop`    | `boolean`                               | `false`      | Renders the legend above the grid instead of below.                               |
+| `initialScroll` | `"start" \| "end"`                    | `"start"`    | Where the horizontal scroll starts. Use `"end"` when the newest dates matter most. |
 | `className`   | `string`                                | —            | Additional class names on the root element.                                       |
 | `onCellClick` | `(row, date, status) => void`           | —            | Callback fired when a cell is clicked.                                            |
 
