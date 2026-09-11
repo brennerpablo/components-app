@@ -680,7 +680,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         }
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickLine={false}
         axisLine={false}
         minTickGap={autoScaleLabels ? 0 : tickGap}
@@ -709,7 +709,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         tick={{ transform: "translate(-3, 0)", fontSize: resolvedAxisTextSize }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickFormatter={type === "percent" ? valueToPercent : valueFormatter}
         allowDecimals={allowDecimals}
       >
@@ -736,7 +736,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         tick={{ transform: "translate(0, 6)", fontSize: resolvedAxisTextSize }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickLine={false}
         axisLine={false}
         minTickGap={tickGap}
@@ -765,7 +765,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         tick={{ fontSize: effectiveAxisTextSize }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickLine={false}
         axisLine={false}
         tickFormatter={truncateLabel}

@@ -339,7 +339,7 @@ function WaterfallChartInner({
         }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickFormatter={(label) => truncateLabel(String(label), labelTruncateAt)}
       />
       <YAxis
@@ -351,7 +351,7 @@ function WaterfallChartInner({
         tick={{ transform: "translate(-3, 0)", fontSize: resolvedAxisTextSize }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-400")}
+        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
         tickFormatter={valueFormatter}
       />
       {showTooltip ? (
