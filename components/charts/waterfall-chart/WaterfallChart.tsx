@@ -21,6 +21,22 @@ import {
 import { computeNiceTicks, inferYAxisWidth } from "../utils/chartHelpers"
 import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
 
+/**
+ * Axis tick ink. Belongs on the `tick` object, never on the axis `className`.
+ *
+ * recharts 3 draws tick labels in their own subtree
+ * (`recharts-cartesian-axis-tick-labels`, inside a `recharts-zIndex-layer`)
+ * which is NOT a descendant of the `<g>` that receives the axis `className`.
+ * A fill utility there paints an empty group, and the `<text>` — emitted with
+ * `fill=""` — inherits from the `<svg>`: black, in both themes. On white
+ * nobody notices; on a dark surface the axis disappears.
+ *
+ * `tick.className` is the path that survives: `renderTickItem` in
+ * `CartesianAxis` rebuilds the className from scratch and only adds what
+ * `getClassNameFromUnknown` pulls off the tick object.
+ */
+const AXIS_TICK_CLASS = "fill-gray-500 dark:fill-gray-300";
+
 export interface WaterfallChartDatum {
   label: string
   value: number
@@ -336,10 +352,11 @@ function WaterfallChartInner({
         textAnchor="end"
         tick={{
           fontSize: resolvedAxisTextSize,
+          className: AXIS_TICK_CLASS,
         }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
+        className="text-xs"
         tickFormatter={(label) => truncateLabel(String(label), labelTruncateAt)}
       />
       <YAxis
@@ -348,10 +365,14 @@ function WaterfallChartInner({
         ticks={yTicks}
         tickLine={false}
         axisLine={false}
-        tick={{ transform: "translate(-3, 0)", fontSize: resolvedAxisTextSize }}
+        tick={{
+          transform: "translate(-3, 0)",
+          fontSize: resolvedAxisTextSize,
+          className: AXIS_TICK_CLASS,
+        }}
         fill=""
         stroke=""
-        className={cn("text-xs", "fill-gray-500 dark:fill-gray-300")}
+        className="text-xs"
         tickFormatter={valueFormatter}
       />
       {showTooltip ? (

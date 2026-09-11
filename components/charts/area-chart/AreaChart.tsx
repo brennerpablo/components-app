@@ -32,6 +32,22 @@ import {
 } from "../utils/chartColors"
 import { type CompactScale, computeNiceTicks, computeYDomainWithPadding, detectCompactScale, formatCompactNumber, getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
 import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
+
+/**
+ * Axis tick ink. Belongs on the `tick` object, never on the axis `className`.
+ *
+ * recharts 3 draws tick labels in their own subtree
+ * (`recharts-cartesian-axis-tick-labels`, inside a `recharts-zIndex-layer`)
+ * which is NOT a descendant of the `<g>` that receives the axis `className`.
+ * A fill utility there paints an empty group, and the `<text>` — emitted with
+ * `fill=""` — inherits from the `<svg>`: black, in both themes. On white
+ * nobody notices; on a dark surface the axis disappears.
+ *
+ * `tick.className` is the path that survives: `renderTickItem` in
+ * `CartesianAxis` rebuilds the className from scratch and only adds what
+ * `getClassNameFromUnknown` pulls off the tick object.
+ */
+const AXIS_TICK_CLASS = "fill-gray-500 dark:fill-gray-300";
 import { useOnWindowResize } from "../utils/useOnWindowResize"
 
 type ChartTextSize = "xs" | "sm" | "md" | "lg" | number
@@ -929,6 +945,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                   ? "translate(0, 28)"
                   : "translate(0, 6)",
                 fontSize: resolvedXAxisTextSize,
+                className: AXIS_TICK_CLASS,
               }}
               ticks={
                 startEndOnly
@@ -937,12 +954,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               }
               fill=""
               stroke=""
-              className={cn(
-                // base
-                "text-xs",
-                // text fill
-                "fill-gray-500 dark:fill-gray-300",
-              )}
+              className="text-xs"
               tickLine={false}
               axisLine={false}
               minTickGap={tickGap}
@@ -966,15 +978,14 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               domain={(softDomain ?? yAxisDomain) as AxisDomain}
               ticks={softTicks ?? yAxisTicks}
               allowDataOverflow={strictYAxisDomain}
-              tick={{ transform: "translate(-3, 0)", fontSize: resolvedYAxisTextSize }}
+              tick={{
+                transform: "translate(-3, 0)",
+                fontSize: resolvedYAxisTextSize,
+                className: AXIS_TICK_CLASS,
+              }}
               fill=""
               stroke=""
-              className={cn(
-                // base
-                "text-xs",
-                // text fill
-                "fill-gray-500 dark:fill-gray-300",
-              )}
+              className="text-xs"
               tickFormatter={
                 type === "percent" ? valueToPercent : (softAxisFormatter ?? valueFormatter)
               }
