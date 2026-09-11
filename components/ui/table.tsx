@@ -4,11 +4,17 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * `grid-scrollbar` goes on the container: this div is what absorbs a wide
+ * table's horizontal overflow, so without it the bar is an overlay on macOS and
+ * only shows up *while* you scroll — a table wider than its box just looks
+ * cropped, with no hint that more columns exist.
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="grid-scrollbar relative w-full overflow-x-auto"
     >
       <table
         data-slot="table"
