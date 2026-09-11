@@ -941,7 +941,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 // base
                 "text-xs",
                 // text fill
-                "fill-gray-500 dark:fill-gray-500",
+                "fill-gray-500 dark:fill-gray-400",
               )}
               tickLine={false}
               axisLine={false}
@@ -973,7 +973,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 // base
                 "text-xs",
                 // text fill
-                "fill-gray-500 dark:fill-gray-500",
+                "fill-gray-500 dark:fill-gray-400",
               )}
               tickFormatter={
                 type === "percent" ? valueToPercent : (softAxisFormatter ?? valueFormatter)

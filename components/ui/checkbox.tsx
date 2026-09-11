@@ -32,14 +32,14 @@ const Checkbox = React.forwardRef<
         // base
         "relative inline-flex size-4 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-[3px] border outline-none transition-colors",
         // unchecked
-        "border-slate-300 bg-white",
+        "border-slate-300 dark:border-slate-600 bg-white dark:bg-card",
         // checked / indeterminate (default when no accent)
         !resolved && "data-[state=checked]:border-slate-400 data-[state=checked]:bg-slate-400",
         !resolved && "data-[state=indeterminate]:border-slate-400 data-[state=indeterminate]:bg-slate-400",
         // disabled
         "disabled:cursor-not-allowed disabled:opacity-50",
         // focus
-        "focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1",
+        "focus-visible:ring-2 focus-visible:ring-slate-300 dark:focus-visible:ring-slate-600 focus-visible:ring-offset-1",
         className,
       )}
       style={

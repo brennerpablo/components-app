@@ -73,7 +73,7 @@ function MultiSelectItem({ value, className, children }: MultiSelectItemProps) {
       <div
         className={cn(
           "flex size-4 shrink-0 items-center justify-center rounded-[3px] border transition-colors",
-          isSelected ? checkboxCls : "border-slate-300 bg-white",
+          isSelected ? checkboxCls : "border-slate-300 dark:border-slate-600 bg-white dark:bg-card",
         )}
       >
         <svg
@@ -179,7 +179,7 @@ function MultiSelect({
                     key={val}
                     onClick={(e) => handleRemove(val, e)}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium cursor-pointer transition-colors group-hover:bg-white",
+                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium cursor-pointer transition-colors group-hover:bg-white dark:group-hover:bg-card",
                       chipCls,
                     )}
                   >
@@ -198,7 +198,7 @@ function MultiSelect({
                     onValueChange?.([]);
                   }}
                   className={cn(
-                    "inline-flex items-center justify-center rounded-md p-0.5 cursor-pointer transition-colors group-hover:bg-white",
+                    "inline-flex items-center justify-center rounded-md p-0.5 cursor-pointer transition-colors group-hover:bg-white dark:group-hover:bg-card",
                     chipCls,
                   )}
                 >
