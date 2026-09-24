@@ -204,3 +204,24 @@ export function hasOnlyOneValueForKey(
   )
   return values.length === 1
 }
+
+/**
+ * `hasOnlyOneValueForKey` for every key, in one pass over the data. The area
+ * chart's `dot` renderer runs for every point of every series on every render
+ * (a hover is a render); asking the per-key function there filtered the whole
+ * series once per point — quadratic in the number of points.
+ */
+export function onlyOneValueByKey(
+  data: Record<string, unknown>[],
+  keys: string[],
+): Map<string, boolean> {
+  const counts = new Map<string, number>(keys.map((key) => [key, 0]))
+  for (const item of data) {
+    for (const key of keys) {
+      if (item[key] !== undefined && item[key] !== null) {
+        counts.set(key, (counts.get(key) ?? 0) + 1)
+      }
+    }
+  }
+  return new Map(keys.map((key) => [key, counts.get(key) === 1]))
+}

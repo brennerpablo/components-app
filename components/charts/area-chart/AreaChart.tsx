@@ -30,7 +30,7 @@ import {
   getColorClass,
   isHexColor,
 } from "../utils/chartColors"
-import { type CompactScale, computeNiceTicks, computeYDomainWithPadding, detectCompactScale, formatCompactNumber, getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth } from "../utils/chartHelpers"
+import { type CompactScale, computeNiceTicks, computeYDomainWithPadding, detectCompactScale, formatCompactNumber, getYAxisDomain, hasOnlyOneValueForKey, inferYAxisWidth, measureTextWidth, onlyOneValueByKey } from "../utils/chartHelpers"
 import { MeasuredResponsiveContainer } from "../utils/MeasuredResponsiveContainer"
 
 /**
@@ -783,6 +783,15 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       return inferYAxisWidth(data, categories, valueFormatter)
     }, [yAxisWidth, data, categories, type, valueFormatter, softTicks, yAxisTicks, softResolvedScale])
 
+    // Once per series, not once per point: the `dot` renderer below asks this
+    // for every point of every series on every render (a hover is a render).
+    const singleValueByCategory = React.useMemo(
+      () => onlyOneValueByKey(data, categories),
+      [data, categories],
+    )
+    const hasOnlyOneValue = (key: string) =>
+      singleValueByCategory.get(key) ?? hasOnlyOneValueForKey(data, key)
+
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
 
@@ -834,7 +843,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       if (
         (itemData.index === activeDot?.index &&
           itemData.dataKey === activeDot?.dataKey) ||
-        (hasOnlyOneValueForKey(data, itemData.dataKey) &&
+        (hasOnlyOneValue(itemData.dataKey) &&
           activeLegend &&
           activeLegend === itemData.dataKey)
       ) {
@@ -859,7 +868,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       if (!hasOnValueChange) return
       if (
         (dataKey === activeLegend && !activeDot) ||
-        (hasOnlyOneValueForKey(data, dataKey) &&
+        (hasOnlyOneValue(dataKey) &&
           activeDot &&
           activeDot.dataKey === dataKey)
       ) {
@@ -1224,7 +1233,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                       } = props
 
                       if (
-                        (hasOnlyOneValueForKey(data, category) &&
+                        (hasOnlyOneValue(category) &&
                           !(
                             activeDot ||
                             (activeLegend && activeLegend !== category)
