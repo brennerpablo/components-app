@@ -1,6 +1,8 @@
 import "@tanstack/react-table"
 
-import { RowData } from "@tanstack/react-table"
+import type { ReactNode } from "react"
+
+import { CellContext, HeaderContext, RowData } from "@tanstack/react-table"
 
 declare module "@tanstack/react-table" {
    
@@ -8,5 +10,8 @@ declare module "@tanstack/react-table" {
     className?: string
     displayName: string
     filterOnly?: boolean
+    /** The metadata column's renderers, called by the stable cell/header of `columnBuilder`. */
+    renderCell?: (props: CellContext<TData, TValue>) => ReactNode
+    renderHeader?: (props: HeaderContext<TData, TValue>) => ReactNode
   }
 }

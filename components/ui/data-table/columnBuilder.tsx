@@ -1,6 +1,13 @@
 "use client"
 
-import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
+import {
+  type CellContext,
+  ColumnDef,
+  FilterFn,
+  type HeaderContext,
+  Row,
+} from "@tanstack/react-table"
+import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -115,6 +122,27 @@ export function createMultiColumnTextFilterFn<TData>(extraColumnIds: string[]): 
   return filterFn
 }
 
+/**
+ * The cell and the header of every metadata column are these two components;
+ * the column's own renderer travels in `meta`. flexRender mounts a function
+ * renderer as a component, so a renderer rebuilt with the metadata — an inline
+ * `cell` in a useMemo with a volatile dependency, or the default renderer
+ * below, a new closure on every build — was a new component TYPE, and React
+ * unmounted and remounted every cell of the column (with any chart inside it).
+ * With one stable type the cell re-renders in place and reads the newest
+ * renderer from `meta`.
+ *
+ * The renderer is CALLED, not mounted, so it must not call a hook in its own
+ * body. A cell that needs a hook returns a component element instead.
+ */
+function MetadataCell<TData>(props: CellContext<TData, unknown>): ReactNode {
+  return props.column.columnDef.meta?.renderCell?.(props) ?? null
+}
+
+function MetadataHeader<TData>(props: HeaderContext<TData, unknown>): ReactNode {
+  return props.column.columnDef.meta?.renderHeader?.(props) ?? null
+}
+
 export function buildColumnsFromMetadata<TData>(
   metadata: readonly ColumnMetadata<TData>[],
 ): ColumnDef<TData>[] {
@@ -133,19 +161,21 @@ export function buildColumnsFromMetadata<TData>(
           col.aligned === "left" && "text-left",
           col.columnClassName,
         ),
+        renderHeader: col.header
+          ? col.header
+          : ({ column }) => (
+              <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} description={col.description} />
+            ),
+        renderCell: col.cell
+          ? col.cell
+          : ({ getValue }) => {
+              const value = getValue()
+              if (col.formatter) return col.formatter(value)
+              return String(value ?? "")
+            },
       },
-      header: col.header
-        ? col.header
-        : ({ column }) => (
-            <DataTableColumnHeader column={column} title={col.title} subtitle={col.subtitle} description={col.description} />
-          ),
-      cell: col.cell
-        ? col.cell
-        : ({ getValue }) => {
-            const value = getValue()
-            if (col.formatter) return col.formatter(value)
-            return String(value ?? "")
-          },
+      header: MetadataHeader,
+      cell: MetadataCell,
     }
 
     if (col.filters?.number) {
