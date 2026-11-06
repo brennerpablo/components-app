@@ -21,8 +21,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { BAR_HEIGHT, GanttBar } from "./GanttBar";
+import { GANTT_STRINGS } from "./i18n";
 import type { Timeline } from "./timeline";
-import { buildTimeline, defaultNonWorking, pageDate, SCALE_LABELS } from "./timeline";
+import { buildTimeline, defaultNonWorking, pageDate } from "./timeline";
 import type {
   GanttBar as GanttBarType,
   GanttProps,
@@ -116,6 +117,9 @@ export function Gantt<T = unknown>({
   defaultScale = "month",
   onScaleChange,
   scales = ALL_SCALES,
+  range,
+  fit = false,
+  language = "en",
   date: dateProp,
   defaultDate,
   onDateChange,
@@ -137,6 +141,7 @@ export function Gantt<T = unknown>({
   emptyState,
   className,
 }: GanttProps<T>) {
+  const strings = GANTT_STRINGS[language];
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -171,15 +176,30 @@ export function Gantt<T = unknown>({
     [dateProp, onDateChange],
   );
 
-  const timeline = useMemo(
-    () => buildTimeline(scale, anchor, zoom, weekStartsOn),
-    [scale, anchor, zoom, weekStartsOn],
-  );
-
   const leftWidth = useMemo(
     () => columns.reduce((sum, c, i) => sum + (c.width ?? (i === 0 ? 200 : 120)), 0),
     [columns],
   );
+
+  // With `fit`, whatever width the columns leave free goes to them.
+  const [scrollerWidth, setScrollerWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!fit || !el) return;
+    const observer = new ResizeObserver(() => setScrollerWidth(el.clientWidth));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fit]);
+
+  const timeline = useMemo(() => {
+    const options = { range, language };
+    const natural = buildTimeline(scale, anchor, 1, weekStartsOn, options);
+    const stretch =
+      fit && scrollerWidth > leftWidth && natural.width > 0
+        ? (scrollerWidth - leftWidth) / natural.width
+        : 1;
+    return buildTimeline(scale, anchor, zoom * Math.max(1, stretch), weekStartsOn, options);
+  }, [scale, anchor, zoom, weekStartsOn, range, language, fit, scrollerWidth, leftWidth]);
 
   const toggle = useCallback(
     (id: string, isExpanded: boolean) => {
@@ -265,18 +285,18 @@ export function Gantt<T = unknown>({
         {toolbar && (
           <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
             <Button variant="outline" size="sm" onClick={() => setAnchor(new Date())}>
-              Today
+              {strings.today}
             </Button>
 
             {scales.length > 1 && (
               <Select value={scale} onValueChange={(v) => setScale(v as GanttScale)}>
-                <SelectTrigger size="sm" className="w-28">
+                <SelectTrigger className="h-8! w-28">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {scales.map((s) => (
                     <SelectItem key={s} value={s}>
-                      {SCALE_LABELS[s]}
+                      {strings.scales[s]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -288,7 +308,7 @@ export function Gantt<T = unknown>({
                 variant="ghost"
                 size="icon"
                 className="size-7"
-                aria-label="Previous period"
+                aria-label={strings.previousPeriod}
                 onClick={() => setAnchor(pageDate(scale, anchor, -1))}
               >
                 <ChevronLeft className="size-4" />
@@ -297,7 +317,7 @@ export function Gantt<T = unknown>({
                 variant="ghost"
                 size="icon"
                 className="size-7"
-                aria-label="Next period"
+                aria-label={strings.nextPeriod}
                 onClick={() => setAnchor(pageDate(scale, anchor, 1))}
               >
                 <ChevronRight className="size-4" />
@@ -377,7 +397,7 @@ export function Gantt<T = unknown>({
                 className="sticky left-0 flex items-center justify-center p-10 text-sm text-muted-foreground"
                 style={{ width: leftWidth + timeline.width }}
               >
-                {emptyState ?? "No rows to show"}
+                {emptyState ?? strings.empty}
               </div>
             ) : (
               <div className="flex w-max">
@@ -420,7 +440,7 @@ export function Gantt<T = unknown>({
                               {item.isGroup ? (
                                 <button
                                   type="button"
-                                  aria-label={item.expanded ? "Collapse" : "Expand"}
+                                  aria-label={item.expanded ? strings.collapse : strings.expand}
                                   aria-expanded={item.expanded}
                                   className="flex size-4 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
                                   onClick={(e) => {
@@ -505,6 +525,7 @@ export function Gantt<T = unknown>({
                           top={
                             (rowHeight - BAR_HEIGHT) / 2 + item.lanes[bi] * laneHeight
                           }
+                          language={language}
                           outsideRoom={
                             item.nextInLane[bi] == null
                               ? undefined
@@ -537,7 +558,7 @@ export function Gantt<T = unknown>({
           <div className="absolute right-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-md border border-border bg-background shadow-sm">
             <button
               type="button"
-              aria-label="Zoom in"
+              aria-label={strings.zoomIn}
               disabled={zoom >= ZOOM_MAX}
               onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
               className="flex size-6 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
@@ -546,7 +567,7 @@ export function Gantt<T = unknown>({
             </button>
             <button
               type="button"
-              aria-label="Zoom out"
+              aria-label={strings.zoomOut}
               disabled={zoom <= ZOOM_MIN}
               onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
               className="flex size-6 items-center justify-center border-t border-border text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"

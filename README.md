@@ -676,6 +676,7 @@ A tree-and-timeline chart: a sticky column pane on the left, a scrollable time g
 components/ui/gantt/Gantt.tsx
 components/ui/gantt/GanttBar.tsx
 components/ui/gantt/colors.ts
+components/ui/gantt/i18n.ts
 components/ui/gantt/timeline.ts
 components/ui/gantt/types.ts
 components/ui/gantt/index.ts
@@ -759,6 +760,9 @@ const rows: GanttRow<Task>[] = [
 | `defaultScale`     | `GanttScale`                                         | `"month"`        | Uncontrolled initial scale.                                                     |
 | `onScaleChange`    | `(scale: GanttScale) => void`                        | —                | Fires when the toolbar picker changes.                                          |
 | `scales`           | `GanttScale[]`                                       | all five         | Presets in the toolbar picker; a single-entry array hides it.                   |
+| `range`            | `{ start: Date; end: Date }`                         | —                | Fixed window (`end` exclusive). `scale` then only picks the column unit.        |
+| `fit`              | `boolean`                                            | `false`          | Columns grow to fill the width when the timeline would fall short of it.        |
+| `language`         | `"en" \| "pt"`                                       | `"en"`           | Toolbar text, axis labels and the default hover card.                           |
 | `date`             | `Date`                                               | —                | Controlled anchor date the range is derived from.                               |
 | `defaultDate`      | `Date`                                               | `new Date()`     | Uncontrolled initial anchor date.                                               |
 | `onDateChange`     | `(date: Date) => void`                               | —                | Fires on Today and the prev/next buttons.                                       |

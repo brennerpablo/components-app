@@ -1,7 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
-
 import {
   Tooltip,
   TooltipContent,
@@ -10,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { GANTT_COLOR_CLASSES } from "./colors";
+import { formatFor, GANTT_STRINGS, type GanttLanguage } from "./i18n";
 import type { Timeline } from "./timeline";
 import type { GanttBar as GanttBarType } from "./types";
 
@@ -31,14 +30,17 @@ interface GanttBarProps {
   top: number;
   /** Px to the next bar in this lane — caps the trailing label so they can't collide. */
   outsideRoom?: number;
+  language?: GanttLanguage;
   onClick?: (bar: GanttBarType) => void;
 }
 
-function defaultTooltip(bar: GanttBarType, timeline: Timeline) {
-  const fmt = timeline.unit === "hour" ? "MMM d, h:mm a" : "MMM d, yyyy";
+function defaultTooltip(bar: GanttBarType, timeline: Timeline, language: GanttLanguage) {
+  const strings = GANTT_STRINGS[language];
+  const format = formatFor(language);
+  const fmt = timeline.unit === "hour" ? strings.tooltipDateTime : strings.tooltipDate;
   return (
     <div className="space-y-1">
-      <div className="font-medium">{bar.label ?? "Untitled"}</div>
+      <div className="font-medium">{bar.label ?? strings.untitled}</div>
       <div className="text-muted-foreground">
         {bar.milestone
           ? format(bar.start, fmt)
@@ -46,14 +48,21 @@ function defaultTooltip(bar: GanttBarType, timeline: Timeline) {
       </div>
       {bar.progress != null && !bar.milestone && (
         <div className="text-muted-foreground">
-          {Math.round(bar.progress * 100)}% complete
+          {strings.complete(Math.round(bar.progress * 100))}
         </div>
       )}
     </div>
   );
 }
 
-export function GanttBar({ bar, timeline, top, outsideRoom, onClick }: GanttBarProps) {
+export function GanttBar({
+  bar,
+  timeline,
+  top,
+  outsideRoom,
+  language = "en",
+  onClick,
+}: GanttBarProps) {
   const colors = GANTT_COLOR_CLASSES[bar.color ?? "neutral"];
   const variant = bar.variant ?? "soft";
   const interactive = Boolean(onClick) && !bar.disabled;
@@ -94,7 +103,7 @@ export function GanttBar({ bar, timeline, top, outsideRoom, onClick }: GanttBarP
     <Tooltip>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
       <TooltipContent side="top" sideOffset={6} className="max-w-64 text-xs">
-        {bar.tooltip ?? defaultTooltip(bar, timeline)}
+        {bar.tooltip ?? defaultTooltip(bar, timeline, language)}
       </TooltipContent>
     </Tooltip>
   );

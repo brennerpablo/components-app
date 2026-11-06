@@ -4,7 +4,6 @@ import {
   addMonths,
   addWeeks,
   addYears,
-  format,
   getQuarter,
   getWeek,
   startOfDay,
@@ -14,7 +13,8 @@ import {
   startOfYear,
 } from "date-fns";
 
-import type { GanttScale } from "./types";
+import { formatFor, GANTT_STRINGS, type GanttLanguage } from "./i18n";
+import type { GanttRange, GanttScale } from "./types";
 
 export interface TimelineColumn {
   start: Date;
@@ -59,10 +59,22 @@ interface ScaleSpec {
   rangeStart: (anchor: Date, weekStartsOn: WeekStart) => Date;
   rangeEnd: (start: Date) => Date;
   page: (anchor: Date, direction: number) => Date;
-  title: (start: Date, end: Date) => string;
+  title: (start: Date, end: Date, language: GanttLanguage) => string;
 }
 
 type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+function dayTitle(d: Date, language: GanttLanguage): string {
+  return formatFor(language)(
+    d,
+    language === "pt" ? "EEEE, d 'de' MMMM 'de' yyyy" : "EEEE, MMMM d, yyyy",
+  );
+}
+
+function quarterTitle(d: Date, language: GanttLanguage): string {
+  const year = formatFor(language)(d, "yyyy");
+  return language === "pt" ? `${getQuarter(d)}º tri ${year}` : `Q${getQuarter(d)} ${year}`;
+}
 
 const SCALES: Record<GanttScale, ScaleSpec> = {
   day: {
@@ -71,7 +83,7 @@ const SCALES: Record<GanttScale, ScaleSpec> = {
     rangeStart: (a) => startOfDay(a),
     rangeEnd: (s) => addDays(s, 1),
     page: (a, d) => addDays(a, d),
-    title: (s) => format(s, "EEEE, MMMM d, yyyy"),
+    title: (s, _e, l) => dayTitle(s, l),
   },
   week: {
     unit: "day",
@@ -79,7 +91,13 @@ const SCALES: Record<GanttScale, ScaleSpec> = {
     rangeStart: (a, w) => startOfWeek(a, { weekStartsOn: w }),
     rangeEnd: (s) => addWeeks(s, 1),
     page: (a, d) => addWeeks(a, d),
-    title: (s, e) => `${format(s, "MMM d")} – ${format(addDays(e, -1), "MMM d, yyyy")}`,
+    title: (s, e, l) => {
+      const format = formatFor(l);
+      const last = addDays(e, -1);
+      return l === "pt"
+        ? `${format(s, "d MMM")} – ${format(last, "d MMM yyyy")}`
+        : `${format(s, "MMM d")} – ${format(last, "MMM d, yyyy")}`;
+    },
   },
   month: {
     unit: "day",
@@ -87,7 +105,7 @@ const SCALES: Record<GanttScale, ScaleSpec> = {
     rangeStart: (a) => startOfMonth(a),
     rangeEnd: (s) => addMonths(s, 1),
     page: (a, d) => addMonths(a, d),
-    title: (s) => format(s, "MMMM yyyy"),
+    title: (s, _e, l) => formatFor(l)(s, l === "pt" ? "MMMM 'de' yyyy" : "MMMM yyyy"),
   },
   quarter: {
     unit: "week",
@@ -95,7 +113,7 @@ const SCALES: Record<GanttScale, ScaleSpec> = {
     rangeStart: (a) => startOfQuarter(a),
     rangeEnd: (s) => addMonths(s, 3),
     page: (a, d) => addMonths(a, d * 3),
-    title: (s) => `Q${getQuarter(s)} ${format(s, "yyyy")}`,
+    title: (s, _e, l) => quarterTitle(s, l),
   },
   year: {
     unit: "month",
@@ -103,17 +121,11 @@ const SCALES: Record<GanttScale, ScaleSpec> = {
     rangeStart: (a) => startOfYear(a),
     rangeEnd: (s) => addYears(s, 1),
     page: (a, d) => addYears(a, d),
-    title: (s) => format(s, "yyyy"),
+    title: (s, _e, l) => formatFor(l)(s, "yyyy"),
   },
 };
 
-export const SCALE_LABELS: Record<GanttScale, string> = {
-  day: "Day",
-  week: "Week",
-  month: "Month",
-  quarter: "Quarter",
-  year: "Year",
-};
+export const SCALE_LABELS: Record<GanttScale, string> = GANTT_STRINGS.en.scales;
 
 /** Moves the anchor date one page forward (1) or back (-1). */
 export function pageDate(scale: GanttScale, anchor: Date, direction: number): Date {
@@ -133,14 +145,24 @@ function stepColumn(unit: Timeline["unit"], d: Date, weekStartsOn: WeekStart): D
   }
 }
 
-function columnLabel(unit: Timeline["unit"], d: Date, weekStartsOn: WeekStart): string {
+/** date-fns' `EEE` spells the whole word in pt-BR («terça»), too wide for a column. */
+const PT_WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+function columnLabel(
+  unit: Timeline["unit"],
+  d: Date,
+  weekStartsOn: WeekStart,
+  language: GanttLanguage,
+): string {
+  const format = formatFor(language);
+  const pt = language === "pt";
   switch (unit) {
     case "hour":
-      return format(d, "h a");
+      return format(d, pt ? "HH'h'" : "h a");
     case "day":
-      return format(d, "EEE d");
+      return pt ? `${PT_WEEKDAYS[d.getDay()]} ${d.getDate()}` : format(d, "EEE d");
     case "week":
-      return `W${getWeek(d, { weekStartsOn })}`;
+      return pt ? format(d, "dd/MM") : `W${getWeek(d, { weekStartsOn })}`;
     case "month":
       return format(d, "MMM");
   }
@@ -151,23 +173,28 @@ function groupOf(
   unit: Timeline["unit"],
   d: Date,
   weekStartsOn: WeekStart,
+  language: GanttLanguage,
 ): { key: string; label: string } {
+  const format = formatFor(language);
   switch (unit) {
     case "hour":
-      return { key: format(d, "yyyy-MM-dd"), label: format(d, "EEEE, MMMM d, yyyy") };
+      return { key: format(d, "yyyy-MM-dd"), label: dayTitle(d, language) };
     case "day": {
       const ws = startOfWeek(d, { weekStartsOn });
       const we = addDays(ws, 6);
       const sameMonth = ws.getMonth() === we.getMonth();
       return {
         key: format(ws, "yyyy-MM-dd"),
-        label: `W${getWeek(ws, { weekStartsOn })} ${format(ws, "MMM d")} - ${format(we, sameMonth ? "d" : "MMM d")}`,
+        label:
+          language === "pt"
+            ? `${format(ws, sameMonth ? "d" : "d MMM")} – ${format(we, "d MMM")}`
+            : `W${getWeek(ws, { weekStartsOn })} ${format(ws, "MMM d")} - ${format(we, sameMonth ? "d" : "MMM d")}`,
       };
     }
     case "week":
       return { key: format(startOfMonth(d), "yyyy-MM"), label: format(d, "MMMM") };
     case "month":
-      return { key: `${format(d, "yyyy")}-Q${getQuarter(d)}`, label: `Q${getQuarter(d)} ${format(d, "yyyy")}` };
+      return { key: `${format(d, "yyyy")}-Q${getQuarter(d)}`, label: quarterTitle(d, language) };
   }
 }
 
@@ -189,10 +216,12 @@ export function buildTimeline(
   anchor: Date,
   zoom: number,
   weekStartsOn: WeekStart = 0,
+  options: { range?: GanttRange; language?: GanttLanguage } = {},
 ): Timeline {
+  const { range, language = "en" } = options;
   const spec = SCALES[scale];
-  const start = spec.rangeStart(anchor, weekStartsOn);
-  const end = spec.rangeEnd(start);
+  const start = range ? startOfDay(range.start) : spec.rangeStart(anchor, weekStartsOn);
+  const end = range ? range.end : spec.rangeEnd(start);
   const colWidth = Math.round(spec.colWidth * zoom);
 
   const columns: TimelineColumn[] = [];
@@ -212,10 +241,10 @@ export function buildTimeline(
     columns.push({
       start: cursor,
       end: next,
-      label: columnLabel(spec.unit, cursor, weekStartsOn),
+      label: columnLabel(spec.unit, cursor, weekStartsOn, language),
       major: isMajor(spec.unit, cursor, weekStartsOn),
     });
-    const g = groupOf(spec.unit, cursor, weekStartsOn);
+    const g = groupOf(spec.unit, cursor, weekStartsOn, language);
     const last = groups[groups.length - 1];
     if (last && last.key === g.key) last.span += 1;
     else groups.push({ ...g, span: 1 });
@@ -255,7 +284,7 @@ export function buildTimeline(
     groups,
     colWidth,
     width,
-    title: spec.title(start, end),
+    title: spec.title(start, end, language),
     x,
     contains: (time) => +time >= gridStart && +time <= gridEnd,
   };

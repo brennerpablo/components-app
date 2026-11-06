@@ -134,6 +134,25 @@ const rows: GanttRow<Task>[] = [
               description: "Rendered at the right end of the toolbar.",
             },
             {
+              name: "range",
+              type: "{ start: Date; end: Date }",
+              description:
+                "Fixed window (end exclusive), for when something outside the chart owns the time filter. scale then only picks the column unit.",
+            },
+            {
+              name: "fit",
+              type: "boolean",
+              default: "false",
+              description:
+                "Columns grow to fill the width when the timeline would otherwise fall short of it.",
+            },
+            {
+              name: "language",
+              type: '"en" | "pt"',
+              default: '"en"',
+              description: "Toolbar text, axis labels and the default hover card.",
+            },
+            {
               name: "zoomControls",
               type: "boolean",
               default: "true",

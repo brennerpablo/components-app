@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { GanttLanguage } from "./i18n";
+
 /**
  * Categorical identity colors. The order is the validated slot order — assign
  * from slot 1 upward and never cycle past slot 8; a 9th category folds into
@@ -18,6 +20,13 @@ export type GanttColor =
 
 /** Timeline preset — picks both the visible range and the column unit. */
 export type GanttScale = "day" | "week" | "month" | "quarter" | "year";
+
+/** A fixed date window, for when something outside the chart owns the time filter. */
+export interface GanttRange {
+  start: Date;
+  /** Exclusive. */
+  end: Date;
+}
 
 export type GanttBarVariant = "soft" | "solid" | "outline";
 
@@ -92,6 +101,13 @@ export interface GanttProps<T = unknown> {
   onScaleChange?: (scale: GanttScale) => void;
   /** Presets offered by the toolbar picker. Omit the picker with an empty array. */
   scales?: GanttScale[];
+
+  /** Fixed window. `scale` then only picks the column unit, and paging has no effect. */
+  range?: GanttRange;
+  /** Columns grow to fill the width when the timeline would otherwise fall short of it. */
+  fit?: boolean;
+  /** Toolbar text, axis labels and the default hover card. Defaults to English. */
+  language?: GanttLanguage;
 
   /** Anchor date the visible range is derived from. */
   date?: Date;
