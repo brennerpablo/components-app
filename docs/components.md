@@ -1,6 +1,6 @@
-# components-app
+# Component reference
 
-Personal component library built with Next.js + React + shadcn/ui. Components are designed to be **copied into other projects** (shadcn-style copy-paste model — no package to install, no version lock-in).
+Everything needed to copy each component of [components-app](../README.md) into another project: files, shadcn and npm dependencies, internal dependencies, type augmentations, usage, props and notes. Components are designed to be **copied into other projects** (shadcn-style copy-paste model — no package to install, no version lock-in).
 
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui (New York, neutral) · Radix UI · Lucide React
 

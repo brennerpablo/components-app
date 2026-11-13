@@ -15,17 +15,17 @@ Follow these steps exactly and in order. Do not skip steps.
 The source repo is at `/Users/pablobrenner/Documents/repos/components-app`. Confirm it is reachable:
 
 ```bash
-ls /Users/pablobrenner/Documents/repos/components-app/README.md
+ls /Users/pablobrenner/Documents/repos/components-app/docs/components.md
 ```
 
 If the path does not exist, stop and tell the user to provide the correct path to `components-app`.
 
-### Step 1 — Read the README entry for each requested component
+### Step 1 — Read the reference entry for each requested component
 
-For each component name in `$ARGUMENTS`, read the corresponding section from the source README:
+For each component name in `$ARGUMENTS`, read the corresponding section from the source component reference (`docs/components.md`):
 
 ```
-Read: /Users/pablobrenner/Documents/repos/components-app/README.md
+Read: /Users/pablobrenner/Documents/repos/components-app/docs/components.md
 ```
 
 Extract and record:
@@ -98,7 +98,7 @@ For each `.d.ts` listed under **Type augmentations** that is new or changed, wri
 
 ### Step 7 — Report call-site impact
 
-Read the component's **Props** table from the README entry (source) and compare it to the previous version you read from the target in Step 2. List:
+Read the component's **Props** table from the `docs/components.md` entry (source) and compare it to the previous version you read from the target in Step 2. List:
 
 - Props added (new required props will break existing call sites)
 - Props removed or renamed
@@ -130,4 +130,4 @@ Next step: search your codebase for usages and update call sites where noted abo
 
 Remind the user to:
 1. Run `tsc --noEmit` (or the project's type-check command) to catch type errors
-2. Visually verify the component renders against the usage example in the README
+2. Visually verify the component renders against the usage example in `docs/components.md`

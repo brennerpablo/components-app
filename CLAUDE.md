@@ -2,13 +2,15 @@
 
 Instructions for Claude when working in this repository.
 
-## README Maintenance (critical)
+## Component Reference Maintenance (critical)
 
-Whenever you **create or update a component**, you must also update `README.md`:
+The per-component reference lives in `docs/components.md`; `README.md` is the short GitHub landing page. Whenever you **create or update a component**, you must also update `docs/components.md`:
 
-- Use the **Component Template** scaffold at the top of the README as the format.
+- Use the **Component Template** scaffold at the top of `docs/components.md` as the format.
 - Keep the entry complete: files to copy, shadcn deps, npm deps, internal deps, type augmentations, usage example, props table, features list, and notes.
 - If you're only making a minor fix, update the relevant section of the existing entry rather than rewriting it from scratch.
+
+When you **add or remove a component**, also update `README.md`: the component count (badge and the "Why" table) and the **Catalog** table. Its screenshots in `docs/assets/` (light + dark `.webp`) are only refreshed on request.
 
 ## Stack
 
