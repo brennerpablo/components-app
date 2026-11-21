@@ -4,13 +4,13 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { COMPONENT_SECTIONS } from "@/lib/components-registry";
+import { COMPONENT_SECTIONS, isActiveRoute } from "@/lib/components-registry";
 
 const ALL = COMPONENT_SECTIONS.flatMap((s) => s.components);
 
 export function DemoBreadcrumb() {
   const pathname = usePathname();
-  const active = ALL.find((c) => pathname.startsWith(c.href));
+  const active = ALL.find((c) => isActiveRoute(pathname, c.href));
 
   if (!active) return null;
 

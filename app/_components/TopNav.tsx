@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Popover } from "radix-ui";
 import { useState } from "react";
 
-import { COMPONENT_SECTIONS } from "@/lib/components-registry";
+import { COMPONENT_SECTIONS, isActiveRoute } from "@/lib/components-registry";
 import { cn } from "@/lib/utils";
 
 const ALL = COMPONENT_SECTIONS.flatMap((s) => s.components);
@@ -15,7 +15,7 @@ export function TopNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const active = ALL.find((c) => pathname.startsWith(c.href));
+  const active = ALL.find((c) => isActiveRoute(pathname, c.href));
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95">
@@ -60,7 +60,7 @@ export function TopNav() {
                     <div className="px-1.5 pb-1.5 space-y-px">
                       {section.components.map(
                         ({ href, title, shortDescription }) => {
-                          const isActive = pathname.startsWith(href);
+                          const isActive = isActiveRoute(pathname, href);
                           return (
                             <Link
                               key={href}
@@ -109,7 +109,7 @@ export function TopNav() {
                     <div className="space-y-px">
                       {section.components.map(
                         ({ href, title, shortDescription, icon: Icon }) => {
-                          const isActive = pathname.startsWith(href);
+                          const isActive = isActiveRoute(pathname, href);
                           return (
                             <Link
                               key={href}

@@ -470,6 +470,184 @@ export default function Page() {
 
 ---
 
+### DataTableV2
+
+A metadata-driven table on TanStack Table with one filter grammar: the funnel on each header opens that column's filter card, the filters in use sit in a strip of chips under the toolbar, and «Filtrar» opens every filterable column in one panel (columns in use first). Every Apply button says how many rows it will show before it is pressed. Search, multi-sort, column picker, totals, selection with bulk shortcuts, pinned columns, sticky header, fullscreen and CSV/XLSX export come in the same call, as do trees, expandable details, sections, card grids and server pagination. The chrome is in Portuguese (pt-BR numbers and dates).
+
+**Demo:** `localhost:3000/data-table-v2`
+
+#### Files to copy
+
+```
+components/ui/data-table-v2/                       (whole folder — 31 files incl. index.ts)
+components/ui/data-table/types.ts                  (ColumnMetadata, FilterConfig, OptionItem)
+components/ui/data-table/TanstackTable.d.ts        (ColumnMeta augmentation)
+components/ui/data-table/DataTableStickyHeader.tsx (floating header)
+components/ui/date-picker/                         (range picker of the date filter)
+components/charts/utils/chartColors.ts             (heatmap colours)
+lib/fold-text.ts
+lib/use-body-scroll-lock.ts
+lib/exportTableToCSV.ts
+lib/exportTableToXLSX.ts
+```
+
+#### shadcn dependencies
+
+```bash
+npx shadcn@latest add button checkbox dropdown-menu input popover select tooltip table calendar
+```
+
+#### npm dependencies
+
+```bash
+npm install @tanstack/react-table papaparse xlsx date-fns react-day-picker
+```
+
+#### Internal dependencies
+
+| File                                              | Purpose                                                                   |
+| ------------------------------------------------- | ------------------------------------------------------------------------- |
+| `lib/utils.ts`                                    | `cn()` utility — already present in any shadcn project                    |
+| `components/ui/data-table/types.ts`               | `ColumnMetadata` and `FilterConfig`, which `DataTableV2Column` extends    |
+| `components/ui/data-table/DataTableStickyHeader.tsx` | Floating copy of the header (`stickyHeader`); needs `components/ui/table` |
+| `components/ui/date-picker/`                      | `DatePicker mode="range"` inside the date filter                          |
+| `components/charts/utils/chartColors.ts`          | `chartColorToCss` for `heatmap.baseColor`                                 |
+| `lib/fold-text.ts`                                | Accent-insensitive search and option lookup                               |
+| `lib/use-body-scroll-lock.ts`                     | Locks page scroll in fullscreen                                           |
+| `lib/exportTableToCSV.ts` / `lib/exportTableToXLSX.ts` | Export of the filtered rows and visible columns                      |
+| `app/globals.css`                                 | `.grid-scrollbar` styling of the scroll areas (optional)                  |
+
+#### Type augmentations
+
+| File                                         | What it augments                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `components/ui/data-table/TanstackTable.d.ts` | `@tanstack/react-table` `ColumnMeta` with `className`, `displayName`, `filterOnly`, `renderCell`, `renderHeader` |
+
+#### Usage
+
+```tsx
+import { DataTableV2, type DataTableV2Column } from "@/components/ui/data-table-v2"
+
+type Fundo = { id: string; nome: string; classe: string; pl: number; inicio: string }
+
+const columns: DataTableV2Column<Fundo>[] = [
+  { columnId: "nome", title: "Fundo", type: "text", sortable: true, filters: { text: true } },
+  {
+    columnId: "classe", title: "Classe", type: "text", sortable: true,
+    options: [{ value: "fidc", label: "FIDC" }, { value: "fim", label: "Multimercado" }],
+    filters: { checkbox: true },
+  },
+  {
+    columnId: "pl", title: "PL", subtitle: "R$ mi", type: "number", sortable: true,
+    filters: { number: true }, filterScale: 1e-6, filterUnit: "R$ mi", total: "sum",
+    formatter: (v) => (Number(v) / 1e6).toLocaleString("pt-BR", { maximumFractionDigits: 1 }),
+  },
+  { columnId: "inicio", title: "Início", type: "date", sortable: true, filters: { date: true } },
+]
+
+export default function Page() {
+  return (
+    <DataTableV2<Fundo>
+      data={fundos}
+      columnsMetadata={columns}
+      getRowId={(row) => row.id}
+      title="Fundos"
+      rowLabel={{ singular: "fundo", plural: "fundos" }}
+      pinFirstColumn
+      enableRowSelection
+      onBulkAction={{ onEdit: (rows) => edit(rows) }}
+      initialColumnFilters={[{ id: "classe", value: ["fidc"] }]}
+    />
+  )
+}
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | `TData[]` | — | **Required.** Rows (the roots in tree mode) |
+| `columnsMetadata` | `DataTableV2Column<TData>[]` | — | **Required.** Column definitions (fields below) |
+| `getRowId` | `(row) => string` | position | Stable id; needed for selection across data changes and `pinnedTopRowIds` |
+| `tableId` | `string` | — | Saves the view (sort, filters, column order/visibility, density, card view, tree levels) in `localStorage` under `data-table-v2.<tableId>` |
+| `tableName` | `string` | `"export"` | Export file name |
+| `rowLabel` | `{ singular; plural }` | `linha` / `linhas` | Noun in counts, search placeholder and Apply buttons |
+| `title` | `string` | — | Toolbar title with the row count |
+| `frame` | `"card" \| "table" \| "none"` | `"card"` | Bordered card, bordered table only, or no border |
+| `rowStyle` | `"lines" \| "striped" \| "grid" \| "cards"` | `"lines"` | Row separators, zebra, full grid or separated row cards |
+| `headerStyle` | `"soft" \| "plain"` | `"soft"` | Tinted or transparent header |
+| `density` | `"default" \| "compact"` | `"default"` | Initial row height |
+| `groupDividers` | `boolean` | `false` | Vertical rule between column groups |
+| `controls` | `"full" \| "icons"` | `"full"` | Toolbar buttons with labels or icon-only |
+| `toolbarControls` | `ReactNode` | — | Screen controls at the right of the toolbar |
+| `enableToolbar` / `enableSearch` / `enableExport` / `enableColumnOptions` / `enableDensityToggle` | `boolean` | `true` | Toolbar parts (`enableToolbar={false}` also hides the chips and the header funnels) |
+| `enableFullscreen` | `boolean` | `false` | Fullscreen toggle (Esc leaves) |
+| `enablePagination` | `boolean` | `true` | Paginates |
+| `paginationPosition` | `"toolbar" \| "top" \| "bottom" \| "both"` | `"toolbar"` | Where the pager sits |
+| `pageSize` | `number` | `25` | Initial page size |
+| `initialSorting` | `SortingState` | — | Initial sort (multi-sort allowed) |
+| `initialColumnFilters` | `ColumnFiltersState` | — | Initial filters: options `string[]`; number `{ condition, value: [a, b] }` in filter units; date `{ from, to }`; text `string` |
+| `columnFiltersState` / `searchState` | `{ value; onChange }` | — | Controlled filters / search |
+| `enableRowSelection` | `boolean` | `false` | Checkbox column; a row click toggles it |
+| `onBulkAction` | `{ onEdit?; onDelete?; actions?; controls? }` | — | Bar for selected rows; `E` edits, `D` deletes, custom actions take a `shortcut` |
+| `onRowAction` / `renderRowActions` | `{ onAdd?; onEdit?; onDelete? }` / `(row) => ReactNode` | — | Row menu (⋯) or custom actions cell |
+| `pinnedTopRowIds` | `string[]` | — | Rows kept at the top of every page |
+| `pinFirstColumn` / `pinColumns` | `boolean` / `number` | `false` / — | Frozen leading data columns (phones always freeze the first) |
+| `stickyHeader` / `stickyHeaderOffset` | `boolean` / `number` | `false` / 16 | Floating header while the real one is scrolled away |
+| `summaryRow` | `{ label; position? }` | — | Row with the page totals of the columns that declare `total` |
+| `getSubRows` / `defaultExpandedDepth` / `maxChildrenPerNode` / `treeLevels` | — | — / `1` | Tree mode, depth on load, «Mostrar mais» cap, named levels the user can hide |
+| `renderDetail` / `hasDetail` / `initialOpenDetailIds` | — | — | Expandable detail under each row |
+| `sections` | `{ items; getSectionId; fallbackSectionId? }` | — | Collapsible section rows with counts and totals |
+| `renderCard` / `cardMinWidth` / `cardView` / `enableCardViewToggle` | — | — / `320` / `"grid"` / `false` | Card grid instead of a table |
+| `serverPagination` | `DataTableV2ServerPagination` | — | Manual paging, sorting and filtering; `onDownload` replaces the export menu |
+| `serverSearch` / `serverSelectAll` | — | — | Search box and «select the whole filter» for server mode |
+| `fetching` | `boolean` | `false` | Dims the table and blocks input |
+| `emptyMessage` / `footerNote` / `className` | — | `"Sem resultados."` | Empty state, note under the table, root classes |
+
+**`DataTableV2Column` fields** (on top of DataTable's `ColumnMetadata`: `columnId`, `title`, `subtitle`, `description`, `type`, `sortable`, `hideable`, `options`, `inferOptions`, `filterOnly`, `aligned`, `columnClassName`, `formatter`, `cell`, `header`):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `filters` | `FilterConfig & { checkboxArray? }` | `checkbox` / `checkboxSearch` / `checkboxArray` / `select` → value list (`select` is single choice, lists over 8 values get a search box); `number` / `percentage` → condition + value; `date` / `dateSingle` → date range; `text` → contains |
+| `filterScale` | `number` | Multiplies the value before the number filter compares (`1e-6` filters reais in millions) |
+| `filterUnit` | `string` | Unit printed in the number filter and its summary |
+| `total` | `"sum" \| "average" \| (rows) => ReactNode` | Footer, section and summary totals |
+| `group` | `string` | Column group header for adjacent columns |
+| `defaultVisible` | `boolean` | `false` starts hidden but stays in the picker |
+| `sortingFn` / `sortUndefined` | `SortingFnOption` / `"first" \| "last"` | Custom sort; where `undefined` goes |
+| `link` | `DataTableV2Link<TData>` | Cell as a `next/link`: `{ href, label?, subtitle?, title?, variant?, onClick? }` |
+| `cellTone` | `(row) => "muted" \| null` | Tints a cell |
+| `exportValue` | `(row) => unknown` | Export value instead of the raw one |
+| `grow` / `textCap` / `headerWrap` | `boolean` | Takes the spare width / `false` lifts the 280px cap of text columns / wrapping header |
+| `heatmap` | `{ baseColor; maxAlpha?; scale?; domain?; getValue? }` | Background by value; `baseColor` is a `chartColors` name or hex |
+
+Also exported: `DataTableV2Detail` (title + count + actions block for `renderDetail`), `DataTableV2RowMenuTrigger` (the ⋯ button for `renderRowActions`), `matrixToTable` (turns a row × column matrix into rows + columns) and `parseNumberBr`.
+
+**Features:**
+
+- Filter card per column from the header funnel; chips for the filters in use (click edits, × removes, «Limpar filtros» clears); «Filtrar» panel with «Em uso» first and every other column below
+- Live counts: «Mostrar 12 fundos» on every Apply button, computed with the draft before applying (client mode)
+- Filter kinds from metadata: value lists (with search above 8 values, single choice with `select`), number conditions with units and scale, date ranges, text contains
+- Accent-insensitive search over every column, option labels and formatted values included; digit-only terms also match punctuated numbers
+- Multi-sort from the headers (shift-click) or the «Ordenar» panel, drag to reorder priority
+- Column picker with drag (and arrow keys) to reorder, «Redefinir colunas»
+- Totals footer, column groups, heatmap cells, frozen columns, sticky header, floating horizontal scrollbar, fullscreen
+- Selection with bulk bar and single-key shortcuts; row menu; pinned rows
+- Trees with depth picker and hideable named levels, expandable details, collapsible sections, card grid/list
+- Server pagination with manual sort/filter, server search and «select the whole filter»
+
+#### Notes
+
+- **Portuguese only.** Labels, counts, number and date formats are pt-BR; there is no `language` prop.
+- Popovers use a small frame local to the folder (`popover-frame.tsx`): title band with icon, header actions and close, a body, and a footer. Panels push their buttons into the band and the footer through `FrameHeaderActions` / `FrameFooter` portals.
+- Number filter values are stored in **filter units**: with `filterScale: 1e-6`, `{ condition: "is-greater-than", value: [100, 100] }` means more than R$ 100 mi.
+- Row counts on Apply buttons need the rows in memory: in server and tree mode the buttons read «Aplicar».
+- `tableId` keys `localStorage` by table only. In an app with accounts, put the user (and org) in the id so two people on one browser don't share a view.
+- `filterValueFormatter` and the v1 `percentage` slider are ignored: `percentage` columns get the number filter.
+- Fullscreen sits at `z-50` like the v1 DataTable; the sticky header and floating scrollbar go to `z-51` inside it.
+
+---
+
 ### DataGrid
 
 A virtualized, spreadsheet-style data grid for very large datasets. Excel-style per-column filters (checkbox value lists + typed conditions), cell/row/column selection with clipboard copy, a right-click menu, drag-to-reorder and drag-to-resize columns (double-click the handle to fit the content), user-driven frozen columns on the left and display-only pinned columns on the right, find-in-grid (Ctrl/Cmd+F), row density, undo/redo of the view, saved views, CSV/XLSX export, a fullscreen toggle, and English/Portuguese chrome. Server-oriented by contract (a sparse `getRow` accessor + windowed block fetching), so it scales to millions of rows; `useClientGridSource` drives it from a plain array for local data.

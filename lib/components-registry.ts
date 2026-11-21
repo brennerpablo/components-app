@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Activity, AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChart4, BarChartHorizontal, CalendarDays, CalendarRange, ChartGantt, ChevronDown, GaugeCircle, Grid3X3, ListChecks, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
+import { Activity, AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChart4, BarChartHorizontal, CalendarDays, CalendarRange, ChartGantt, ChevronDown, GaugeCircle, Grid3X3, ListChecks, ListFilter, PanelTop, PieChart, Sheet, Sigma, Square, TableProperties, Tag } from "lucide-react";
 
 export type ComponentEntry = {
   title: string;
@@ -29,6 +29,15 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
         shortDescription: "Sortable, filterable data grid",
         icon: TableProperties,
         tags: ["TanStack Table", "Drag & Drop", "Filters"],
+      },
+      {
+        title: "Data Table v2",
+        href: "/data-table-v2",
+        description:
+          "A metadata-driven table with one filter grammar: a funnel on each header opens that column's card, applied filters sit in a strip of chips, and a panel edits them all, each Apply button counting the rows it will show. Search, multi-sort, totals, selection with bulk shortcuts, pinned columns, trees, details, sections, card grids and server pagination in one call.",
+        shortDescription: "Metadata table with column filter cards",
+        icon: ListFilter,
+        tags: ["TanStack Table", "Filter chips", "Trees", "pt-BR"],
       },
       {
         title: "Data Grid",
@@ -216,3 +225,7 @@ export const COMPONENT_SECTIONS: ComponentSection[] = [
     ],
   },
 ];
+
+export function isActiveRoute(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

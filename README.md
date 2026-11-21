@@ -8,7 +8,7 @@
 **Reusable React components for building cool dashboards. Copy, paste, ship.**
 
 [![Live](https://img.shields.io/badge/live-components.pbrenner.com-3b82f6?style=flat-square&labelColor=0a0a0a)](https://components.pbrenner.com)
-[![Components](https://img.shields.io/badge/components-20-3b82f6?style=flat-square&labelColor=0a0a0a)](#catalog)
+[![Components](https://img.shields.io/badge/components-21-3b82f6?style=flat-square&labelColor=0a0a0a)](#catalog)
 [![Install](https://img.shields.io/badge/install-copy_%26_paste-3b82f6?style=flat-square&labelColor=0a0a0a)](#how-it-works)
 <br>
 ![Next.js](https://img.shields.io/badge/Next.js_16-0a0a0a?style=flat-square&logo=nextdotjs&logoColor=60a5fa)
@@ -31,7 +31,7 @@
 
 <table>
   <tr>
-    <td align="center" width="25%"><h2>20</h2>components, from data grids to date pickers</td>
+    <td align="center" width="25%"><h2>21</h2>components, from data grids to date pickers</td>
     <td align="center" width="25%"><h2>7</h2>charts, light and dark from the same tokens</td>
     <td align="center" width="25%"><h2>1</h2>JSX call per component, all props</td>
     <td align="center" width="25%"><h2>0</h2>packages to install from here</td>
@@ -101,7 +101,7 @@ so the code is yours and no version pins you down. Every one has a live demo and
 
 | Group | Components |
 |---|---|
-| **Rich** | [DataTable](https://components.pbrenner.com/data-table) · [DataGrid](https://components.pbrenner.com/data-grid) · [EditableGrid](https://components.pbrenner.com/editable-grid) · [Gantt](https://components.pbrenner.com/gantt) · [FormulaBuilder](https://components.pbrenner.com/formula-builder) |
+| **Rich** | [DataTable](https://components.pbrenner.com/data-table) · [DataTable v2](https://components.pbrenner.com/data-table-v2) · [DataGrid](https://components.pbrenner.com/data-grid) · [EditableGrid](https://components.pbrenner.com/editable-grid) · [Gantt](https://components.pbrenner.com/gantt) · [FormulaBuilder](https://components.pbrenner.com/formula-builder) |
 | **Charts** | [AreaChart](https://components.pbrenner.com/charts/area-chart) · [BarChart](https://components.pbrenner.com/charts/bar-chart) · [DonutChart](https://components.pbrenner.com/charts/donut-chart) · [SparkAreaChart](https://components.pbrenner.com/charts/spark-area-chart) · [WaterfallChart](https://components.pbrenner.com/charts/waterfall-chart) · [CompositionBar](https://components.pbrenner.com/charts/composition-bar) · [ProgressBar](https://components.pbrenner.com/charts/progress-bar) · [StatusMap](https://components.pbrenner.com/status-map) |
 | **UI** | [Tabs](https://components.pbrenner.com/ui/tabs) · [Badge](https://components.pbrenner.com/ui/badge) · [Select](https://components.pbrenner.com/ui/select) · [MultiSelect](https://components.pbrenner.com/multi-select) · [DatePicker](https://components.pbrenner.com/date-picker) · [MonthPicker](https://components.pbrenner.com/month-picker) · [Card](https://components.pbrenner.com/ui/card) |
 
